@@ -32,13 +32,16 @@ function setup() {
 describe("buildData", () => {
   it("writes points and categories modules that parse as Lua", () => {
     const { lsx, points, stage } = setup();
-    buildData({ pointsFile: points, lsxRoot: lsx, stageDir: stage });
+    buildData({ pointsFile: points, lsxRoot: lsx, stageDir: stage, submaps: [{ trigger: "u", building: "Underdark", floor: 1, center: [0, 0, 0], half: [1, 1, 1], rot: [0, 0, 0, 1], area: 4 }] });
     const dir = dataDir(stage);
     const pts = readFileSync(path.join(dir, "Wilderness.lua"), "utf8");
     const cats = readFileSync(path.join(dir, "Categories.lua"), "utf8");
     expect(() => luaparse.parse(pts, { luaVersion: "5.3" })).not.toThrow();
     expect(() => luaparse.parse(cats, { luaVersion: "5.3" })).not.toThrow();
-    expect(pts).toContain('{"a","trap",1200,917.5,"Trap","Ловушка",2}');
+    expect(pts).toContain('{"a","trap",1200,917.5,"Trap","Ловушка",2,nil,nil}');
+    const subs = readFileSync(path.join(dir, "Submaps.lua"), "utf8");
+    expect(() => luaparse.parse(subs, { luaVersion: "5.3" })).not.toThrow();
+    expect(subs).toContain('{"Underdark",1,');
     for (const r of categoryRules) expect(cats).toContain(`"${r.id}"`);
   });
 

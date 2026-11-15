@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import luaparse from "luaparse";
 import { describe, expect, it } from "vitest";
-import { luaString, pointsLua, readMapOrigin, toMapLocal } from "../lib/mapdata.ts";
+import { luaString, pointsLua, readMapOrigin, submapsLua, toMapLocal } from "../lib/mapdata.ts";
 import type { Point } from "../lib/points.ts";
 
 function point(over: Partial<Point>): Point {
@@ -69,14 +69,28 @@ describe("pointsLua", () => {
     expect(() => luaparse.parse(lua, { luaVersion: "5.3" })).not.toThrow();
   });
 
-  it("keeps only surface points", () => {
-    expect(lua).toContain('"surface"');
-    expect(lua).not.toContain('"below"');
+  it("keeps every point with its submap and floor", () => {
+    expect(lua).toMatch(/\{"surface","chest",1412\.35,491\.57,.*,5,nil,nil\}/);
+    expect(lua).toMatch(/\{"below","chest",1412\.35,491\.57,.*,0,"Underdark",2\}/);
   });
 
-  it("writes map coordinates and the flag mask", () => {
-    expect(lua).toContain('{"surface","chest",1412.35,491.57,');
+  it("ends with a closed table", () => {
     expect(lua.trimEnd().endsWith("}")).toBe(true);
-    expect(lua).toMatch(/,5\}/);
+  });
+});
+
+describe("submapsLua", () => {
+  const lua = submapsLua([
+    { trigger: "u", building: "Underdark", floor: 3, center: [1, 2, 3], half: [4, 5, 6], rot: [0, 0, 0, 1], area: 96 },
+    { trigger: "r", building: null, floor: 0, center: [0, 0, 0], half: [10, Infinity, 10], rot: [0, 0.5, 0, 0.8660254], area: 400 },
+  ]);
+
+  it("is valid Lua", () => {
+    expect(() => luaparse.parse(lua, { luaVersion: "5.3" })).not.toThrow();
+  });
+
+  it("writes boxes with building, floor, center, half size, rotation and area", () => {
+    expect(lua).toContain('{"Underdark",3,1,2,3,4,5,6,0,0,0,1,96}');
+    expect(lua).toContain("{nil,0,0,0,0,10,1000000000,10,0,0.5,0,0.8660254,400}");
   });
 });

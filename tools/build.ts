@@ -1,7 +1,12 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { divine, repoRoot } from "./lib/game.ts";
+import { existsSync } from "node:fs";
 import { buildData } from "./lib/builddata.ts";
+import { wildernessLevels } from "./lib/level.ts";
+import { readLsxFile } from "./lib/lsx.ts";
+import { loadSubmaps } from "./lib/submaps.ts";
+import { TemplateIndex } from "./lib/templates.ts";
 import { ensureUnpacked, journalPages, patchJournal, patchTheme, worldMapThemes } from "./lib/themes.ts";
 
 const source = path.join(repoRoot, "mod", "BG3Atlas");
@@ -11,7 +16,15 @@ const pak = path.join(outDir, "BG3Atlas.pak");
 
 rmSync(stage, { recursive: true, force: true });
 cpSync(source, stage, { recursive: true });
-buildData({ pointsFile: path.join(repoRoot, "data", "points.json"), lsxRoot: path.join(repoRoot, "work", "unpacked", "lsx"), stageDir: stage });
+const lsxRoot = path.join(repoRoot, "work", "unpacked", "lsx");
+const templates = new TemplateIndex(
+  ["Shared", "SharedDev", "Gustav", "GustavDev", "GustavX"]
+    .map((m) => path.join(lsxRoot, "Public", m, "RootTemplates", "_merged.lsx"))
+    .filter((f) => existsSync(f))
+    .map(readLsxFile),
+);
+const submaps = loadSubmaps(lsxRoot, wildernessLevels(lsxRoot, templates));
+buildData({ pointsFile: path.join(repoRoot, "data", "points.json"), lsxRoot, stageDir: stage, submaps });
 console.log("generated point data");
 
 const withTheme = !process.argv.includes("--no-theme");

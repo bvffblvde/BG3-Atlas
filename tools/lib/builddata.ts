@@ -1,13 +1,15 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { panelOrder } from "./panelxaml.ts";
-import { luaString, pointsLua, readMapOrigin } from "./mapdata.ts";
+import { luaString, pointsLua, readMapOrigin, submapsLua } from "./mapdata.ts";
+import type { Submap } from "./submaps.ts";
 import type { Point } from "./points.ts";
 
 export interface BuildDataOptions {
   pointsFile: string;
   lsxRoot: string;
   stageDir: string;
+  submaps?: Submap[];
 }
 
 export function dataDir(stageDir: string): string {
@@ -26,4 +28,5 @@ export function buildData(opts: BuildDataOptions): void {
   mkdirSync(dir, { recursive: true });
   writeFileSync(path.join(dir, "Wilderness.lua"), pointsLua(points, origin));
   writeFileSync(path.join(dir, "Categories.lua"), categoriesLua());
+  writeFileSync(path.join(dir, "Submaps.lua"), submapsLua(opts.submaps ?? []));
 }

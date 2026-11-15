@@ -84,6 +84,34 @@ end
 local placed = {}
 local syncedVersion = -1
 local searchVersion = -1
+local viewKey = "surface"
+local rebuild = false
+
+local function inView(pt)
+    return BG3Atlas.Submaps.Key(pt.submap, pt.floor) == viewKey
+end
+
+local function playerPos()
+    for _, e in ipairs(Ext.Entity.GetAllEntitiesWithComponent("ClientControl")) do
+        if P.Get(e, "ClientCharacter") then
+            return P.Pos(e)
+        end
+    end
+    return nil
+end
+
+local function updateView()
+    local pos = playerPos()
+    if not pos then
+        return
+    end
+    local key = BG3Atlas.Submaps.Key(BG3Atlas.Submaps.Assign(pos[1], pos[2], pos[3]))
+    if key ~= viewKey then
+        viewKey = key
+        rebuild = true
+        P.Log("map view: " .. key)
+    end
+end
 
 local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
@@ -93,12 +121,16 @@ local function newModel()
         local active = vm["Cat_" .. cat]
         local done = vm["Found_" .. cat]
         for _, pt in ipairs(list) do
+            if not inView(pt) then
+                goto continue
+            end
             local isFound = BG3Atlas.Found.IsFound(pt.id)
             local coll = isFound and done or active
             coll[#coll + 1] = newPoint(pt, isFound)
             placed[pt.id] = isFound
+            total = total + 1
+            ::continue::
         end
-        total = total + #list
     end
     syncedVersion = BG3Atlas.Found.Version()
     searchVersion = -1
@@ -127,7 +159,11 @@ local function syncSearch(vm)
         coll[i] = nil
     end
     for _, pt in ipairs(BG3Atlas.Search.Results()) do
+        if not inView(pt) then
+            goto continue
+        end
         coll[#coll + 1] = newPoint(pt, BG3Atlas.Found.IsFound(pt.id))
+        ::continue::
     end
 end
 
@@ -141,7 +177,7 @@ local function syncFound(vm)
     for cat, list in pairs(Points.ByCategory()) do
         for _, pt in ipairs(list) do
             local isFound = BG3Atlas.Found.IsFound(pt.id)
-            if placed[pt.id] ~= isFound then
+            if placed[pt.id] ~= nil and placed[pt.id] ~= isFound then
                 local from = vm[(isFound and "Cat_" or "Found_") .. cat]
                 local to = vm[(isFound and "Found_" or "Cat_") .. cat]
                 removeById(from, pt.id)
@@ -283,10 +319,13 @@ end
 
 local function update()
     register()
+    updateView()
     local found = findMaps()
     local shared = nil
+    local forced = rebuild
+    rebuild = false
     for _, entry in ipairs(found) do
-        if entry.layer and isOurs(P.Get(entry.layer, "DataContext")) then
+        if not forced and entry.layer and isOurs(P.Get(entry.layer, "DataContext")) then
             shared = P.Get(entry.layer, "DataContext")
             break
         end
@@ -299,7 +338,7 @@ local function update()
         if entry.layer then
             local model = models[entry.widget] or {}
             models[entry.widget] = model
-            if not isOurs(P.Get(entry.layer, "DataContext")) then
+            if forced or not isOurs(P.Get(entry.layer, "DataContext")) then
                 if not shared then
                     local vm, total = newModel()
                     shared = vm
