@@ -65,7 +65,8 @@ local labels = {
 }
 
 local registered = false
-local dirty = true
+local version = 1
+local applied = {}
 local selected = 1
 
 local function register()
@@ -156,26 +157,26 @@ local function newModel()
     local n = #Points.Categories
     P.Handle(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "PadNext", function()
         selected = selected % n + 1
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "PadUp", function()
         selected = (selected - 3) % n + 1
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "PadDown", function()
         selected = (selected + 1) % n + 1
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "PadToggle", function()
         local cat = Points.Categories[selected]
         if cat then
             Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
             Settings.Save()
-            dirty = true
+            version = version + 1
         end
     end)
     P.Handle(vm, "ToggleFog", function()
@@ -184,28 +185,28 @@ local function newModel()
         if BG3Atlas.Layer then
             BG3Atlas.Layer.ForceRebuild()
         end
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())
         Settings.Save()
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "Toggle", function(_, param)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
         Settings.Save()
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "ShowAll", function()
         Settings.SetAll(Points.Categories, true)
         Settings.Save()
-        dirty = true
+        version = version + 1
     end)
     P.Handle(vm, "HideAll", function()
         Settings.SetAll(Points.Categories, false)
         Settings.Save()
-        dirty = true
+        version = version + 1
     end)
     return vm
 end
@@ -257,7 +258,7 @@ local function findPanel(node, depth)
     return nil
 end
 
-function Panel.Update(widget)
+function Panel.Update(widget, player)
     register()
     local panel = findPanel(widget, 0)
     if not panel then
@@ -265,9 +266,10 @@ function Panel.Update(widget)
     end
     local dc = P.Get(panel, "DataContext")
     local ours = dc and P.Str(P.Get(dc, "Type")):find("BG3A_Panel", 1, true)
-    if dirty or not ours then
+    local key = player or 1
+    if applied[key] ~= version or not ours then
         panel.DataContext = newModel()
-        dirty = false
+        applied[key] = version
     end
     local info = findNamed(panel, "BG3A_SearchInfo", 0)
     local hint = BG3Atlas.Search.Hint()
@@ -286,5 +288,5 @@ function Panel.SetCursorInfo(widget, text)
 end
 
 function Panel.MarkDirty()
-    dirty = true
+    version = version + 1
 end

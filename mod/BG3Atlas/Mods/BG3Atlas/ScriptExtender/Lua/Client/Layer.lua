@@ -319,16 +319,22 @@ local function findMaps()
     if not ok or not content then
         return out
     end
-    for _, widget in ipairs(children(content)) do
-        local wname = P.Get(widget, "Name")
-        if wname and Layer.Widgets[wname] then
-            local entry = { widget = wname, node = widget }
-            findMap(widget, 0, entry)
-            if entry.map then
-                out[#out + 1] = entry
+    local function collect(node, depth)
+        for _, child in ipairs(children(node)) do
+            local wname = P.Get(child, "Name")
+            local isWidget = P.Str(P.Get(child, "Type")) == "ls.UIWidget"
+            if isWidget and wname and Layer.Widgets[wname] then
+                local entry = { widget = wname, node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
+                findMap(child, 0, entry)
+                if entry.map then
+                    out[#out + 1] = entry
+                end
+            elseif not isWidget and depth < 4 then
+                collect(child, depth + 1)
             end
         end
     end
+    collect(content, 0)
     return out
 end
 
@@ -528,9 +534,68 @@ local function updateRegions(found)
     end
 end
 
+local playerStates = {}
+
+local function loadState(pid)
+    local st = playerStates[pid] or {}
+    placed = st.placed or {}
+    syncedVersion = st.syncedVersion or -1
+    searchVersion = st.searchVersion or -1
+    viewKey = st.viewKey or "none"
+    rebuild = st.rebuild or false
+    subregion = st.subregion
+    revealed = st.revealed
+    revealedSig = st.revealedSig
+    lastRegionScan = st.lastRegionScan or -100000
+    lastCursorText = st.lastCursorText
+    models = st.models or {}
+end
+
+local function saveState(pid)
+    playerStates[pid] = {
+        placed = placed,
+        syncedVersion = syncedVersion,
+        searchVersion = searchVersion,
+        viewKey = viewKey,
+        rebuild = rebuild,
+        subregion = subregion,
+        revealed = revealed,
+        revealedSig = revealedSig,
+        lastRegionScan = lastRegionScan,
+        lastCursorText = lastCursorText,
+        models = models,
+    }
+end
+
+local updatePlayer
+
 local function update()
     register()
-    local found = findMaps()
+    local groups = {}
+    local order = {}
+    for _, entry in ipairs(findMaps()) do
+        local pid = entry.player or 1
+        if not groups[pid] then
+            groups[pid] = {}
+            order[#order + 1] = pid
+        end
+        groups[pid][#groups[pid] + 1] = entry
+    end
+    table.sort(order)
+    if #order > 1 then
+        logOnce("split" .. #order, "map widgets for " .. #order .. " players")
+    end
+    for _, pid in ipairs(order) do
+        loadState(pid)
+        local ok, err = pcall(updatePlayer, groups[pid])
+        saveState(pid)
+        if not ok then
+            error(err, 0)
+        end
+    end
+end
+
+function updatePlayer(found)
     updateView(found)
     updateSubregion(found)
     updateRegions(found)
@@ -566,7 +631,7 @@ local function update()
             updateFilters(entry)
             updateCursor(entry)
             if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
-                BG3Atlas.Panel.Update(entry.node)
+                BG3Atlas.Panel.Update(entry.node, entry.player)
             end
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")
