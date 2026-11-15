@@ -20,7 +20,7 @@
   },
   {
     "id": "2f3c6448-676e-4037-98b7-e297446912c8",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
@@ -39,7 +39,7 @@
   },
   {
     "id": "b8625f40-04f3-45e1-9efe-fed845487ac8",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
@@ -58,7 +58,7 @@
   },
   {
     "id": "cf223a48-7164-43c0-91c2-b39c19937f3b",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
@@ -77,7 +77,7 @@
   },
   {
     "id": "5f4a2691-5466-461c-bc33-06c41fdaae37",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
@@ -96,7 +96,7 @@
   },
   {
     "id": "1a6cc81d-58a1-4724-94eb-0af6c7194600",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
@@ -172,7 +172,7 @@
   },
   {
     "id": "df400bfd-7dbb-4c40-a63f-15ed4bbe894b",
-    "category": "chest",
+    "category": "container",
     "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,

@@ -44,6 +44,16 @@ describe("Settings.Parse", () => {
     expect(run(["Settings.lua"], "tostring(S.Parse(nil).fogOnly)")).toBe("false");
   });
 
+  it("keeps barrels and remains off until enabled", () => {
+    expect(run(["Settings.lua"], 'tostring(S.IsEnabled("container")) .. tostring(S.IsEnabled("remains")) .. tostring(S.IsEnabled("chest"))')).toBe("falsefalsetrue");
+    expect(run(["Settings.lua"], '(function() S.SetEnabled("container", true) S.SetEnabled("chest", false) return tostring(S.IsEnabled("container")) .. tostring(S.IsEnabled("chest")) end)()')).toBe("truefalse");
+  });
+
+  it("reads enabled default-off categories", () => {
+    const stubbedParse = 'Ext.Json.Parse = function() return { disabled = { chest = true }, enabled = { remains = true } } end\n';
+    expect(run(["Settings.lua"], `(function() ${stubbedParse} local st = S.Parse("x") return tostring(st.enabled.remains) .. tostring(st.disabled.chest) .. tostring(st.enabled.container) end)()`)).toBe("truetruenil");
+  });
+
   it("treats a missing file as defaults", () => {
     expect(run(["Settings.lua"], "tostring(next(S.Parse(nil).disabled) == nil)")).toBe("true");
   });

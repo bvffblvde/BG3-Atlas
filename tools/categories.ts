@@ -2,6 +2,8 @@ import type { StatEntry } from "./lib/stats.ts";
 
 export type CategoryId =
   | "chest"
+  | "container"
+  | "remains"
   | "weapon_unique"
   | "armor_unique"
   | "accessory"
@@ -48,6 +50,10 @@ function anyName(i: CategoryInput, re: RegExp): boolean {
   return names(i).some((n) => re.test(n));
 }
 
+function templateName(i: CategoryInput, re: RegExp): boolean {
+  return i.templateNames.some((n) => !n.startsWith("BASE_") && re.test(n));
+}
+
 function isTrue(v: string | undefined): boolean {
   return v === "True";
 }
@@ -72,6 +78,8 @@ const hazardRe = /Mushroom_(Bibberbang|Exploding|ToxicWall)/;
 const propRe = /Mushroom_(Timmask|Nightlight)|Fairy_Ring|Remains|DELETEME/;
 const beastRe = /Quadruped_Beast/;
 const waypointRe = /WaypointShrine/;
+const chestRe = /(^|_)(Chest|Safe|Strongbox|Lockbox|Vault)(_|$)/;
+const remainsRe = /(^|_)(Skeleton|BonePile|Bones|Ribcage|Skull|Corpse|Body|Bodies|Viscera|Cocoon|Coffin|Casket|Sarcophagus|Tomb|Urn|Grave|Remains)(_|$)/;
 
 function isHazard(i: CategoryInput): boolean {
   return anyName(i, hazardRe) && !anyName(i, propRe);
@@ -119,7 +127,9 @@ export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolea
   { id: "armor_unique", test: (i) => isRareGear(i, "Armor") },
   { id: "ingredient", test: (i) => !isCharacter(i) && (objectCategory(i).includes("Ingredient") || anyName(i, /ALCH_Ingredient|CONS_Mushrooms|CONS_Herbs|(^|_)CRA_/)) },
   { id: "valuable", test: (i) => !isCharacter(i) && (/^(Gold|PreciousGem)/.test(objectCategory(i)) || anyName(i, /LOOT_Gold|Gold_Stash|LOOT_GEN_Gem|(^|_)GEM_/)) },
-  { id: "chest", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) },
+  { id: "chest", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) && (templateName(i, chestRe) || isLocked(i)) },
+  { id: "remains", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) && templateName(i, remainsRe) },
+  { id: "container", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) },
 ];
 
 export function categorize(input: CategoryInput): CategoryId | null {

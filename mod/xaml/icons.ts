@@ -14,6 +14,8 @@ export const iconGlyph = "#FFF2DDA0";
 
 export const categoryColors: Record<CategoryId, { rim: string; disc: string }> = {
   chest: { rim: "#FFC08A4A", disc: "#F04A2E16" },
+  container: { rim: "#FF9C7A52", disc: iconDisc },
+  remains: { rim: "#FFD8CFB8", disc: iconDisc },
   weapon_unique: { rim: "#FFE0563A", disc: "#F0581A10" },
   armor_unique: { rim: "#FF6FA8DC", disc: "#F0163250" },
   accessory: { rim: "#FFC08AF0", disc: "#F03C1C52" },
@@ -35,6 +37,8 @@ export const categoryColors: Record<CategoryId, { rim: string; disc: string }> =
 
 export const categoryIcons: Record<CategoryId, { group: IconGroup; glyph: string }> = {
   chest: { group: "loot", glyph: "M6,10 L18,10 L18,17 L6,17 Z M6,10 Q12,5 18,10 M11,12.5 L13,12.5 L13,14.5 L11,14.5 Z" },
+  container: { group: "loot", glyph: "M8.5,6 L15.5,6 Q17.8,12 15.5,18 L8.5,18 Q6.2,12 8.5,6 Z M7.3,9.5 L16.7,9.5 M7.3,14.5 L16.7,14.5" },
+  remains: { group: "loot", glyph: "M8,8 L16,16 M16,8 L8,16 M6.6,8.8 A1.3,1.3 0 1 1 8.8,6.6 M15.2,6.6 A1.3,1.3 0 1 1 17.4,8.8 M17.4,15.2 A1.3,1.3 0 1 1 15.2,17.4 M8.8,17.4 A1.3,1.3 0 1 1 6.6,15.2" },
   weapon_unique: { group: "loot", glyph: "M17.5,6.5 L16.8,9 L11.3,14.5 L9.5,12.7 L15,7.2 Z M8,12 L12,16 M9.8,14.2 L6.5,17.5" },
   armor_unique: { group: "loot", glyph: "M12,6 L17,8 L17,12 Q17,16 12,18 Q7,16 7,12 L7,8 Z" },
   accessory: { group: "loot", glyph: "M7.5,14 A4.5,4.5 0 1 1 16.5,14 A4.5,4.5 0 1 1 7.5,14 M10,8.5 L12,6 L14,8.5 Z" },

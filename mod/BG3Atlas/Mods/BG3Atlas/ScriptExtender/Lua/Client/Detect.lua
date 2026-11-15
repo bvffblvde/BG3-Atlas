@@ -19,6 +19,12 @@ local itemCategories = {
     valuable = true,
 }
 
+local containerCategories = {
+    chest = true,
+    container = true,
+    remains = true,
+}
+
 local queue = nil
 local cursor = 1
 local seenInWorld = {}
@@ -28,7 +34,7 @@ local running = false
 local function buildQueue()
     queue = {}
     for cat, list in pairs(Points.ByCategory()) do
-        if itemCategories[cat] or cat == "chest" or cat == "boss" then
+        if itemCategories[cat] or containerCategories[cat] or cat == "boss" then
             for _, pt in ipairs(list) do
                 queue[#queue + 1] = { id = pt.id, cat = cat, map = pt.map }
             end
@@ -71,7 +77,7 @@ local function check(entry)
         elseif seenInWorld[entry.id] then
             Found.SetFound(entry.id, true)
         end
-    elseif entry.cat == "chest" then
+    elseif containerCategories[entry.cat] then
         if not entity then
             return
         end

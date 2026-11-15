@@ -2,12 +2,13 @@ local S = {}
 BG3Atlas.Settings = S
 
 S.File = "BG3Atlas/settings.json"
+S.DefaultOff = { container = true, remains = true }
 
-local state = { disabled = {}, hideFound = false, fogOnly = false }
+local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = false }
 local lang = nil
 
 function S.Parse(text)
-    local out = { disabled = {}, hideFound = false, fogOnly = false }
+    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = false }
     if type(text) ~= "string" or text == "" then
         return out
     end
@@ -17,10 +18,12 @@ function S.Parse(text)
     end
     out.hideFound = data.hideFound == true
     out.fogOnly = data.fogOnly == true
-    if type(data.disabled) == "table" then
-        for k, v in pairs(data.disabled) do
-            if v == true and type(k) == "string" then
-                out.disabled[k] = true
+    for _, field in ipairs({ "disabled", "enabled" }) do
+        if type(data[field]) == "table" then
+            for k, v in pairs(data[field]) do
+                if v == true and type(k) == "string" then
+                    out[field][k] = true
+                end
             end
         end
     end
@@ -32,22 +35,33 @@ function S.Load()
     state = S.Parse(ok and text or nil)
 end
 
-function S.Save()
+local function jsonSet(set)
     local parts = {}
-    for k in pairs(state.disabled) do
+    for k in pairs(set) do
         parts[#parts + 1] = '"' .. k .. '":true'
     end
     table.sort(parts)
-    local text = '{"disabled":{' .. table.concat(parts, ",") .. '},"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. "}"
+    return "{" .. table.concat(parts, ",") .. "}"
+end
+
+function S.Save()
+    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. "}"
     Ext.IO.SaveFile(S.File, text)
 end
 
 function S.IsEnabled(cat)
+    if S.DefaultOff[cat] then
+        return state.enabled[cat] == true
+    end
     return not state.disabled[cat]
 end
 
 function S.SetEnabled(cat, on)
-    state.disabled[cat] = (not on) or nil
+    if S.DefaultOff[cat] then
+        state.enabled[cat] = on and true or nil
+    else
+        state.disabled[cat] = (not on) or nil
+    end
 end
 
 function S.SetAll(categories, on)

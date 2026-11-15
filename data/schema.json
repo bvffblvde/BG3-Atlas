@@ -28,6 +28,8 @@
       "category": {
         "enum": [
           "chest",
+          "container",
+          "remains",
           "weapon_unique",
           "armor_unique",
           "accessory",
