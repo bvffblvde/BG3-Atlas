@@ -6,3 +6,4 @@ data/*.json
 !data/schema.json
 !data/sample.json
 .env
+tools/bin/

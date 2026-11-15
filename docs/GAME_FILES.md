@@ -33,3 +33,26 @@
 ## Script Extender
 
 - В `bin\` нет `DWrite.dll`: Script Extender не установлен.
+
+## Внутри паков (проверено распаковкой)
+
+UI (`Game.pak`):
+- `Mods/MainUI/GUI/Pages/JournalMap.xaml`, `Minimap.xaml`, `OverviewMap.xaml` и версии `_c` для геймпада.
+- `Mods/MainUI/GUI/StateMachines/Keyboard.xaml`, `Controller.xaml`: машины состояний UI.
+- `Public/Game/GUI/Theme/DefaultShared.Styles.xaml`: стиль `MapMarkerIconStyle` (строка 2013), выбор иконки маркера.
+- `Public/Game/GUI/Theme/DefaultTheme.Styles.xaml`: шаблоны `Map.MarkerDataTemplate` и `Map.MiniMarkerDataTemplateInAndOutViewport`.
+- `Public/Game/GUI/Library/DataTemplates.xaml`, `Tooltips.xaml` (тултип `ls:MapMarker`, около строки 9121).
+- `Public/Game/GUI/Assets/Map/`, `Assets/Minimap/`: текстуры интерфейса карты (рамки, кнопки, легенда), плюс варианты для дальтоников.
+
+Уровни (`Gustav.pak`), на примере Акта 1:
+- `Mods/Gustav/Levels/WLD_Main_A/{Items,Characters,Triggers,Scenery,Splines,LevelTemplates}/_merged.lsf`: основная часть объектов.
+- `Mods/GustavDev/Levels/WLD_Main_A/...`: дополнения, те же папки, плюс `WorldMap/`, `meta.lsf` (границы уровня `LevelBounds`).
+- `Mods/GustavDev/Levels/WLD_Main_A/WorldMap/MiniMap.lsf` и `<TriggerId>.lsf`: `WorldMapMetaData`, привязка мира к карте и подкарты.
+- `Mods/Honour/Levels/WLD_Main_A/`: правки режима Honour.
+- WorldMap есть и у других уровней: `CTY_Main_A`, `SCL_Main_A`, `BGO_Main_A`, `END_Main`, `CRE_Main_A`, `INT_Main_A`, `TUT_Avernus_C`, `IRN_Main_A`, `EPI_Main_A`.
+
+Шаблоны: `Public/{Shared,SharedDev,Gustav,GustavDev,GustavX,Honour}/RootTemplates/_merged.lsf` (Shared и SharedDev в `Shared.pak`, GustavX в `GustavX.pak`, остальные в `Gustav.pak`).
+
+Локализация: `Localization/English/english.loca` в `English.pak`; доп. тексты `Mods/Gustav*/Localization/*.lsf` в `Gustav.pak` (книги, подрегионы, вейпоинты).
+
+`Public/*/Levelmaps/*.lsx` к карте не относятся: это скейлинг уровня, опыт и золото.
