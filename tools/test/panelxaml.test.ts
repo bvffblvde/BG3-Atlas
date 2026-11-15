@@ -30,6 +30,8 @@ describe("panelXaml", () => {
     expect(xaml).toContain('Style="{StaticResource DefaultInputBox}"');
     expect(xaml).toContain('x:Name="BG3A_SearchInfo"');
     expect(xaml).toContain("{Binding FoundText}");
+    expect(xaml).toContain("{Binding ToggleFog}");
+    expect(xaml).toContain("{Binding FogText}");
   });
 
   it("avoids constructs that crashed the game", () => {
@@ -61,6 +63,13 @@ describe("panelXaml pad mode", () => {
     for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIUp", "PadUp"], ["UIDown", "PadDown"], ["UIAccept", "PadToggle"]]) {
       expect(bar).toContain(`BoundEvent="${event}" Command="{Binding DataContext.${command}, ElementName=BG3A_Panel}"`);
     }
+  });
+
+  it("shows a hint with the glyph of the second toggle button while the panel is open", () => {
+    expect(bar).toContain('ls:LSButton.BoundEvent="UITakeAll"');
+    expect(bar).toMatch(/ls:LSButton[^>]*Command="\{Binding DataContext\.PadToggle, ElementName=BG3A_Panel\}"/);
+    expect(bar).toContain("ConverterParameter=UITakeAll");
+    expect(bar).toMatch(/ls:LSButton[^>]*Visibility="\{Binding IsChecked, ElementName=BG3A_PadBtn, Converter=\{StaticResource BoolToVisibleConverter\}\}"/);
   });
 });
 

@@ -12,6 +12,8 @@ local labels = {
         none = "Скрыть",
         hideFound = "Скрыть найденное",
         showFound = "Показать найденное",
+        fogOn = "Показать везде",
+        fogOff = "Только исследованное",
         padHint = "Стрелки: выбор, подтвердить: показать или скрыть",
         chest = "Сундуки",
         weapon_unique = "Оружие",
@@ -38,6 +40,8 @@ local labels = {
         none = "Hide",
         hideFound = "Hide found",
         showFound = "Show found",
+        fogOn = "Show everywhere",
+        fogOff = "Explored only",
         padHint = "D-pad: select, accept: show or hide",
         chest = "Containers",
         weapon_unique = "Weapons",
@@ -73,6 +77,8 @@ local function register()
         AllText = { Type = "String" },
         NoneText = { Type = "String" },
         FoundText = { Type = "String" },
+        FogText = { Type = "String" },
+        ToggleFog = { Type = "Command" },
         SearchHint = { Type = "String" },
         Query = {
             Type = "String",
@@ -126,6 +132,7 @@ local function newModel()
     P.Set(vm, "AllText", text.all)
     P.Set(vm, "NoneText", text.none)
     P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
+    P.Set(vm, "FogText", Settings.FogOnly() and text.fogOn or text.fogOff)
     P.Set(vm, "Query", BG3Atlas.Search.Query())
     P.Set(vm, "SearchHint", BG3Atlas.Search.Hint())
     local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
@@ -170,6 +177,14 @@ local function newModel()
             Settings.Save()
             dirty = true
         end
+    end)
+    P.Handle(vm, "ToggleFog", function()
+        Settings.SetFogOnly(not Settings.FogOnly())
+        Settings.Save()
+        if BG3Atlas.Layer then
+            BG3Atlas.Layer.ForceRebuild()
+        end
+        dirty = true
     end)
     P.Handle(vm, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())

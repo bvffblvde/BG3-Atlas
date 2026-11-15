@@ -98,13 +98,33 @@ local function countForKey(key)
     return viewCounts[key] or 0
 end
 
+local revealed = nil
+local revealedSig = nil
+local lastRegionScan = -100000
+
+local function explored(pt)
+    if not revealed or pt.submap ~= nil or not Settings.FogOnly() then
+        return true
+    end
+    for _, r in ipairs(revealed) do
+        if pt.x >= r[1] and pt.x <= r[3] and pt.y >= r[2] and pt.y <= r[4] then
+            return true
+        end
+    end
+    return false
+end
+
 local function inView(pt)
     local key = pt._key
     if not key then
         key = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
         pt._key = key
     end
-    return key == viewKey
+    return key == viewKey and explored(pt)
+end
+
+function Layer.ForceRebuild()
+    rebuild = true
 end
 
 local function playerEntity()
@@ -421,10 +441,52 @@ local function updateCursor(entry)
     end
 end
 
+local function scanRegions(found)
+    for _, entry in ipairs(found) do
+        local data = entry.image and P.Get(entry.image, "DataContext")
+        local container = data and P.Get(data, "RegionsContainer")
+        local regions = container and P.Get(container, "Regions")
+        if regions then
+            local list, sig = {}, {}
+            for i = 1, #regions do
+                local r = regions[i]
+                if r and not P.Get(r, "Hidden") then
+                    local x, y = vecParts(P.Get(r, "WorldPos"))
+                    local w, h = vecParts(P.Get(r, "WorldSize"))
+                    if type(x) == "number" and type(w) == "number" then
+                        list[#list + 1] = { x, y, x + w, y + h }
+                        sig[#sig + 1] = i
+                    end
+                end
+            end
+            return list, table.concat(sig, ",")
+        end
+    end
+    return nil, nil
+end
+
+local function updateRegions(found)
+    local now = Ext.Timer.MonotonicTime()
+    if now - lastRegionScan < 2000 then
+        return
+    end
+    lastRegionScan = now
+    local list, sig = scanRegions(found)
+    if list and sig ~= revealedSig then
+        revealed = list
+        revealedSig = sig
+        if Settings.FogOnly() then
+            rebuild = true
+        end
+        logOnce("regions" .. #list, "explored regions: " .. #list)
+    end
+end
+
 local function update()
     register()
     local found = findMaps()
     updateView(found)
+    updateRegions(found)
     local shared = nil
     local forced = rebuild
     rebuild = false

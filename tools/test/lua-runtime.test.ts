@@ -38,6 +38,12 @@ describe("Settings.Parse", () => {
     expect(run(["Settings.lua"], 'tostring(next(S.Parse("{oops").disabled) == nil and S.Parse("{oops").hideFound == false)')).toBe("true");
   });
 
+  it("reads the explored-only flag", () => {
+    const stubbedParse = 'Ext.Json.Parse = function() return { disabled = {}, fogOnly = true } end\n';
+    expect(run(["Settings.lua"], `(function() ${stubbedParse} return tostring(S.Parse("x").fogOnly) end)()`)).toBe("true");
+    expect(run(["Settings.lua"], "tostring(S.Parse(nil).fogOnly)")).toBe("false");
+  });
+
   it("treats a missing file as defaults", () => {
     expect(run(["Settings.lua"], "tostring(next(S.Parse(nil).disabled) == nil)")).toBe("true");
   });

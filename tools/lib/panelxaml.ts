@@ -75,6 +75,7 @@ export function padHintBar(): string {
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIUp" Command="{Binding DataContext.PadUp, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIDown" Command="{Binding DataContext.PadDown, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIAccept" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" ${enabled}/>`,
+    `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UITakeAll" ls:LSButton.EatInput="True" Tag="Вкл/выкл" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UITakeAll, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
     "",
   ].join("\n");
 }
@@ -89,11 +90,14 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     `${pad(i + 8)}<Grid Margin="0,0,0,8">`,
     `${pad(i + 12)}<TextBlock Text="{Binding Title}" Foreground="${ink}" FontSize="32" VerticalAlignment="Center"/>`,
     `${pad(i + 12)}<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">`,
-    ...flatButton(i + 16, "ToggleFound", null, [`${pad(i + 20)}<TextBlock Text="{Binding FoundText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 16, "ShowAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding AllText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 16, "HideAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding NoneText}" Foreground="${dim}" FontSize="24"/>`]),
     `${pad(i + 12)}</StackPanel>`,
     `${pad(i + 8)}</Grid>`,
+    `${pad(i + 8)}<StackPanel Orientation="Horizontal" Margin="-6,0,0,6">`,
+    ...flatButton(i + 12, "ToggleFound", null, [`${pad(i + 16)}<TextBlock Text="{Binding FoundText}" Foreground="${dim}" FontSize="24"/>`]),
+    ...flatButton(i + 12, "ToggleFog", null, [`${pad(i + 16)}<TextBlock Text="{Binding FogText}" Foreground="${dim}" FontSize="24"/>`]),
+    `${pad(i + 8)}</StackPanel>`,
     `${pad(i + 8)}<Rectangle Height="2" Fill="#FF8C7346" Opacity="0.6" Margin="0,0,0,8"/>`,
     ...(mode === "mouse" ? searchRow(i) : []),
     `${pad(i + 8)}<Grid>`,

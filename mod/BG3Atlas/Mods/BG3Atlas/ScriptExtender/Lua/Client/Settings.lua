@@ -3,11 +3,11 @@ BG3Atlas.Settings = S
 
 S.File = "BG3Atlas/settings.json"
 
-local state = { disabled = {}, hideFound = false }
+local state = { disabled = {}, hideFound = false, fogOnly = false }
 local lang = nil
 
 function S.Parse(text)
-    local out = { disabled = {}, hideFound = false }
+    local out = { disabled = {}, hideFound = false, fogOnly = false }
     if type(text) ~= "string" or text == "" then
         return out
     end
@@ -16,6 +16,7 @@ function S.Parse(text)
         return out
     end
     out.hideFound = data.hideFound == true
+    out.fogOnly = data.fogOnly == true
     if type(data.disabled) == "table" then
         for k, v in pairs(data.disabled) do
             if v == true and type(k) == "string" then
@@ -37,7 +38,7 @@ function S.Save()
         parts[#parts + 1] = '"' .. k .. '":true'
     end
     table.sort(parts)
-    local text = '{"disabled":{' .. table.concat(parts, ",") .. '},"hideFound":' .. (state.hideFound and "true" or "false") .. "}"
+    local text = '{"disabled":{' .. table.concat(parts, ",") .. '},"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. "}"
     Ext.IO.SaveFile(S.File, text)
 end
 
@@ -61,6 +62,14 @@ end
 
 function S.SetHideFound(on)
     state.hideFound = on == true
+end
+
+function S.FogOnly()
+    return state.fogOnly == true
+end
+
+function S.SetFogOnly(on)
+    state.fogOnly = on == true
 end
 
 function S.Language()
