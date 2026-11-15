@@ -31,6 +31,7 @@ export interface CategoryInput {
   stat?: StatEntry;
   hasTradeTreasures: boolean;
   contents: string[];
+  inventory: string[];
 }
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
@@ -67,6 +68,14 @@ const hiddenRe = /Hidden|Secret|Buried|(?<!Gold_)Stash/;
 const trapRe = /Trap/i;
 const smokepowderRe = /SmokepowderTrap/i;
 const keyRe = /(^|_)Key(_|$)|Key$/;
+const hazardRe = /Mushroom_(Bibberbang|Exploding|ToxicWall)/;
+const propRe = /Mushroom_(Timmask|Nightlight)|Fairy_Ring|Remains|DELETEME/;
+const beastRe = /Quadruped_Beast/;
+const waypointRe = /WaypointShrine/;
+
+function isHazard(i: CategoryInput): boolean {
+  return anyName(i, hazardRe) && !anyName(i, propRe);
+}
 
 function isLocked(i: CategoryInput): boolean {
   return set(i.attrs.LockDifficultyClassID) || set(i.attrs.LockDC) || set(i.attrs.Key);
@@ -88,13 +97,17 @@ function isContainer(i: CategoryInput): boolean {
   return set(i.attrs.InventoryType) || anyName(i, /(^|_)CONT(_|$)/);
 }
 
+function hasLoot(i: CategoryInput): boolean {
+  return i.contents.length > 0 || i.inventory.length > 0;
+}
+
 export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolean }[] = [
-  { id: "trader", test: (i) => isCharacter(i) && i.hasTradeTreasures },
+  { id: "trader", test: (i) => isCharacter(i) && (i.hasTradeTreasures || i.tags.includes("TRADER")) },
   { id: "boss", test: (i) => isCharacter(i) && isTrue(i.attrs.IsBoss) },
-  { id: "animal", test: (i) => isCharacter(i) && (i.tags.some((t) => /ANIMAL/i.test(t)) || i.templateNames.some((n) => /Animal/i.test(n))) },
+  { id: "animal", test: (i) => isCharacter(i) && set(i.attrs.DefaultDialog) && (i.tags.includes("ANIMAL") || i.templateNames.some((n) => beastRe.test(n))) },
   { id: "quest_npc", test: (i) => isCharacter(i) && set(i.attrs.DefaultDialog) },
-  { id: "waypoint", test: (i) => !isCharacter(i) && (isTrue(i.attrs.IsPortal) || anyName(i, /Waypoint/i)) },
-  { id: "trap", test: (i) => !isCharacter(i) && (isTrue(i.attrs.IsTrap) || (anyName(i, trapRe) && !anyName(i, smokepowderRe))) },
+  { id: "waypoint", test: (i) => !isCharacter(i) && anyName(i, waypointRe) },
+  { id: "trap", test: (i) => !isCharacter(i) && (isTrue(i.attrs.IsTrap) || isHazard(i) || (anyName(i, trapRe) && !anyName(i, smokepowderRe))) },
   { id: "hidden_stash", test: (i) => !isCharacter(i) && isHidden(i) },
   { id: "locked_door", test: (i) => !isCharacter(i) && anyName(i, /(^|_)DOOR_/) && isLocked(i) },
   { id: "lever", test: (i) => !isCharacter(i) && anyName(i, /(^|_)PUZ_/) && anyName(i, /Lever|Button|Switch|Pressure/i) },
@@ -106,7 +119,7 @@ export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolea
   { id: "armor_unique", test: (i) => isRareGear(i, "Armor") },
   { id: "ingredient", test: (i) => !isCharacter(i) && (objectCategory(i).includes("Ingredient") || anyName(i, /ALCH_Ingredient|CONS_Mushrooms|CONS_Herbs|(^|_)CRA_/)) },
   { id: "valuable", test: (i) => !isCharacter(i) && (/^(Gold|PreciousGem)/.test(objectCategory(i)) || anyName(i, /LOOT_Gold|Gold_Stash|LOOT_GEN_Gem|(^|_)GEM_/)) },
-  { id: "chest", test: (i) => !isCharacter(i) && isContainer(i) },
+  { id: "chest", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) },
 ];
 
 export function categorize(input: CategoryInput): CategoryId | null {
@@ -125,16 +138,16 @@ export function flags(input: CategoryInput): Flag[] {
 }
 
 export function isInteresting(i: CategoryInput): boolean {
-  if (isCharacter(i)) return set(i.attrs.DefaultDialog) || i.hasTradeTreasures || isTrue(i.attrs.IsBoss);
+  if (isCharacter(i)) return set(i.attrs.DefaultDialog) || i.hasTradeTreasures || i.tags.includes("TRADER") || isTrue(i.attrs.IsBoss);
   return (
-    isContainer(i) ||
+    (isContainer(i) && hasLoot(i)) ||
     isRareGear(i, "Weapon") ||
     isRareGear(i, "Armor") ||
     set(i.attrs.BookId) ||
     isTrue(i.attrs.IsKey) ||
     isTrue(i.attrs.IsTrap) ||
-    isTrue(i.attrs.IsPortal) ||
-    anyName(i, /(^|_)PUZ_/) ||
+    anyName(i, waypointRe) ||
+    (anyName(i, /(^|_)PUZ_/) && !anyName(i, propRe)) ||
     (anyName(i, /(^|_)DOOR_/) && isLocked(i)) ||
     /^(Gold|PreciousGem|Ingredient|MagicScroll)/.test(objectCategory(i))
   );

@@ -11,7 +11,8 @@ function tpl(key: string, name: string, parent: string, extra = "", tags: string
 ${extra}
 <children>
 <node id="Tags"><children>${tags.map((t) => `<node id="Tag"><attribute id="Object" type="guid" value="${t}" /></node>`).join("")}</children></node>
-${trade ? '<node id="TradeTreasures"><children><node id="TreasureItem"><attribute id="Object" type="FixedString" value="TT" /></node></children></node>' : ""}
+${trade ? '<node id="TradeTreasures"><children><node id="TreasureItem"><attribute id="Object" type="FixedString" value="PLA_ZhentarimTrader_Common" /></node></children></node>' : '<node id="TradeTreasures"><children><node id="TreasureItem"><attribute id="Object" type="FixedString" value="BG_Guard" /></node></children></node>'}
+<node id="InventoryList"><children><node id="InventoryItem"><attribute id="Object" type="FixedString" value="${name}_Loot" /></node><node id="InventoryItem"><attribute id="Object" type="FixedString" value="Empty" /></node></children></node>
 </children></node>`;
 }
 
@@ -45,6 +46,14 @@ describe("TemplateIndex", () => {
     expect(r.names).toEqual(["LEAF", "MID", "ROOT"]);
     expect(r.tags.sort()).toEqual(["t-mid", "t-root"]);
     expect(r.hasTradeTreasures).toBe(true);
+  });
+
+  it("treats only trader tables as trade, not pocket loot", () => {
+    expect(index.resolved("root").hasTradeTreasures).toBe(false);
+  });
+
+  it("collects inventory tables along the chain without Empty", () => {
+    expect(index.resolved("mid").inventory.sort()).toEqual(["MID_Loot", "ROOT_Loot"]);
   });
 
   it("resolves a template whose parent is missing", () => {

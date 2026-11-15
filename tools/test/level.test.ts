@@ -38,7 +38,15 @@ describe("readWilderness", () => {
     "Mods/Gustav/Levels/WLD_Main_A/LevelTemplates/_merged.lsx",
     save(go("lt1", "LT_WLD_Camp", "t-lt", "100 0 50", '<attribute id="Type" type="FixedString" value="LevelTemplate" />', "0 0.7071068 0 0.7071067")),
   );
-  const contents = '<node id="ItemList"><children><node id="Item"><attribute id="TemplateID" type="FixedString" value="t-ring" /></node></children></node>';
+  put(
+    root,
+    "Mods/Gustav/Levels/WLD_Main_A/Scenery/_merged.lsx",
+    save(go("wp", "S_DEN_WaypointShrine_geo", "t-wp", "5 0 5"), go("wp-top", "S_CHA_WaypointShrine_Top_geo", "t-wp", "6 0 6"), go("rock", "Rock_Big_A", "t-rock", "7 0 7")),
+  );
+  const contents =
+    '<node id="ItemList"><children><node id="Item"><attribute id="TemplateID" type="FixedString" value="t-ring" /></node></children></node>' +
+    '<node id="InventoryList"><children><node id="InventoryItem"><attribute id="Object" type="FixedString" value="UND_KC_Loot" /></node><node id="InventoryItem"><attribute id="Object" type="FixedString" value="Empty" /></node></children></node>' +
+    '<node id="TradeTreasures"><children><node id="TreasureItem"><attribute id="Object" type="FixedString" value="UND_KC_Trader_Weapons" /></node></children></node>';
   put(
     root,
     "Mods/Gustav/Levels/WLD_Camp_D/Items/_merged.lsx",
@@ -68,6 +76,18 @@ describe("readWilderness", () => {
 
   it("collects container contents", () => {
     expect(byId.get("sub-item")?.contents).toEqual(["t-ring"]);
+  });
+
+  it("collects instance inventory and trade tables without Empty", () => {
+    expect(byId.get("sub-item")?.inventory).toEqual(["UND_KC_Loot"]);
+    expect(byId.get("sub-item")?.tradeTables).toEqual(["UND_KC_Trader_Weapons"]);
+    expect(byId.get("npc")?.inventory).toEqual([]);
+  });
+
+  it("reads waypoint shrines from scenery and nothing else", () => {
+    expect(byId.get("wp")?.kind).toBe("item");
+    expect(byId.has("wp-top")).toBe(false);
+    expect(byId.has("rock")).toBe(false);
   });
 
   it("keeps the first object when ids repeat", () => {

@@ -3,7 +3,7 @@ import { categorize, flags, isInteresting, type CategoryInput } from "../categor
 import type { StatEntry } from "../lib/stats.ts";
 
 function input(over: Partial<CategoryInput> = {}): CategoryInput {
-  return { kind: "item", name: "", templateNames: [], attrs: {}, tags: [], hasTradeTreasures: false, contents: [], ...over };
+  return { kind: "item", name: "", templateNames: [], attrs: {}, tags: [], hasTradeTreasures: false, contents: [], inventory: [], ...over };
 }
 
 function stat(type: string, data: Record<string, string> = {}, name = "STAT"): StatEntry {
@@ -14,11 +14,12 @@ describe("categorize", () => {
   it.each<[string, CategoryInput, string]>([
     ["trader", input({ kind: "character", hasTradeTreasures: true, attrs: { DefaultDialog: "d" } }), "trader"],
     ["boss", input({ kind: "character", attrs: { IsBoss: "True", DefaultDialog: "d" } }), "boss"],
-    ["animal by tag", input({ kind: "character", tags: ["ANIMAL"] }), "animal"],
-    ["animal by template", input({ kind: "character", templateNames: ["S_Boar", "Animals_Boar_A"] }), "animal"],
+    ["trader by tag", input({ kind: "character", tags: ["TRADER"] }), "trader"],
+    ["talking beast", input({ kind: "character", templateNames: ["Bear", "BASE_Quadruped_Beast_Bear", "BASE_Quadruped_Beast"], attrs: { DefaultDialog: "d" } }), "animal"],
+    ["exploding mushroom", input({ templateNames: ["PUZ_Underdark_Mushroom_Bibberbang_B"] }), "trap"],
+    ["toxic mushroom wall", input({ templateNames: ["PUZ_Underdark_Mushroom_ToxicWall_A"] }), "trap"],
     ["quest npc", input({ kind: "character", attrs: { DefaultDialog: "dlg" } }), "quest_npc"],
-    ["waypoint portal", input({ attrs: { IsPortal: "True" } }), "waypoint"],
-    ["waypoint by name", input({ templateNames: ["WAYP_Waypoint_Ancient"] }), "waypoint"],
+    ["waypoint shrine", input({ name: "S_DEN_WaypointShrine_geo" }), "waypoint"],
     ["trap flag", input({ attrs: { IsTrap: "True" } }), "trap"],
     ["trap by name", input({ name: "TRAP_Bear_Trap_001" }), "trap"],
     ["hidden stash", input({ name: "S_FOR_HiddenGift_Gift", attrs: { InventoryType: "1" } }), "hidden_stash"],
@@ -40,8 +41,9 @@ describe("categorize", () => {
     ["gold", input({ stat: stat("Object", { ObjectCategory: "Gold" }) }), "valuable"],
     ["gem", input({ stat: stat("Object", { ObjectCategory: "PreciousGem_3" }) }), "valuable"],
     ["gold stash", input({ name: "Gold_Stash_Poor" }), "valuable"],
-    ["container", input({ attrs: { InventoryType: "2" } }), "chest"],
-    ["container by name", input({ templateNames: ["CONT_GEN_Chest_A"] }), "chest"],
+    ["container with loot table", input({ attrs: { InventoryType: "2" }, inventory: ["Exploration_Minor"] }), "chest"],
+    ["container with items", input({ attrs: { InventoryType: "2" }, contents: ["t-ring"] }), "chest"],
+    ["container by name", input({ templateNames: ["CONT_GEN_Chest_A"], inventory: ["X"] }), "chest"],
   ])("%s", (_, i, expected) => {
     expect(categorize(i)).toBe(expected);
   });
@@ -58,6 +60,19 @@ describe("categorize", () => {
 
   it("leaves decorations uncategorized", () => {
     expect(categorize(input({ name: "DEC_GEN_Pigeon_Cage_Small_A", templateNames: ["DEC_GEN_Pigeon_Cage_Small_A"] }))).toBe(null);
+  });
+
+  it("does not call a silent beast an animal point", () => {
+    expect(categorize(input({ kind: "character", templateNames: ["SPIDER_Ranged_A", "BASE_Quadruped_Beast"] }))).toBe(null);
+  });
+
+  it("does not treat transition doors as waypoints", () => {
+    expect(categorize(input({ name: "DOOR_Interior", attrs: { IsPortal: "True" } }))).toBe(null);
+  });
+
+  it("skips empty containers", () => {
+    expect(categorize(input({ attrs: { InventoryType: "2" }, templateNames: ["CONT_Barrel_A"] }))).toBe(null);
+    expect(isInteresting(input({ attrs: { InventoryType: "2" } }))).toBe(false);
   });
 
   it("does not call a common weapon unique", () => {
@@ -92,11 +107,15 @@ describe("isInteresting", () => {
     ["decoration", input({ name: "DEC_GEN_Vase" }), false],
     ["generic villager", input({ kind: "character" }), false],
     ["talking npc", input({ kind: "character", attrs: { DefaultDialog: "d" } }), true],
-    ["container", input({ attrs: { InventoryType: "2" } }), true],
+    ["container with loot", input({ attrs: { InventoryType: "2" }, inventory: ["L"] }), true],
     ["rare weapon", input({ stat: stat("Weapon", { Rarity: "Rare" }) }), true],
     ["common weapon", input({ stat: stat("Weapon", { Rarity: "Common" }) }), false],
     ["lever", input({ name: "PUZ_Lever" }), true],
-    ["portal", input({ attrs: { IsPortal: "True" } }), true],
+    ["glowing mushroom prop", input({ templateNames: ["PUZ_Underdark_Mushroom_Nightlight_A"] }), false],
+    ["fairy ring prop", input({ templateNames: ["PUZ_GEN_Mushroom_Fairy_Ring_C"] }), false],
+    ["remains prop", input({ templateNames: ["PUZ_Underdark_Mushroom_Exploding_A_Remains_A"] }), false],
+    ["transition door", input({ attrs: { IsPortal: "True" } }), false],
+    ["waypoint shrine", input({ name: "S_FOR_WaypointShrine_geo" }), true],
   ])("%s -> %s", (_, i, expected) => {
     expect(isInteresting(i)).toBe(expected);
   });

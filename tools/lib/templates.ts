@@ -8,6 +8,7 @@ export interface Template {
   attrs: Record<string, string>;
   tags: string[];
   hasTradeTreasures: boolean;
+  inventory: string[];
 }
 
 export interface ResolvedTemplate {
@@ -17,6 +18,21 @@ export interface ResolvedTemplate {
   attrs: Record<string, string>;
   tags: string[];
   hasTradeTreasures: boolean;
+  inventory: string[];
+}
+
+const traderTableRe = /Trade|Vendor/i;
+
+export function isTraderTable(table: string): boolean {
+  return traderTableRe.test(table);
+}
+
+export function treasureTables(node: LsxNode, listId: string, itemId: string): string[] {
+  const list = child(node, listId);
+  if (!list) return [];
+  return findAll(list.children, itemId)
+    .map((i) => attr(i, "Object"))
+    .filter((v): v is string => !!v && v !== "Empty");
 }
 
 export function nodeTags(node: LsxNode): string[] {
@@ -37,7 +53,6 @@ function toTemplate(node: LsxNode): Template | undefined {
   const id = attr(node, "MapKey");
   if (!id) return undefined;
   const parent = attr(node, "ParentTemplateId");
-  const trade = child(node, "TradeTreasures");
   return {
     id,
     name: attr(node, "Name") ?? "",
@@ -45,7 +60,8 @@ function toTemplate(node: LsxNode): Template | undefined {
     type: attr(node, "Type") ?? "",
     attrs: nodeAttrs(node),
     tags: nodeTags(node),
-    hasTradeTreasures: !!trade && trade.children.length > 0,
+    hasTradeTreasures: treasureTables(node, "TradeTreasures", "TreasureItem").some(isTraderTable),
+    inventory: treasureTables(node, "InventoryList", "InventoryItem"),
   };
 }
 
@@ -88,6 +104,7 @@ export class TemplateIndex {
     const chain = this.chain(id);
     const attrs: Record<string, string> = {};
     const tags = new Set<string>();
+    const inventory = new Set<string>();
     let type = "";
     let trade = false;
     for (const t of chain) {
@@ -95,10 +112,11 @@ export class TemplateIndex {
         if (v !== "" && attrs[k] === undefined) attrs[k] = v;
       }
       for (const tag of t.tags) tags.add(tag);
+      for (const inv of t.inventory) inventory.add(inv);
       if (!type && t.type) type = t.type;
       trade ||= t.hasTradeTreasures;
     }
-    const result = { id, names: chain.map((t) => t.name), type, attrs, tags: [...tags], hasTradeTreasures: trade };
+    const result = { id, names: chain.map((t) => t.name), type, attrs, tags: [...tags], hasTradeTreasures: trade, inventory: [...inventory] };
     this.cache.set(id, result);
     return result;
   }

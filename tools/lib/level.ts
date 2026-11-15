@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { attr, child, findAll, readLsxFile, type LsxNode } from "./lsx.ts";
 import { findSubLevels, isWildernessSubLevel, readPlacement } from "./sublevels.ts";
-import { subLevelIndex, nodeAttrs, nodeTags, type TemplateIndex } from "./templates.ts";
+import { subLevelIndex, nodeAttrs, nodeTags, treasureTables, type TemplateIndex } from "./templates.ts";
 import { composePlacement, identity, toWorld, type Placement, type Vec3 } from "./transform.ts";
 
 export interface RawObject {
@@ -15,9 +15,13 @@ export interface RawObject {
   attrs: Record<string, string>;
   tags: string[];
   contents: string[];
+  inventory: string[];
+  tradeTables: string[];
 }
 
 export const levelModules = ["Gustav", "GustavDev"];
+
+const sceneryKeep = /WaypointShrine(?!_Top)/;
 
 function levelFiles(lsxRoot: string, level: string, folder: string): LsxNode[][] {
   const out: LsxNode[][] = [];
@@ -38,11 +42,12 @@ function contentsOf(go: LsxNode): string[] {
 
 export function readLevelObjects(lsxRoot: string, level: string, placement: Placement): RawObject[] {
   const out: RawObject[] = [];
-  for (const [folder, kind] of [["Items", "item"], ["Characters", "character"]] as const) {
+  for (const [folder, kind] of [["Items", "item"], ["Characters", "character"], ["Scenery", "item"]] as const) {
     for (const roots of levelFiles(lsxRoot, level, folder)) {
       for (const go of findAll(roots, "GameObjects")) {
         const id = attr(go, "MapKey");
         if (!id) continue;
+        if (folder === "Scenery" && !sceneryKeep.test(attr(go, "Name") ?? "")) continue;
         out.push({
           id,
           kind,
@@ -53,6 +58,8 @@ export function readLevelObjects(lsxRoot: string, level: string, placement: Plac
           attrs: nodeAttrs(go),
           tags: nodeTags(go),
           contents: contentsOf(go),
+          inventory: treasureTables(go, "InventoryList", "InventoryItem"),
+          tradeTables: treasureTables(go, "TradeTreasures", "TreasureItem"),
         });
       }
     }
