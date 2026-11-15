@@ -72,6 +72,8 @@ export function padHintBar(): string {
     `${pad(i)}<ls:LSToggleButton x:Name="BG3A_PadBtn" ls:LSToggleButton.BoundEvent="UIFilter" Tag="Atlas" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIFilter, Converter={StaticResource FindInputEventConverter}}" EatInput="False"/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UILeft" Command="{Binding DataContext.PadPrev, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIRight" Command="{Binding DataContext.PadNext, ElementName=BG3A_Panel}" ${enabled}/>`,
+    `${pad(i)}<ls:LSInputBinding BoundEvent="UIUp" Command="{Binding DataContext.PadUp, ElementName=BG3A_Panel}" ${enabled}/>`,
+    `${pad(i)}<ls:LSInputBinding BoundEvent="UIDown" Command="{Binding DataContext.PadDown, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIAccept" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" ${enabled}/>`,
     "",
   ].join("\n");

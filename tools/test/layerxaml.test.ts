@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { XMLValidator } from "fast-xml-parser";
 import { describe, expect, it } from "vitest";
 import { categoryRules } from "../categories.ts";
-import { categoryIcons } from "../../mod/xaml/icons.ts";
-import { layerXaml } from "../lib/layerxaml.ts";
+import { categoryColors, categoryIcons, iconDisc } from "../../mod/xaml/icons.ts";
+import { iconCanvas, layerXaml } from "../lib/layerxaml.ts";
 import { patchTheme, unpackedPath, worldMapThemes } from "../lib/themes.ts";
 
 const ids = categoryRules.map((r) => r.id);
@@ -17,6 +17,18 @@ describe("categoryIcons", () => {
 
   it.each(ids)("%s glyph uses only path commands and numbers", (id) => {
     expect(categoryIcons[id].glyph).toMatch(/^[MLQAZmlqaz0-9.,\s-]+$/);
+  });
+});
+
+describe("categoryColors", () => {
+  it("gives every category its own rim color", () => {
+    const rims = ids.map((id) => categoryColors[id].rim);
+    expect(new Set(rims).size).toBe(ids.length);
+  });
+
+  it.each(["weapon_unique", "armor_unique", "valuable", "chest", "accessory"] as const)("fills the disc of %s with its own tint", (id) => {
+    expect(categoryColors[id].disc).not.toBe(iconDisc);
+    expect(iconCanvas(id, 0)).toContain(`Fill="${categoryColors[id].disc}"`);
   });
 });
 
@@ -37,7 +49,7 @@ describe("layerXaml", () => {
 
   it("makes icons clickable with a tooltip, dims found ones, keeps the empty layer transparent to the mouse", () => {
     expect(xaml).not.toContain("Command=");
-    expect(xaml.split('ToolTip="{Binding Label}"').length - 1).toBe(ids.length * 2);
+    expect(xaml.split('<ls:LSTooltip Content="{Binding Label}" Placement="Top"/>').length - 1).toBe(ids.length * 2);
     expect(xaml).toMatch(/x:Name="BG3A_Found_trap"[^>]*Opacity="0.45"/);
     expect(xaml).not.toMatch(/x:Name="BG3A_Layer"[^>]*IsHitTestVisible/);
   });

@@ -57,7 +57,7 @@ describe("panelXaml pad mode", () => {
 
   it("binds the toggle to UIFilter and moves the selection with left, right and accept", () => {
     expect(bar).toContain('x:Name="BG3A_PadBtn" ls:LSToggleButton.BoundEvent="UIFilter"');
-    for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIAccept", "PadToggle"]]) {
+    for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIUp", "PadUp"], ["UIDown", "PadDown"], ["UIAccept", "PadToggle"]]) {
       expect(bar).toContain(`BoundEvent="${event}" Command="{Binding DataContext.${command}, ElementName=BG3A_Panel}"`);
     }
   });

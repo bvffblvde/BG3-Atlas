@@ -1,13 +1,14 @@
-import { categoryIcons, groupRim, iconDisc, iconGlyph } from "../../mod/xaml/icons.ts";
+import { categoryColors, categoryIcons, iconGlyph } from "../../mod/xaml/icons.ts";
 import { categoryRules, type CategoryId } from "../categories.ts";
 
 const pad = (n: number) => " ".repeat(n);
 
 export function iconCanvas(id: CategoryId, indent: number): string {
   const icon = categoryIcons[id];
+  const color = categoryColors[id];
   const i = pad(indent);
   return [
-    `${i}<Ellipse Width="24" Height="24" Fill="${iconDisc}" Stroke="${groupRim[icon.group]}" StrokeThickness="2"/>`,
+    `${i}<Ellipse Width="24" Height="24" Fill="${color.disc}" Stroke="${color.rim}" StrokeThickness="2.2"/>`,
     `${i}<Path Data="${icon.glyph}" Stroke="${iconGlyph}" StrokeThickness="1.7"/>`,
   ].join("\n");
 }
@@ -32,7 +33,10 @@ function pointsControl(id: CategoryId, kind: "Cat" | "Found"): string {
     `${pad(56)}<TranslateTransform X="{Binding PosX}" Y="{Binding PosY}"/>`,
     `${pad(52)}</TransformGroup>`,
     `${pad(48)}</Canvas.RenderTransform>`,
-    `${pad(48)}<Canvas Width="24" Height="24" Background="#01000000" ToolTip="{Binding Label}">`,
+    `${pad(48)}<Canvas Width="24" Height="24" Background="#01000000">`,
+    `${pad(52)}<Canvas.ToolTip>`,
+    `${pad(56)}<ls:LSTooltip Content="{Binding Label}" Placement="Top"/>`,
+    `${pad(52)}</Canvas.ToolTip>`,
     iconCanvas(id, 52),
     `${pad(48)}</Canvas>`,
     `${pad(44)}</Canvas>`,

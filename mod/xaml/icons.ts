@@ -12,6 +12,27 @@ export const groupRim: Record<IconGroup, string> = {
 export const iconDisc = "#EB1A1208";
 export const iconGlyph = "#FFF2DDA0";
 
+export const categoryColors: Record<CategoryId, { rim: string; disc: string }> = {
+  chest: { rim: "#FFC08A4A", disc: "#F04A2E16" },
+  weapon_unique: { rim: "#FFE0563A", disc: "#F0581A10" },
+  armor_unique: { rim: "#FF6FA8DC", disc: "#F0163250" },
+  accessory: { rim: "#FFC08AF0", disc: "#F03C1C52" },
+  valuable: { rim: "#FF4FD08E", disc: "#F00E3F28" },
+  scroll: { rim: "#FFE8D39A", disc: iconDisc },
+  book: { rim: "#FF5FC4BE", disc: iconDisc },
+  key: { rim: "#FFF5CD3C", disc: iconDisc },
+  ingredient: { rim: "#FF9CCB5A", disc: iconDisc },
+  trap: { rim: "#FFFF4A4A", disc: iconDisc },
+  hidden_stash: { rim: "#FF7FE0F0", disc: iconDisc },
+  lever: { rim: "#FFA3AFB8", disc: iconDisc },
+  locked_door: { rim: "#FFE09840", disc: iconDisc },
+  waypoint: { rim: "#FFB5D2FF", disc: iconDisc },
+  trader: { rim: "#FFE6A35C", disc: iconDisc },
+  quest_npc: { rim: "#FFFFE680", disc: iconDisc },
+  boss: { rim: "#FFB0303A", disc: "#F0400C10" },
+  animal: { rim: "#FFC8A878", disc: iconDisc },
+};
+
 export const categoryIcons: Record<CategoryId, { group: IconGroup; glyph: string }> = {
   chest: { group: "loot", glyph: "M6,10 L18,10 L18,17 L6,17 Z M6,10 Q12,5 18,10 M11,12.5 L13,12.5 L13,14.5 L11,14.5 Z" },
   weapon_unique: { group: "loot", glyph: "M17.5,6.5 L16.8,9 L11.3,14.5 L9.5,12.7 L15,7.2 Z M8,12 L12,16 M9.8,14.2 L6.5,17.5" },

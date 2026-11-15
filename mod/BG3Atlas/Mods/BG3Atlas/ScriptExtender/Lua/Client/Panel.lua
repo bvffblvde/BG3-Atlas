@@ -12,7 +12,7 @@ local labels = {
         none = "Скрыть",
         hideFound = "Скрыть найденное",
         showFound = "Показать найденное",
-        padHint = "Влево и вправо: выбор, подтвердить: показать или скрыть",
+        padHint = "Стрелки: выбор, подтвердить: показать или скрыть",
         chest = "Сундуки",
         weapon_unique = "Оружие",
         armor_unique = "Броня",
@@ -38,7 +38,7 @@ local labels = {
         none = "Hide",
         hideFound = "Hide found",
         showFound = "Show found",
-        padHint = "Left and right: select, accept: show or hide",
+        padHint = "D-pad: select, accept: show or hide",
         chest = "Containers",
         weapon_unique = "Weapons",
         armor_unique = "Armour",
@@ -93,6 +93,8 @@ local function register()
         PadPrev = { Type = "Command" },
         PadNext = { Type = "Command" },
         PadToggle = { Type = "Command" },
+        PadUp = { Type = "Command" },
+        PadDown = { Type = "Command" },
     }
     for _, cat in ipairs(Points.Categories) do
         props["Label_" .. cat] = { Type = "String" }
@@ -151,6 +153,14 @@ local function newModel()
     end)
     P.Handle(vm, "PadNext", function()
         selected = selected % n + 1
+        dirty = true
+    end)
+    P.Handle(vm, "PadUp", function()
+        selected = (selected - 3) % n + 1
+        dirty = true
+    end)
+    P.Handle(vm, "PadDown", function()
+        selected = (selected + 1) % n + 1
         dirty = true
     end)
     P.Handle(vm, "PadToggle", function()

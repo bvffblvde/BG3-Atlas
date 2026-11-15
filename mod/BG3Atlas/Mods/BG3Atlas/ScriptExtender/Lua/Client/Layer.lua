@@ -83,6 +83,21 @@ local viewKey = "none"
 local currentMap = nil
 local rebuild = false
 
+local viewCounts = nil
+
+local function countForKey(key)
+    if not viewCounts then
+        viewCounts = {}
+        for _, list in pairs(Points.ByCategory()) do
+            for _, pt in ipairs(list) do
+                local k = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
+                viewCounts[k] = (viewCounts[k] or 0) + 1
+            end
+        end
+    end
+    return viewCounts[key] or 0
+end
+
 local function inView(pt)
     return BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor) == viewKey
 end
@@ -115,6 +130,9 @@ local function updateView()
         end
     end
     local key = BG3Atlas.Submaps.Key(map, BG3Atlas.Submaps.Assign(map, pos[1], pos[2], pos[3]))
+    if countForKey(key) == 0 then
+        key = BG3Atlas.Submaps.Key(map, nil, nil)
+    end
     if key ~= viewKey then
         viewKey = key
         rebuild = true
@@ -432,11 +450,36 @@ local function cmdAll(_, mode)
     P.Log("all categories " .. (mode ~= "off" and "on" or "off"))
 end
 
+local function dumpProps(lines, title, obj)
+    lines[#lines + 1] = "### " .. title .. " " .. P.Str(obj and P.Get(obj, "Type"))
+    if not obj then
+        return
+    end
+    local ok, props = pcall(function()
+        return obj:GetAllProperties()
+    end)
+    if not ok or type(props) ~= "table" then
+        lines[#lines + 1] = "  " .. P.Str(props)
+        return
+    end
+    local keys = {}
+    for k in pairs(props) do
+        keys[#keys + 1] = P.Str(k)
+    end
+    table.sort(keys)
+    for _, k in ipairs(keys) do
+        lines[#lines + 1] = "  " .. k .. " = " .. P.Str(props[k])
+    end
+end
+
 local function cmdLayerDump()
     Ext.UI.Defer(function()
-        local lines = {}
+        local lines = { "view " .. viewKey }
         for _, entry in ipairs(findMaps()) do
             lines[#lines + 1] = "## " .. entry.widget .. " MapScale=" .. P.Str(P.Get(entry.map, "MapScale")) .. " MinWidth=" .. P.Str(P.Get(entry.map, "MinWidth")) .. " worldW=" .. P.Str(worldWidth(entry))
+            local data = entry.image and P.Get(entry.image, "DataContext")
+            dumpProps(lines, "WorldMapData", data)
+            dumpProps(lines, "CurrentBuilding", data and P.Get(data, "CurrentBuilding"))
             if entry.layer then
                 for _, c in ipairs(children(entry.layer)) do
                     lines[#lines + 1] = "  " .. P.Str(P.Get(c, "Name")) .. " Visibility=" .. P.Str(P.Get(c, "Visibility")) .. " Opacity=" .. P.Str(P.Get(c, "Opacity"))
