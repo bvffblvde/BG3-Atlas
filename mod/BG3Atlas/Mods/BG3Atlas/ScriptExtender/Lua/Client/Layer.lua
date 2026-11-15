@@ -825,6 +825,14 @@ local function cmdLayerDump()
             local data = entry.image and P.Get(entry.image, "DataContext")
             dumpProps(lines, "WorldMapData", data)
             dumpProps(lines, "CurrentBuilding", data and P.Get(data, "CurrentBuilding"))
+            local container = data and P.Get(data, "RegionsContainer")
+            dumpProps(lines, "RegionsContainer", container)
+            local regions = container and P.Get(container, "Regions")
+            local count = regions and #regions or 0
+            lines[#lines + 1] = "  regions " .. count
+            for i = 1, math.min(count, 12) do
+                dumpProps(lines, "Region " .. i, regions[i])
+            end
             if entry.layer then
                 for _, c in ipairs(children(entry.layer)) do
                     lines[#lines + 1] = "  " .. P.Str(P.Get(c, "Name")) .. " Visibility=" .. P.Str(P.Get(c, "Visibility")) .. " Opacity=" .. P.Str(P.Get(c, "Opacity"))
