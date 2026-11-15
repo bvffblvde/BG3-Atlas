@@ -82,6 +82,10 @@ local searchVersion = -1
 local viewKey = "none"
 local currentMap = nil
 local rebuild = false
+local rebuildGen = 0
+local seenGen = -1
+local viewList = {}
+local loopGen = 0
 
 local viewCounts = nil
 
@@ -134,7 +138,7 @@ local function inView(pt)
 end
 
 function Layer.ForceRebuild()
-    rebuild = true
+    rebuildGen = rebuildGen + 1
 end
 
 local player = nil
@@ -151,12 +155,17 @@ local function readPlayer()
             local map = level and P.Get(level, "LevelName")
             if pos and map then
                 player = { pos = { pos[1], pos[2], pos[3] }, map = P.Str(map) }
+                BG3Atlas.Found.Prime()
                 return true
             end
         end
     end
     player = nil
     return false
+end
+
+function Layer.PlayerMap()
+    return player and player.map
 end
 
 function Layer.PlayerPos()
@@ -214,6 +223,7 @@ local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
     local total = 0
     placed = {}
+    viewList = {}
     for cat, list in pairs(Points.ByCategory()) do
         local active = vm["Cat_" .. cat]
         local done = vm["Found_" .. cat]
@@ -225,6 +235,7 @@ local function newModel()
             local coll = isFound and done or active
             coll[#coll + 1] = newPoint(pt, isFound)
             placed[pt.id] = isFound
+            viewList[#viewList + 1] = { pt = pt, cat = cat }
             total = total + 1
             ::continue::
         end
@@ -271,17 +282,16 @@ local function syncFound(vm)
     end
     syncedVersion = version
     local moved = 0
-    for cat, list in pairs(Points.ByCategory()) do
-        for _, pt in ipairs(list) do
-            local isFound = BG3Atlas.Found.IsFound(pt.id)
-            if placed[pt.id] ~= nil and placed[pt.id] ~= isFound then
-                local from = vm[(isFound and "Cat_" or "Found_") .. cat]
-                local to = vm[(isFound and "Found_" or "Cat_") .. cat]
-                removeById(from, pt.id)
-                to[#to + 1] = newPoint(pt, isFound)
-                placed[pt.id] = isFound
-                moved = moved + 1
-            end
+    for _, v in ipairs(viewList) do
+        local pt, cat = v.pt, v.cat
+        local isFound = BG3Atlas.Found.IsFound(pt.id)
+        if placed[pt.id] ~= isFound then
+            local from = vm[(isFound and "Cat_" or "Found_") .. cat]
+            local to = vm[(isFound and "Found_" or "Cat_") .. cat]
+            removeById(from, pt.id)
+            to[#to + 1] = newPoint(pt, isFound)
+            placed[pt.id] = isFound
+            moved = moved + 1
         end
     end
     if moved > 0 and BG3Atlas.Panel then
@@ -504,17 +514,13 @@ local function updateCursor(entry)
     end
     local radius = 30 * worldW / (mapScale * imageW)
     local best, bestD = nil, radius * radius
-    for cat, list in pairs(Points.ByCategory()) do
-        if Settings.IsEnabled(cat) then
-            for _, pt in ipairs(list) do
-                if inView(pt) and not (Settings.HideFound() and BG3Atlas.Found.IsFound(pt.id)) then
-                    local dx, dy = pt.x - lx, pt.y - ly
-                    local d = dx * dx + dy * dy
-                    if d < bestD then
-                        best, bestD = pt, d
-                    end
-                end
-            end
+    local hideFound = Settings.HideFound()
+    for _, v in ipairs(viewList) do
+        local pt = v.pt
+        local dx, dy = pt.x - lx, pt.y - ly
+        local d = dx * dx + dy * dy
+        if d < bestD and Settings.IsEnabled(v.cat) and not (hideFound and BG3Atlas.Found.IsFound(pt.id)) then
+            best, bestD = pt, d
         end
     end
     hovered[entry.player or 1] = best and { pt = best, t = Ext.Timer.MonotonicTime() } or nil
@@ -609,6 +615,8 @@ local function loadState(pid)
     searchVersion = st.searchVersion or -1
     viewKey = st.viewKey or "none"
     rebuild = st.rebuild or false
+    seenGen = st.seenGen or -1
+    viewList = st.viewList or {}
     subregion = st.subregion
     revealed = st.revealed
     revealedSig = st.revealedSig
@@ -624,6 +632,8 @@ local function saveState(pid)
         searchVersion = searchVersion,
         viewKey = viewKey,
         rebuild = rebuild,
+        seenGen = seenGen,
+        viewList = viewList,
         subregion = subregion,
         revealed = revealed,
         revealedSig = revealedSig,
@@ -651,13 +661,17 @@ local function update()
     if #order > 1 then
         logOnce("split" .. #order, "map widgets for " .. #order .. " players")
     end
+    local failure = nil
     for _, pid in ipairs(order) do
         loadState(pid)
         local ok, err = pcall(updatePlayer, groups[pid])
         saveState(pid)
-        if not ok then
-            error(err, 0)
+        if not ok and not failure then
+            failure = err
         end
+    end
+    if failure then
+        error(failure, 0)
     end
 end
 
@@ -666,8 +680,9 @@ function updatePlayer(found)
     updateSubregion(found)
     updateRegions(found)
     local shared = nil
-    local forced = rebuild
+    local forced = rebuild or seenGen ~= rebuildGen
     rebuild = false
+    seenGen = rebuildGen
     for _, entry in ipairs(found) do
         if not forced and entry.layer and isOurs(P.Get(entry.layer, "DataContext")) then
             shared = P.Get(entry.layer, "DataContext")
@@ -705,8 +720,8 @@ function updatePlayer(found)
     end
 end
 
-local function loop()
-    if not running then
+local function loop(gen)
+    if not running or gen ~= loopGen then
         return
     end
     local queued = pendingToggles
@@ -720,7 +735,9 @@ local function loop()
         logOnce("readplayer", "player read failed: " .. P.Str(ready))
     end
     if not okRead or not ready then
-        Ext.Timer.WaitForRealtime(Layer.PeriodMs, loop)
+        Ext.Timer.WaitForRealtime(Layer.PeriodMs, function()
+            loop(gen)
+        end)
         return
     end
     Ext.UI.Defer(function()
@@ -730,7 +747,9 @@ local function loop()
             logOnce(msg, "layer update failed: " .. msg)
         end
     end)
-    Ext.Timer.WaitForRealtime(Layer.PeriodMs, loop)
+    Ext.Timer.WaitForRealtime(Layer.PeriodMs, function()
+        loop(gen)
+    end)
 end
 
 function Layer.Start()
@@ -738,8 +757,9 @@ function Layer.Start()
         return
     end
     running = true
+    loopGen = loopGen + 1
     P.Log("layer started")
-    loop()
+    loop(loopGen)
 end
 
 function Layer.Stop()

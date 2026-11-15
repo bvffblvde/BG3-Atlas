@@ -35,6 +35,7 @@ local seenFull = {}
 local running = false
 local stats = {}
 local lastStats = nil
+local lastError = nil
 
 local function resetStats()
     stats = { checked = 0, itemsSeen = 0, full = 0, empty = 0, unreadable = 0, missing = 0, marked = 0 }
@@ -89,7 +90,7 @@ local function mark(entry, reason)
     P.Log("auto found " .. entry.cat .. " " .. P.Str(entry.name) .. " (" .. reason .. ")")
 end
 
-local function check(entry)
+local function check(entry, near)
     if Found.IsFound(entry.id) or Found.IsBlocked(entry.id) then
         return
     end
@@ -109,7 +110,7 @@ local function check(entry)
                 seenInWorld[entry.id] = true
                 stats.itemsSeen = stats.itemsSeen + 1
             end
-        elseif seenInWorld[entry.id] then
+        elseif near and seenInWorld[entry.id] then
             mark(entry, "gone from world")
         end
     elseif containerCategories[entry.cat] then
@@ -159,27 +160,29 @@ local function step()
         if not BG3Atlas.World.Ready() then
             return
         end
-        local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
-        if not map then
+        local map = BG3Atlas.Layer and BG3Atlas.Layer.PlayerMap()
+        if not map or not Points.HasMap(map) then
             return
         end
         if map ~= queueMap or not queue then
             queue = Detect.BuildQueue(Points.ByCategory(), map)
             queueMap = map
             cursor = 1
+            seenInWorld = {}
+            seenFull = {}
         end
         local pos = BG3Atlas.Layer.PlayerPos()
         if pos then
             local lx, ly = Points.ToLocal(map, pos[1], pos[3])
             if lx then
                 for _, entry in ipairs(Detect.Near(queue, lx, ly, Detect.NearRadius)) do
-                    check(entry)
+                    check(entry, true)
                 end
             end
         end
         local last = math.min(#queue, cursor + Detect.BatchSize - 1)
         for i = cursor, last do
-            check(queue[i])
+            check(queue[i], false)
         end
         cursor = last + 1
         if cursor > #queue then
@@ -188,9 +191,11 @@ local function step()
         logStats()
     end)
     if not ok then
-        P.Log("detect failed: " .. P.Str(err))
-        running = false
-        return
+        local msg = P.Str(err)
+        if msg ~= lastError then
+            lastError = msg
+            P.Log("detect failed: " .. msg)
+        end
     end
     Ext.Timer.WaitForRealtime(Detect.PeriodMs, step)
 end

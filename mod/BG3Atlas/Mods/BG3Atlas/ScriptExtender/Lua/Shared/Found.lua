@@ -41,6 +41,10 @@ local function load()
     return cache
 end
 
+function Found.Prime()
+    load()
+end
+
 function Found.IsFound(id)
     return load()[id] == true
 end
