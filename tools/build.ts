@@ -1,6 +1,7 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { divine, repoRoot } from "./lib/game.ts";
+import { buildData } from "./lib/builddata.ts";
 import { ensureUnpacked, patchTheme, worldMapThemes } from "./lib/themes.ts";
 
 const source = path.join(repoRoot, "mod", "BG3Atlas");
@@ -10,6 +11,8 @@ const pak = path.join(outDir, "BG3Atlas.pak");
 
 rmSync(stage, { recursive: true, force: true });
 cpSync(source, stage, { recursive: true });
+buildData({ pointsFile: path.join(repoRoot, "data", "points.json"), lsxRoot: path.join(repoRoot, "work", "unpacked", "lsx"), stageDir: stage });
+console.log("generated point data");
 
 const withTheme = !process.argv.includes("--no-theme");
 for (const theme of withTheme ? worldMapThemes : []) {

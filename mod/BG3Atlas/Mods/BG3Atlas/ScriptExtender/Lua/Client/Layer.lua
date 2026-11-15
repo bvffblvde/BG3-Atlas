@@ -1,23 +1,12 @@
 local P = BG3Atlas.Probe
+local Settings = BG3Atlas.Settings
+local Points = BG3Atlas.Points
 
 local Layer = {}
 BG3Atlas.Layer = Layer
 
-Layer.Points = {
-    { "S_DEN_SmokepowderTrap_002", 212.35, 425.93 },
-    { "S_DEN_SmokepowderTrap_001", 206.21, 430.37 },
-    { "S_DEN_NarrativeLoot_AnsursFinestRejection", 211.30, 433.90 },
-    { "S_DEN_Gate", 208.59, 439.47 },
-    { "S_DEN_GateMechanism", 206.05, 441.27 },
-    { "S_DEN_BattleHorn", 201.84, 441.82 },
-    { "S_DEN_AttackOnDen_GoblinBarrel_001", 204.75, 416.80 },
-    { "S_DEN_KanonBag", 180.74, 440.35 },
-    { "S_DEN_WeaponStandCrate", 181.53, 443.31 },
-    { "TOOL_GEN_Shovel_A_002", 185.70, 446.08 },
-}
-
-Layer.MapOrigin = { x = -1200, z = 917.5 }
-Layer.IconPixels = { JournalMap = 26, Minimap = 14 }
+Layer.IconPixels = { JournalMap = 40, Minimap = 32 }
+Layer.IconUnits = 24
 Layer.PeriodMs = 250
 Layer.Widgets = { JournalMap = true, Minimap = true }
 
@@ -25,16 +14,13 @@ local registered = false
 local models = {}
 local logged = {}
 local running = false
+local visibilityMode = nil
 
 local function logOnce(key, msg)
     if not logged[key] then
         logged[key] = true
         P.Log(msg)
     end
-end
-
-local function toMap(x, z)
-    return x - Layer.MapOrigin.x, Layer.MapOrigin.z - z
 end
 
 local function register()
@@ -45,34 +31,30 @@ local function register()
         PosX = { Type = "Single" },
         PosY = { Type = "Single" },
         Name = { Type = "String" },
-        Kind = { Type = "String" },
     })
-    Ext.UI.RegisterType("BG3A_Layer", {
-        Points = { Type = "Collection" },
-    })
+    local props = {}
+    for _, cat in ipairs(Points.Categories) do
+        props["Cat_" .. cat] = { Type = "Collection" }
+    end
+    Ext.UI.RegisterType("BG3A_Layer", props)
     registered = true
-end
-
-local function newPoint(name, x, z, kind)
-    local p = Ext.UI.Instantiate("BG3A_Point")
-    local mx, my = toMap(x, z)
-    p.Name = name
-    p.PosX = mx
-    p.PosY = my
-    p.Kind = kind
-    return p
 end
 
 local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
-    local list = vm.Points
-    local n = 0
-    for _, def in ipairs(Layer.Points) do
-        n = n + 1
-        list[n] = newPoint(def[1], def[2], def[3], "Point")
+    local total = 0
+    for cat, list in pairs(Points.ByCategory()) do
+        local coll = vm["Cat_" .. cat]
+        for i, pt in ipairs(list) do
+            local p = Ext.UI.Instantiate("BG3A_Point")
+            p.PosX = pt.x
+            p.PosY = pt.y
+            p.Name = pt.name
+            coll[i] = p
+        end
+        total = total + #list
     end
-    list[n + 1] = newPoint("Player", 0, 0, "Player")
-    return vm, n + 1
+    return vm, total
 end
 
 local function children(node)
@@ -134,13 +116,8 @@ local function findMaps()
     return out
 end
 
-local function playerPos()
-    for _, e in ipairs(Ext.Entity.GetAllEntitiesWithComponent("ClientControl")) do
-        if P.Get(e, "ClientCharacter") then
-            return P.Pos(e)
-        end
-    end
-    return nil
+local function isOurs(dc)
+    return dc and P.Str(P.Get(dc, "Type")):find("BG3A_Layer", 1, true) ~= nil
 end
 
 local function worldWidth(entry)
@@ -153,45 +130,79 @@ local function worldWidth(entry)
     return nil
 end
 
-local function updateScale(entry)
+local function updateScale(entry, model)
     local mapScale = P.Get(entry.map, "MapScale")
     local imageW = entry.image and P.Get(entry.image, "ActualWidth")
     local worldW = worldWidth(entry)
-    if not mapScale or not imageW or imageW <= 0 or not worldW then
+    if not mapScale or mapScale <= 0 or not imageW or imageW <= 0 or not worldW then
         return
     end
-    local px = Layer.IconPixels[entry.widget] or 20
-    local scale = px * worldW / (mapScale * imageW)
-    local model = models[entry.widget]
+    local px = Layer.IconPixels[entry.widget] or 32
+    local scale = px * worldW / (mapScale * imageW) / Layer.IconUnits
     if not model.scale or math.abs(model.scale - scale) / scale > 0.01 then
         model.scale = scale
-        entry.map.Tag = Ext.UI.Box(scale + 0.0)
+        entry.map.MinWidth = scale
+    end
+end
+
+local function setVisible(node, on)
+    if visibilityMode ~= "opacity" then
+        local want = on and "Visible" or "Collapsed"
+        if P.Str(P.Get(node, "Visibility")) == want then
+            return
+        end
+        local ok, err = pcall(function()
+            node.Visibility = want
+        end)
+        if ok then
+            visibilityMode = "visibility"
+            return
+        end
+        logOnce("vis", "Visibility not writable, using Opacity: " .. P.Str(err))
+        visibilityMode = "opacity"
+    end
+    local alpha = on and 1.0 or 0.0
+    if P.Get(node, "Opacity") ~= alpha then
+        node.Opacity = alpha
+    end
+end
+
+local function updateFilters(entry)
+    for _, c in ipairs(children(entry.layer)) do
+        local name = P.Get(c, "Name")
+        local cat = name and name:match("^BG3A_Cat_(.+)$")
+        if cat then
+            setVisible(c, Settings.IsEnabled(cat))
+        end
     end
 end
 
 local function update()
     register()
-    local pos = playerPos()
-    for _, entry in ipairs(findMaps()) do
+    local found = findMaps()
+    local shared = nil
+    for _, entry in ipairs(found) do
+        if entry.layer and isOurs(P.Get(entry.layer, "DataContext")) then
+            shared = P.Get(entry.layer, "DataContext")
+            break
+        end
+    end
+    for _, entry in ipairs(found) do
         if entry.layer then
             local model = models[entry.widget] or {}
             models[entry.widget] = model
-            local dc = P.Get(entry.layer, "DataContext")
-            if not dc or not P.Str(P.Get(dc, "Type")):find("BG3A_Layer", 1, true) then
-                local vm, playerIndex = newModel()
-                entry.layer.DataContext = vm
-                model.playerIndex = playerIndex
-                model.lastPos = nil
+            if not isOurs(P.Get(entry.layer, "DataContext")) then
+                if not shared then
+                    local vm, total = newModel()
+                    shared = vm
+                    P.Log("layer model built: " .. total .. " points")
+                end
+                entry.layer.DataContext = shared
                 model.scale = nil
-                dc = vm
                 P.Log("layer attached to " .. entry.widget)
             end
-            local last = model.lastPos
-            if pos and (not last or math.abs(last[1] - pos[1]) + math.abs(last[2] - pos[3]) > 0.5) then
-                model.lastPos = { pos[1], pos[3] }
-                dc.Points[model.playerIndex] = newPoint("Player", pos[1], pos[3], "Player")
-            end
-            updateScale(entry)
+            updateScale(entry, model)
+            updateFilters(entry)
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")
         end
@@ -226,55 +237,54 @@ function Layer.Stop()
     P.Log("layer stopped")
 end
 
-local function describe(node)
-    local parts = { P.Str(P.Get(node, "Type")) }
-    local name = P.Get(node, "Name")
-    if name and name ~= "" then
-        parts[#parts + 1] = "#" .. P.Str(name)
+function Layer.Refresh()
+    for _, m in pairs(models) do
+        m.scale = nil
     end
-    for _, k in ipairs({ "ActualWidth", "ActualHeight", "Tag" }) do
-        local v = P.Get(node, k)
-        if v ~= nil then
-            parts[#parts + 1] = k .. "=" .. P.Str(v)
-        end
+end
+
+local function cmdIconPx(_, journal, minimap)
+    Layer.IconPixels.JournalMap = tonumber(journal) or Layer.IconPixels.JournalMap
+    Layer.IconPixels.Minimap = tonumber(minimap) or Layer.IconPixels.Minimap
+    Layer.Refresh()
+    P.Log("icon size journal=" .. Layer.IconPixels.JournalMap .. " minimap=" .. Layer.IconPixels.Minimap)
+end
+
+local function cmdToggle(_, cat)
+    if not cat then
+        P.Log("usage: !atlas_toggle <category>, categories: " .. table.concat(Points.Categories, " "))
+        return
     end
-    local dc = P.Get(node, "DataContext")
-    if dc then
-        local px, py = P.Get(dc, "PosX"), P.Get(dc, "PosY")
-        if px then
-            parts[#parts + 1] = "Pos=" .. P.Str(px) .. "," .. P.Str(py)
-        end
-    end
-    return table.concat(parts, " ")
+    Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
+    Settings.Save()
+    P.Log(cat .. " " .. (Settings.IsEnabled(cat) and "on" or "off"))
+end
+
+local function cmdAll(_, mode)
+    Settings.SetAll(Points.Categories, mode ~= "off")
+    Settings.Save()
+    P.Log("all categories " .. (mode ~= "off" and "on" or "off"))
 end
 
 local function cmdLayerDump()
     Ext.UI.Defer(function()
         local lines = {}
         for _, entry in ipairs(findMaps()) do
-            lines[#lines + 1] = "## " .. entry.widget .. " MapScale=" .. P.Str(P.Get(entry.map, "MapScale")) .. " worldW=" .. P.Str(worldWidth(entry)) .. " " .. describe(entry.map)
-            if entry.image then
-                lines[#lines + 1] = "image " .. describe(entry.image)
-            end
+            lines[#lines + 1] = "## " .. entry.widget .. " MapScale=" .. P.Str(P.Get(entry.map, "MapScale")) .. " MinWidth=" .. P.Str(P.Get(entry.map, "MinWidth")) .. " worldW=" .. P.Str(worldWidth(entry))
             if entry.layer then
-                lines[#lines + 1] = "layer " .. describe(entry.layer)
+                for _, c in ipairs(children(entry.layer)) do
+                    lines[#lines + 1] = "  " .. P.Str(P.Get(c, "Name")) .. " Visibility=" .. P.Str(P.Get(c, "Visibility")) .. " Opacity=" .. P.Str(P.Get(c, "Opacity"))
+                end
             end
         end
         P.Save("layer_dump.txt", lines)
     end)
 end
 
-local function cmdIconPx(_, journal, minimap)
-    Layer.IconPixels.JournalMap = tonumber(journal) or Layer.IconPixels.JournalMap
-    Layer.IconPixels.Minimap = tonumber(minimap) or Layer.IconPixels.Minimap
-    for _, m in pairs(models) do
-        m.scale = nil
-    end
-    P.Log("icon pixels journal=" .. Layer.IconPixels.JournalMap .. " minimap=" .. Layer.IconPixels.Minimap)
-end
-
 Ext.RegisterConsoleCommand("atlas_layerdump", cmdLayerDump)
 Ext.RegisterConsoleCommand("atlas_iconpx", cmdIconPx)
+Ext.RegisterConsoleCommand("atlas_toggle", cmdToggle)
+Ext.RegisterConsoleCommand("atlas_all", cmdAll)
 Ext.RegisterConsoleCommand("atlas_layer_stop", Layer.Stop)
 Ext.RegisterConsoleCommand("atlas_layer_start", Layer.Start)
 

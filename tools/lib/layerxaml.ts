@@ -13,7 +13,7 @@ export function iconCanvas(id: CategoryId, indent: number): string {
 }
 
 function categoryControl(id: CategoryId): string {
-  const tag = "{Binding Tag, RelativeSource={RelativeSource AncestorType=ls:LSWorldMap}, FallbackValue=0.25}";
+  const tag = "{Binding MinWidth, RelativeSource={RelativeSource AncestorType=ls:LSWorldMap}}";
   return [
     `${pad(32)}<ItemsControl x:Name="BG3A_Cat_${id}" ItemsSource="{Binding Cat_${id}}">`,
     `${pad(36)}<ItemsControl.ItemsPanel>`,

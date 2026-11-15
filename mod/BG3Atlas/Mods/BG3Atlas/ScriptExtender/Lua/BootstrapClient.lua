@@ -1,3 +1,6 @@
 Ext.Require("Shared/Probe.lua")
 Ext.Require("Client/Probe.lua")
+Ext.Require("Client/Settings.lua")
+Ext.Require("Client/Points.lua")
 Ext.Require("Client/Layer.lua")
+BG3Atlas.Settings.Load()
