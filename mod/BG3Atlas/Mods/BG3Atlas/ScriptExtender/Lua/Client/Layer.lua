@@ -18,6 +18,11 @@ Layer.Points = {
 
 Layer.IconPixels = 40
 Layer.IconK = 1.0
+Layer.MapOrigin = { x = -1200, z = 917.5 }
+
+local function toMap(x, z)
+    return x - Layer.MapOrigin.x, Layer.MapOrigin.z - z
+end
 Layer.PeriodMs = 250
 
 local registered = false
@@ -44,8 +49,9 @@ end
 local function newPoint(name, x, z, kind)
     local p = Ext.UI.Instantiate("BG3A_Point")
     p.Name = name
-    p.PosX = x
-    p.PosY = z
+    local mx, my = toMap(x, z)
+    p.PosX = mx
+    p.PosY = my
     p.Kind = kind
     return p
 end
@@ -58,8 +64,7 @@ local function newModel()
         n = n + 1
         list[n] = newPoint(def[1], def[2], def[3], "Point")
     end
-    list[n + 1] = newPoint("PlayerA", 0, 0, "PlayerA")
-    list[n + 2] = newPoint("PlayerB", 0, 0, "PlayerB")
+    list[n + 1] = newPoint("Player", 0, 0, "Player")
     return vm, n + 1
 end
 
@@ -132,8 +137,7 @@ local function update()
             local last = model.lastPos
             if pos and model.playerIndex and (not last or math.abs(last[1] - pos[1]) + math.abs(last[2] - pos[3]) > 0.5) then
                 model.lastPos = { pos[1], pos[3] }
-                dc.Points[model.playerIndex] = newPoint("PlayerA", pos[1], pos[3], "PlayerA")
-                dc.Points[model.playerIndex + 1] = newPoint("PlayerB", pos[1], -pos[3], "PlayerB")
+                dc.Points[model.playerIndex] = newPoint("Player", pos[1], pos[3], "Player")
             end
             local mapScale = P.Get(entry.map, "MapScale") or 1
             local imageW = entry.image and P.Get(entry.image, "ActualWidth") or 0
