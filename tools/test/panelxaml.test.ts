@@ -26,6 +26,9 @@ describe("panelXaml", () => {
     expect(xaml).toContain("{Binding ShowAll}");
     expect(xaml).toContain("{Binding HideAll}");
     expect(xaml).toContain("{Binding ToggleFound}");
+    expect(xaml).toContain('Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"');
+    expect(xaml).toContain('Style="{StaticResource DefaultInputBox}"');
+    expect(xaml).toContain('x:Name="BG3A_SearchInfo"');
     expect(xaml).toContain("{Binding FoundText}");
   });
 

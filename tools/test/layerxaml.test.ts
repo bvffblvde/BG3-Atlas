@@ -42,6 +42,11 @@ describe("layerXaml", () => {
     expect(xaml).not.toMatch(/x:Name="BG3A_Layer"[^>]*IsHitTestVisible/);
   });
 
+  it("draws search highlights on top without catching the mouse", () => {
+    expect(xaml).toMatch(/x:Name="BG3A_Search" ItemsSource="\{Binding Search\}" IsHitTestVisible="False"/);
+    expect(xaml.lastIndexOf('x:Name="BG3A_Search"')).toBeGreaterThan(xaml.lastIndexOf('x:Name="BG3A_Cat_'));
+  });
+
   it("avoids constructs that crashed the game", () => {
     expect(xaml).not.toContain("DataTrigger");
     expect(xaml).not.toContain("{x:Null}");

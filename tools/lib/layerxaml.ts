@@ -48,6 +48,34 @@ function pointsControl(id: CategoryId, kind: "Cat" | "Found"): string {
   ].join("\n");
 }
 
+function searchControl(): string {
+  const scale = "{Binding MinWidth, RelativeSource={RelativeSource AncestorType=ls:LSWorldMap}}";
+  return [
+    `${pad(32)}<ItemsControl x:Name="BG3A_Search" ItemsSource="{Binding Search}" IsHitTestVisible="False">`,
+    `${pad(36)}<ItemsControl.ItemsPanel>`,
+    `${pad(40)}<ItemsPanelTemplate>`,
+    `${pad(44)}<Canvas />`,
+    `${pad(40)}</ItemsPanelTemplate>`,
+    `${pad(36)}</ItemsControl.ItemsPanel>`,
+    `${pad(36)}<ItemsControl.ItemTemplate>`,
+    `${pad(40)}<DataTemplate>`,
+    `${pad(44)}<Canvas>`,
+    `${pad(48)}<Canvas.RenderTransform>`,
+    `${pad(52)}<TransformGroup>`,
+    `${pad(56)}<TranslateTransform X="-12" Y="-12"/>`,
+    `${pad(56)}<ScaleTransform ScaleX="${scale}" ScaleY="${scale}"/>`,
+    `${pad(56)}<TranslateTransform X="{Binding PosX}" Y="{Binding PosY}"/>`,
+    `${pad(52)}</TransformGroup>`,
+    `${pad(48)}</Canvas.RenderTransform>`,
+    `${pad(48)}<Ellipse Canvas.Left="-8" Canvas.Top="-8" Width="40" Height="40" Stroke="#FFFFF1C4" StrokeThickness="3"/>`,
+    `${pad(48)}<Ellipse Canvas.Left="-13" Canvas.Top="-13" Width="50" Height="50" Stroke="#99FFF1C4" StrokeThickness="2"/>`,
+    `${pad(44)}</Canvas>`,
+    `${pad(40)}</DataTemplate>`,
+    `${pad(36)}</ItemsControl.ItemTemplate>`,
+    `${pad(32)}</ItemsControl>`,
+  ].join("\n");
+}
+
 export function layerXaml(): string {
   return [
     `${pad(28)}<Grid x:Name="BG3A_Layer" Width="{Binding ElementName=MapImage,Path=ActualWidth}" Height="{Binding ElementName=MapImage,Path=ActualHeight}">`,
@@ -58,6 +86,7 @@ export function layerXaml(): string {
     `${pad(32)}</Grid.RenderTransform>`,
     ...categoryRules.map((r) => pointsControl(r.id, "Found")),
     ...categoryRules.map((r) => pointsControl(r.id, "Cat")),
+    searchControl(),
     `${pad(28)}</Grid>`,
     "",
   ].join("\n");

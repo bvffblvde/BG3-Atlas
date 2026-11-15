@@ -34,7 +34,7 @@ local function register()
         Label = { Type = "String" },
         Mark = { Type = "Command" },
     })
-    local props = {}
+    local props = { Search = { Type = "Collection" } }
     for _, cat in ipairs(Points.Categories) do
         props["Cat_" .. cat] = { Type = "Collection" }
         props["Found_" .. cat] = { Type = "Collection" }
@@ -83,6 +83,7 @@ end
 
 local placed = {}
 local syncedVersion = -1
+local searchVersion = -1
 
 local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
@@ -100,6 +101,7 @@ local function newModel()
         total = total + #list
     end
     syncedVersion = BG3Atlas.Found.Version()
+    searchVersion = -1
     return vm, total
 end
 
@@ -112,6 +114,21 @@ local function removeById(coll, id)
         end
     end
     return false
+end
+
+local function syncSearch(vm)
+    local version = BG3Atlas.Search.Version()
+    if version == searchVersion then
+        return
+    end
+    searchVersion = version
+    local coll = vm.Search
+    for i = #coll, 1, -1 do
+        coll[i] = nil
+    end
+    for _, pt in ipairs(BG3Atlas.Search.Results()) do
+        coll[#coll + 1] = newPoint(pt, BG3Atlas.Found.IsFound(pt.id))
+    end
 end
 
 local function syncFound(vm)
@@ -276,6 +293,7 @@ local function update()
     end
     if shared then
         syncFound(shared)
+        syncSearch(shared)
     end
     for _, entry in ipairs(found) do
         if entry.layer then
