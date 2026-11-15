@@ -25,6 +25,8 @@ describe("panelXaml", () => {
     }
     expect(xaml).toContain("{Binding ShowAll}");
     expect(xaml).toContain("{Binding HideAll}");
+    expect(xaml).toContain("{Binding ToggleFound}");
+    expect(xaml).toContain("{Binding FoundText}");
   });
 
   it("avoids constructs that crashed the game", () => {

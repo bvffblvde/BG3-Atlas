@@ -30,31 +30,113 @@ local function register()
     Ext.UI.RegisterType("BG3A_Point", {
         PosX = { Type = "Single" },
         PosY = { Type = "Single" },
-        Name = { Type = "String" },
+        Id = { Type = "String" },
+        Label = { Type = "String" },
+        Mark = { Type = "Command" },
     })
     local props = {}
     for _, cat in ipairs(Points.Categories) do
         props["Cat_" .. cat] = { Type = "Collection" }
+        props["Found_" .. cat] = { Type = "Collection" }
     end
     Ext.UI.RegisterType("BG3A_Layer", props)
     registered = true
 end
 
+local flagText = {
+    ru = { [1] = "заперто", [2] = "ловушка", [4] = "спрятано", found = "найдено", click = "клик: отметить" },
+    en = { [1] = "locked", [2] = "trapped", [4] = "hidden", found = "found", click = "click to mark" },
+}
+
+local function pointLabel(pt, found)
+    local lang = Settings.Language()
+    local text = flagText[lang]
+    local name = lang == "ru" and pt.nameRu or pt.name
+    local extra = {}
+    for _, bit in ipairs({ 1, 2, 4 }) do
+        if pt.flags and (pt.flags & bit) ~= 0 then
+            extra[#extra + 1] = text[bit]
+        end
+    end
+    if found then
+        extra[#extra + 1] = text.found
+    end
+    local label = name
+    if #extra > 0 then
+        label = label .. " (" .. table.concat(extra, ", ") .. ")"
+    end
+    return label
+end
+
+local function newPoint(pt, found)
+    local p = Ext.UI.Instantiate("BG3A_Point")
+    p.PosX = pt.x
+    p.PosY = pt.y
+    p.Id = pt.id
+    p.Label = pointLabel(pt, found)
+    local id = pt.id
+    p.Mark:SetHandler(function()
+        BG3Atlas.Found.SetFound(id, not BG3Atlas.Found.IsFound(id))
+    end)
+    return p
+end
+
+local placed = {}
+local syncedVersion = -1
+
 local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
     local total = 0
+    placed = {}
     for cat, list in pairs(Points.ByCategory()) do
-        local coll = vm["Cat_" .. cat]
-        for i, pt in ipairs(list) do
-            local p = Ext.UI.Instantiate("BG3A_Point")
-            p.PosX = pt.x
-            p.PosY = pt.y
-            p.Name = pt.name
-            coll[i] = p
+        local active = vm["Cat_" .. cat]
+        local done = vm["Found_" .. cat]
+        for _, pt in ipairs(list) do
+            local isFound = BG3Atlas.Found.IsFound(pt.id)
+            local coll = isFound and done or active
+            coll[#coll + 1] = newPoint(pt, isFound)
+            placed[pt.id] = isFound
         end
         total = total + #list
     end
+    syncedVersion = BG3Atlas.Found.Version()
     return vm, total
+end
+
+local function removeById(coll, id)
+    for i = #coll, 1, -1 do
+        local item = coll[i]
+        if item and P.Get(item, "Id") == id then
+            coll[i] = nil
+            return true
+        end
+    end
+    return false
+end
+
+local function syncFound(vm)
+    local version = BG3Atlas.Found.Version()
+    if version == syncedVersion then
+        return
+    end
+    syncedVersion = version
+    local moved = 0
+    for cat, list in pairs(Points.ByCategory()) do
+        for _, pt in ipairs(list) do
+            local isFound = BG3Atlas.Found.IsFound(pt.id)
+            if placed[pt.id] ~= isFound then
+                local from = vm[(isFound and "Cat_" or "Found_") .. cat]
+                local to = vm[(isFound and "Found_" or "Cat_") .. cat]
+                removeById(from, pt.id)
+                to[#to + 1] = newPoint(pt, isFound)
+                placed[pt.id] = isFound
+                moved = moved + 1
+            end
+        end
+    end
+    if moved > 0 and BG3Atlas.Panel then
+        BG3Atlas.Panel.MarkDirty()
+    end
 end
 
 local function children(node)
@@ -170,9 +252,14 @@ end
 local function updateFilters(entry)
     for _, c in ipairs(children(entry.layer)) do
         local name = P.Get(c, "Name")
-        local cat = name and name:match("^BG3A_Cat_(.+)$")
-        if cat then
+        local kind, cat = nil, nil
+        if name then
+            kind, cat = name:match("^BG3A_(%a+)_(.+)$")
+        end
+        if kind == "Cat" then
             setVisible(c, Settings.IsEnabled(cat))
+        elseif kind == "Found" then
+            setVisible(c, Settings.IsEnabled(cat) and not Settings.HideFound())
         end
     end
 end
@@ -186,6 +273,9 @@ local function update()
             shared = P.Get(entry.layer, "DataContext")
             break
         end
+    end
+    if shared then
+        syncFound(shared)
     end
     for _, entry in ipairs(found) do
         if entry.layer then

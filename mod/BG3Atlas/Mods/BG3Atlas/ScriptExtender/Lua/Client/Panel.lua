@@ -10,6 +10,8 @@ local labels = {
         title = "Атлас",
         all = "Все",
         none = "Скрыть",
+        hideFound = "Скрыть найденное",
+        showFound = "Показать найденное",
         chest = "Сундуки",
         weapon_unique = "Оружие",
         armor_unique = "Броня",
@@ -33,6 +35,8 @@ local labels = {
         title = "Atlas",
         all = "All",
         none = "Hide",
+        hideFound = "Hide found",
+        showFound = "Show found",
         chest = "Containers",
         weapon_unique = "Weapons",
         armor_unique = "Armour",
@@ -56,18 +60,6 @@ local labels = {
 
 local registered = false
 local dirty = true
-local lang = nil
-
-local function language()
-    if lang then
-        return lang
-    end
-    local ok, text = pcall(function()
-        return Ext.Loca.GetTranslatedString("h2020fdf6g224eg40cfg80ecg91fed5d32d11")
-    end)
-    lang = (ok and type(text) == "string" and text:find("[\208\209]")) and "ru" or "en"
-    return lang
-end
 
 local function register()
     if registered then
@@ -77,9 +69,11 @@ local function register()
         Title = { Type = "String" },
         AllText = { Type = "String" },
         NoneText = { Type = "String" },
+        FoundText = { Type = "String" },
         Toggle = { Type = "Command" },
         ShowAll = { Type = "Command" },
         HideAll = { Type = "Command" },
+        ToggleFound = { Type = "Command" },
     }
     for _, cat in ipairs(Points.Categories) do
         props["Label_" .. cat] = { Type = "String" }
@@ -104,17 +98,30 @@ local function paramString(param)
 end
 
 local function newModel()
-    local text = labels[language()]
+    local text = labels[Settings.Language()]
     local vm = Ext.UI.Instantiate("BG3A_Panel")
     vm.Title = text.title
     vm.AllText = text.all
     vm.NoneText = text.none
+    vm.FoundText = Settings.HideFound() and text.showFound or text.hideFound
     local counts = Points.Counts()
+    local byCategory = Points.ByCategory()
     for _, cat in ipairs(Points.Categories) do
+        local done = 0
+        for _, pt in ipairs(byCategory[cat] or {}) do
+            if BG3Atlas.Found.IsFound(pt.id) then
+                done = done + 1
+            end
+        end
         vm["Label_" .. cat] = text[cat] or cat
-        vm["Count_" .. cat] = tostring(counts[cat] or 0)
+        vm["Count_" .. cat] = done .. "/" .. (counts[cat] or 0)
         vm["Alpha_" .. cat] = Settings.IsEnabled(cat) and 1.0 or 0.35
     end
+    vm.ToggleFound:SetHandler(function()
+        Settings.SetHideFound(not Settings.HideFound())
+        Settings.Save()
+        dirty = true
+    end)
     vm.Toggle:SetHandler(function(_, param)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))

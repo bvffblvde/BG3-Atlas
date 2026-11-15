@@ -25,12 +25,21 @@ describe("layerXaml", () => {
     expect(XMLValidator.validate(wrapped)).toBe(true);
   });
 
-  it("has one named layer and one items control per category", () => {
+  it("has one named layer and two items controls per category", () => {
     expect(xaml.split('x:Name="BG3A_Layer"').length).toBe(2);
     for (const id of ids) {
       expect(xaml.split(`x:Name="BG3A_Cat_${id}"`).length).toBe(2);
+      expect(xaml.split(`x:Name="BG3A_Found_${id}"`).length).toBe(2);
       expect(xaml).toContain(`ItemsSource="{Binding Cat_${id}}"`);
+      expect(xaml).toContain(`ItemsSource="{Binding Found_${id}}"`);
     }
+  });
+
+  it("makes icons clickable with a tooltip, dims found ones, keeps the empty layer transparent to the mouse", () => {
+    expect(xaml.split('Command="{Binding Mark}"').length - 1).toBe(ids.length * 2);
+    expect(xaml.split('ToolTip="{Binding Label}"').length - 1).toBe(ids.length * 2);
+    expect(xaml).toMatch(/x:Name="BG3A_Found_trap"[^>]*Opacity="0.45"/);
+    expect(xaml).not.toMatch(/x:Name="BG3A_Layer"[^>]*IsHitTestVisible/);
   });
 
   it("avoids constructs that crashed the game", () => {

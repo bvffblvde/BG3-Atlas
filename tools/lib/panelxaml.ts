@@ -57,6 +57,7 @@ export function panelXaml(): string {
     `${pad(i + 8)}<Grid Margin="0,0,0,8">`,
     `${pad(i + 12)}<TextBlock Text="{Binding Title}" Foreground="${ink}" FontSize="32" VerticalAlignment="Center"/>`,
     `${pad(i + 12)}<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">`,
+    ...flatButton(i + 16, "ToggleFound", null, [`${pad(i + 20)}<TextBlock Text="{Binding FoundText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 16, "ShowAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding AllText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 16, "HideAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding NoneText}" Foreground="${dim}" FontSize="24"/>`]),
     `${pad(i + 12)}</StackPanel>`,
