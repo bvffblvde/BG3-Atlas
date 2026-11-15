@@ -33,8 +33,8 @@ local function load()
     cache = {}
     if type(stored) == "table" then
         for id, on in pairs(stored) do
-            if on == true then
-                cache[id] = true
+            if type(on) == "boolean" then
+                cache[id] = on
             end
         end
     end
@@ -45,21 +45,42 @@ function Found.IsFound(id)
     return load()[id] == true
 end
 
-function Found.SetFound(id, on)
+function Found.IsBlocked(id)
+    return load()[id] == false
+end
+
+local function store(id, value)
     local set = load()
-    if (set[id] == true) == (on == true) then
+    if set[id] == value then
         return
     end
-    set[id] = on and true or nil
+    set[id] = value
     version = version + 1
     local copy = {}
-    for k in pairs(set) do
-        copy[k] = true
+    for k, on in pairs(set) do
+        copy[k] = on
     end
     local v = vars()
     if v then
         v[Found.Var] = copy
     end
+end
+
+function Found.SetFound(id, on)
+    local set = load()
+    if set[id] == false and on then
+        return
+    end
+    if (set[id] == true) == (on == true) then
+        return
+    end
+    store(id, on and true or nil)
+end
+
+function Found.Toggle(id)
+    local on = not Found.IsFound(id)
+    store(id, on)
+    return on
 end
 
 function Found.Version()

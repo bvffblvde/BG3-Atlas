@@ -60,7 +60,7 @@ end
 
 local function check(entry)
     local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
-    if entry.map ~= map or Found.IsFound(entry.id) then
+    if entry.map ~= map or Found.IsFound(entry.id) or Found.IsBlocked(entry.id) then
         return
     end
     local ok, entity = pcall(Ext.Entity.Get, entry.id)

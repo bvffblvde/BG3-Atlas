@@ -7,3 +7,4 @@ data/*.json
 !data/sample.json
 .env
 tools/bin/
+.superpowers/

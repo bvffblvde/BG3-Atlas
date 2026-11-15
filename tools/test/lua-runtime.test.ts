@@ -13,10 +13,10 @@ BG3Atlas = { Points = { ByCategory = function() return {} end }, Settings = { La
 Ext = { Json = { Parse = function() error("bad json") end }, IO = {} }
 `;
 
-function run(files: string[], expr: string): string {
+function run(files: string[], expr: string, prelude = ""): string {
   const L = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(L);
-  const source = stubs + files.map((f) => readFileSync(path.join(luaDir, f), "utf8")).join("\n") + `\nreturn ${expr}`;
+  const source = stubs + prelude + "\n" + files.map((f) => readFileSync(path.join(luaDir, f), "utf8")).join("\n") + `\nreturn ${expr}`;
   if (lauxlib.luaL_loadstring(L, to_luastring(source)) !== lua.LUA_OK || lua.lua_pcall(L, 0, 1, 0) !== lua.LUA_OK) {
     throw new Error(to_jsstring(lua.lua_tostring(L, -1)));
   }
@@ -56,5 +56,28 @@ describe("Settings.Parse", () => {
 
   it("treats a missing file as defaults", () => {
     expect(run(["Settings.lua"], "tostring(next(S.Parse(nil).disabled) == nil)")).toBe("true");
+  });
+});
+
+const foundStubs = `
+local store = {}
+Ext.Vars = { RegisterModVariable = function() end, GetModVariables = function() return store end }
+Ext.Events = { SessionLoaded = { Subscribe = function() end } }
+`;
+
+
+describe("Found", () => {
+  const pre = (body: string) => `${foundStubs}\n${body}`;
+
+  it("toggles a new point on, then off as a manual decision", () => {
+    expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found return tostring(F.Toggle('a')) .. tostring(F.IsFound('a')) .. tostring(F.Toggle('a')) .. tostring(F.IsFound('a')) .. tostring(F.IsBlocked('a')) end)()", pre(""))).toBe("truetruefalsefalsetrue");
+  });
+
+  it("keeps a manually cleared point cleared when auto detection marks it", () => {
+    expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found F.Toggle('a') F.Toggle('a') F.SetFound('a', true) return tostring(F.IsFound('a')) end)()", pre(""))).toBe("false");
+  });
+
+  it("reads old saves that only hold found points", () => {
+    expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found return tostring(F.IsFound('a')) .. tostring(F.IsBlocked('a')) end)()", pre("store.Found = { a = true }"))).toBe("truefalse");
   });
 });
