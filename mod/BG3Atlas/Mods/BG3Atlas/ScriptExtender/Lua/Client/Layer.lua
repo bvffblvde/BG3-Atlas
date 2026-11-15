@@ -405,13 +405,18 @@ local function updateCursor(entry)
     if entry.widget ~= "JournalMap_c" or not currentMap or not BG3Atlas.Panel then
         return
     end
-    local a, b, c = vecParts(P.Get(entry.map, "MouseWorldCoordinates"))
+    local a, b, c = vecParts(P.Get(entry.map, "ActualCameraLookatPos"))
     if type(a) ~= "number" then
+        a, b, c = vecParts(P.Get(entry.map, "MouseWorldCoordinates"))
+    end
+    if type(a) ~= "number" then
+        logOnce("nocursor", "cursor position not readable on " .. entry.widget)
         return
     end
     if not cursorLogged then
         cursorLogged = true
-        P.Log("cursor coords " .. P.Str(a) .. " " .. P.Str(b) .. " " .. P.Str(c))
+        local e = playerEntity()
+        P.Log("cursor coords " .. P.Str(a) .. " " .. P.Str(b) .. " " .. P.Str(c) .. " player " .. P.FormatPos(e and P.Pos(e)))
     end
     local lx, ly = Points.ToLocal(currentMap, a, type(c) == "number" and c or b)
     local mapScale = P.Get(entry.map, "MapScale")

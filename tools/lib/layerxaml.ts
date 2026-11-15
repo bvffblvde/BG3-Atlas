@@ -35,7 +35,7 @@ function pointsControl(id: CategoryId, kind: "Cat" | "Found"): string {
     `${pad(48)}</Canvas.RenderTransform>`,
     `${pad(48)}<Canvas Width="24" Height="24" Background="#01000000">`,
     `${pad(52)}<Canvas.ToolTip>`,
-    `${pad(56)}<TextBlock Text="{Binding Label}" FontSize="22" Foreground="#FFF2DDA0" Background="#F01A1208" Padding="10,6,10,6"/>`,
+    `${pad(56)}<TextBlock Text="{Binding Label}" FontSize="15" Foreground="#FFF2DDA0"/>`,
     `${pad(52)}</Canvas.ToolTip>`,
     iconCanvas(id, 52),
     `${pad(48)}</Canvas>`,
