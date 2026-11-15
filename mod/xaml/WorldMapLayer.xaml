@@ -1,0 +1,37 @@
+                            <ItemsControl x:Name="BG3A_Layer" ItemsSource="{Binding Points}" DataContext="{x:Null}" IsHitTestVisible="False"
+                                          Width="{Binding ElementName=MapImage,Path=ActualWidth}" Height="{Binding ElementName=MapImage,Path=ActualHeight}">
+                                <ItemsControl.RenderTransform>
+                                    <TransformGroup>
+                                        <MatrixTransform Matrix="{Binding ProjectionMatrix,RelativeSource={RelativeSource AncestorType=ls:LSWorldMap}}" />
+                                    </TransformGroup>
+                                </ItemsControl.RenderTransform>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Canvas>
+                                            <Canvas.RenderTransform>
+                                                <TranslateTransform X="{Binding X}" Y="{Binding Y}"/>
+                                            </Canvas.RenderTransform>
+                                            <Grid Width="40" Height="40" Canvas.Left="-20" Canvas.Top="-20" RenderTransformOrigin="0.5,0.5">
+                                                <Grid.RenderTransform>
+                                                    <ScaleTransform ScaleX="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    ScaleY="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                </Grid.RenderTransform>
+                                                <Ellipse x:Name="Dot" Fill="#FFE8C15A" Stroke="#FF1A1208" StrokeThickness="5"/>
+                                            </Grid>
+                                        </Canvas>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Kind}" Value="PlayerA">
+                                                <Setter TargetName="Dot" Property="Fill" Value="#FF3FD46B"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="PlayerB">
+                                                <Setter TargetName="Dot" Property="Fill" Value="#FFE0453A"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>

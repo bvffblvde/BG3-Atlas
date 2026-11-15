@@ -83,6 +83,24 @@ Lua вешает компонент `MapMarkerStyle` со своими стил�
 - Иконки точек: вариант A, если пробы в игре подтвердят, что рантайм-компонент создаёт маркер. Иначе B.
 - Панель фильтров, поиск и карточка: свой небольшой виджет в собственном GUI-модуле мода (как у ImpUI), поверх журнальной карты, без переопределения `JournalMap.xaml`. Если не получится, минимальная вставка в `JournalMap.xaml` или настройки через MCM, как разрешает спека.
 
+## 7a. Результаты пробы в игре (2026-11-15)
+
+- Вариант A не работает: `MapMarkerStyle`, добавленный в рантайме на сервере, реплицируется на клиент (компонент виден в клиентском контексте), но маркер на карте и миникарте не появляется. Маркеры `SpecialItem`, видимо, создаются при загрузке сущности или другой системой. Вариант A отброшен.
+- Координаты в файлах уровня совпадают с рантаймом: бочка `S_DEN_SmokepowderTrap_002` в `Items/_merged` (212.35, 24.92, 425.93), в игре там же.
+- У `ls.LSWorldMap` через SE читаются `MapPos`, `MapScale`, `MapRotation`, `Scale`, `ActualCameraLookatPos`, `MouseWorldCoordinates`, `LowerHeightLimit`, `UpperHeightLimit`. `ProjectionMatrix` (тип `Transform2`) SE прочитать не умеет. `WorldMapData` и `DataContext` у самого контрола пустые.
+- ViewModel маркера `ls.MapMarker`: `Type`, `Name`, `WorldPos`, `Height`, `AzimuthDegrees`, `GameObject`, `MapMarkerStyle`, `QuestViews`, `CombinedMapMarkers`.
+- Нативные маркеры лежат в `Canvas PART_MarkerHolder` шаблона `LSWorldMap`, их ставит движок.
+
+### Выбранный механизм для иконок: слой в шаблоне LSWorldMap
+
+В шаблоне `LSWorldMap` (`DefaultShared.Styles.xaml`, стиль без ключа) регионы карты нарисованы `ItemsControl` внутри `MapHolder`, у которого есть `MatrixTransform Matrix="{Binding ProjectionMatrix, ...LSWorldMap}"`, а элементы ставятся на `Canvas` через `TranslateTransform X=WorldPos.X Y=WorldPos.Y`. `MapHolder` сам сдвигается, поворачивается и масштабируется по `MapPos`, `MapRotation`, `MapScale`.
+
+Мы добавляем свой `ItemsControl x:Name="BG3A_Layer"` последним ребёнком `MapHolder` с той же проекцией. Lua находит слой и ставит ему DataContext со своей ViewModel (`BG3A_Layer { Points, IconScale }`). Движок сам проецирует точки, панорамирование, зум и поворот бесплатны, карта и миникарта используют один стиль. Иконки компенсируют масштаб через `IconScale` (Lua пересчитывает по `MapScale`).
+
+- Файл темы Larian в git не кладём: `tools/build.ts` берёт ванильный файл из `work/unpacked`, вставляет фрагмент `mod/xaml/WorldMapLayer.xaml` и проверяет XML. Патчатся две версии: `Public/Game/GUI/Theme/` (Game.pak) и `Public/Game/GUI/Override/Clairmont/Theme/` (Patch8_HotFix9). Какая из них активна, не проверено, поэтому патчим обе.
+- Если патч игры изменит шаблон, сборка упадёт с понятной ошибкой, а не соберёт битый пак.
+- Не проверено: что `WorldPos.Y` в проекции это мировой `z` без смены знака (проверяем двумя отладочными точками), и коэффициент масштаба иконок.
+
 ## 7. Что проверить в игре до выбора (проба этапа 0.5)
 
 Нужен установленный SE и маленький отладочный мод. Проверить в консоли SE:
