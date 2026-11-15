@@ -5,6 +5,7 @@ import { parseLsx } from "../lib/lsx.ts";
 import { buildPoint, buildReport, type ExtractContext } from "../lib/points.ts";
 import { StatsIndex } from "../lib/stats.ts";
 import { TemplateIndex } from "../lib/templates.ts";
+import { WaypointIndex } from "../lib/waypoints.ts";
 
 const templates = new TemplateIndex([
   parseLsx(`<save><region id="Templates"><node id="Templates"><children>
@@ -39,13 +40,22 @@ const ctx: ExtractContext = {
       ["h-chest", "Chest"],
       ["h-desc", "A sturdy chest"],
       ["h2020fdf6g224eg40cfg80ecg91fed5d32d11", "Waypoint"],
+      ["h-den", "Emerald Grove Environs"],
     ]),
     new Map([
       ["h-chest", "Сундук"],
       ["h2020fdf6g224eg40cfg80ecg91fed5d32d11", "Рунные круги"],
+      ["h-den", "Окрестности Изумрудной рощи"],
     ]),
   ),
   tagNames: new Map(),
+  waypoints: new WaypointIndex(
+    [
+      { group: "Act1", key: "WAYP_DEN_Camp", item: "w" },
+      { group: "Act2", key: "WAYP_Nameless", item: "w2" },
+    ],
+    new Map([["WAYP_DEN_Camp", "h-den"]]),
+  ),
   map: "WLD_Main_A",
   submaps: [{ trigger: "u", building: "Underdark", floor: 2, center: [0, 0, 0], half: [10, 10, 10], rot: [0, 0, 0, 1], area: 400 }],
 };
@@ -88,11 +98,22 @@ describe("buildPoint", () => {
 });
 
 describe("waypoints", () => {
-  it("use the map legend waypoint name", () => {
-    const { point } = buildPoint(raw({ id: "w", name: "S_DEN_WaypointShrine_geo", template: "t-vase" }), ctx);
+  it("come from story facts and use their own names", () => {
+    const { point, interesting } = buildPoint(raw({ id: "w", name: "S_DEN_WaypointShrine", template: "t-vase" }), ctx);
+    expect(interesting).toBe(true);
     expect(point?.category).toBe("waypoint");
+    expect(point?.name).toBe("Emerald Grove Environs");
+    expect(point?.nameRu).toBe("Окрестности Изумрудной рощи");
+  });
+
+  it("fall back to the map legend name without a name key", () => {
+    const { point } = buildPoint(raw({ id: "w2", template: "t-vase" }), ctx);
     expect(point?.name).toBe("Waypoint");
     expect(point?.nameRu).toBe("Рунные круги");
+  });
+
+  it("ignore shrine scenery that is not in the facts", () => {
+    expect(buildPoint(raw({ id: "geo", name: "S_DEN_WaypointShrine_geo", template: "t-vase" }), ctx).point).toBe(null);
   });
 });
 

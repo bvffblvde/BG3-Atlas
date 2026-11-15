@@ -31,6 +31,9 @@ export function unpackJobs(): UnpackJob[] {
     jobs.push({ pak: "Gustav.pak", pattern: `Mods/Gustav/Levels/${g.prefix}_*`, dest: `gustav-levels-${p}` });
     jobs.push({ pak: "Gustav.pak", pattern: `Mods/GustavDev/Levels/${g.prefix}_*`, dest: `gustavdev-levels-${p}` });
   }
+  jobs.push({ pak: "Gustav.pak", pattern: "Mods/*/Globals/*", dest: "gustav-globals" });
+  jobs.push({ pak: "Gustav.pak", pattern: "Mods/*/Localization/Waypointshrines*", dest: "gustav-waypoint-names" });
+  jobs.push({ pak: "Gustav.pak", pattern: "Mods/*/Story/RawFiles/Goals/_Gustav_Waypoints*", dest: "gustav-waypoint-goals" });
   for (const pak of dataPaks) {
     for (const [pattern, kind] of dataPatterns) {
       jobs.push({ pak, pattern, dest: `${pak.replace(".pak", "").toLowerCase()}-${kind}` });

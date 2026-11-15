@@ -34,6 +34,7 @@ export interface CategoryInput {
   hasTradeTreasures: boolean;
   contents: string[];
   inventory: string[];
+  waypoint?: boolean;
 }
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
@@ -77,7 +78,6 @@ const keyRe = /(^|_)Key(_|$)|Key$/;
 const hazardRe = /Mushroom_(Bibberbang|Exploding|ToxicWall)/;
 const propRe = /Mushroom_(Timmask|Nightlight)|Fairy_Ring|Remains|DELETEME/;
 const beastRe = /Quadruped_Beast/;
-const waypointRe = /WaypointShrine/;
 const chestRe = /(^|_)(Chest|Safe|Strongbox|Lockbox|Vault)(_|$)/;
 const remainsRe = /(^|_)(Skeleton|BonePile|Bones|Ribcage|Skull|Corpse|Body|Bodies|Viscera|Cocoon|Coffin|Casket|Sarcophagus|Tomb|Urn|Grave|Remains)(_|$)/;
 
@@ -114,7 +114,7 @@ export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolea
   { id: "boss", test: (i) => isCharacter(i) && isTrue(i.attrs.IsBoss) },
   { id: "animal", test: (i) => isCharacter(i) && set(i.attrs.DefaultDialog) && (i.tags.includes("ANIMAL") || i.templateNames.some((n) => beastRe.test(n))) },
   { id: "quest_npc", test: (i) => isCharacter(i) && set(i.attrs.DefaultDialog) },
-  { id: "waypoint", test: (i) => !isCharacter(i) && anyName(i, waypointRe) },
+  { id: "waypoint", test: (i) => !isCharacter(i) && i.waypoint === true },
   { id: "trap", test: (i) => !isCharacter(i) && (isTrue(i.attrs.IsTrap) || isHazard(i) || (anyName(i, trapRe) && !anyName(i, smokepowderRe))) },
   { id: "hidden_stash", test: (i) => !isCharacter(i) && isHidden(i) },
   { id: "locked_door", test: (i) => !isCharacter(i) && anyName(i, /(^|_)DOOR_/) && isLocked(i) },
@@ -156,7 +156,7 @@ export function isInteresting(i: CategoryInput): boolean {
     set(i.attrs.BookId) ||
     isTrue(i.attrs.IsKey) ||
     isTrue(i.attrs.IsTrap) ||
-    anyName(i, waypointRe) ||
+    i.waypoint === true ||
     (anyName(i, /(^|_)PUZ_/) && !anyName(i, propRe)) ||
     (anyName(i, /(^|_)DOOR_/) && isLocked(i)) ||
     /^(Gold|PreciousGem|Ingredient|MagicScroll)/.test(objectCategory(i))

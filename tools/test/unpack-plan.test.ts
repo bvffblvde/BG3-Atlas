@@ -38,6 +38,12 @@ describe("unpackJobs", () => {
     expect(jobs.some((j) => j.pak === "Localization/Russian/Russian.pak" && j.pattern === "*" && j.loca === "russian")).toBe(true);
   });
 
+  it("includes level globals and waypoint name keys from Gustav", () => {
+    expect(has("Gustav.pak", "Mods/*/Globals/*")).toBe(true);
+    expect(has("Gustav.pak", "Mods/*/Localization/Waypointshrines*")).toBe(true);
+    expect(has("Gustav.pak", "Mods/*/Story/RawFiles/Goals/_Gustav_Waypoints*")).toBe(true);
+  });
+
   it("gives every job its own destination", () => {
     expect(new Set(jobs.map((j) => j.dest)).size).toBe(jobs.length);
   });

@@ -10,6 +10,7 @@ import { parseStats, StatsIndex } from "./lib/stats.ts";
 import { loadSubmaps } from "./lib/submaps.ts";
 import { loadTagNames } from "./lib/tags.ts";
 import { TemplateIndex } from "./lib/templates.ts";
+import { loadWaypoints } from "./lib/waypoints.ts";
 
 const lsx = path.join(repoRoot, "work", "unpacked", "lsx");
 const locaDir = path.join(repoRoot, "work", "unpacked", "loca");
@@ -38,6 +39,8 @@ const templates = new TemplateIndex(publicFiles("RootTemplates", (n) => n === "_
 const stats = new StatsIndex(publicFiles(path.join("Stats", "Generated", "Data"), (n) => n.endsWith(".txt")).flatMap((f) => parseStats(readFileSync(f, "utf8"))));
 const tagNames = loadTagNames(publicFiles("Tags", (n) => n.endsWith(".lsx")).map(readLsxFile));
 const loca = new Loca(parseLoca(readFileSync(path.join(locaDir, "english.xml"), "utf8")), parseLoca(readFileSync(path.join(locaDir, "russian.xml"), "utf8")));
+const waypoints = loadWaypoints(lsx);
+console.log(`waypoints: ${waypoints.size}`);
 console.log(`loaded data in ${Date.now() - t0} ms: ${tagNames.size} tags`);
 
 const entries: ReportEntry[] = [];
@@ -49,7 +52,7 @@ for (const group of mapGroups) {
   }
   const levels = groupLevels(lsx, templates, group);
   const submaps = loadSubmaps(lsx, levels);
-  const ctx: ExtractContext = { templates, stats, loca, tagNames, map: group.main, submaps };
+  const ctx: ExtractContext = { templates, stats, loca, tagNames, waypoints, map: group.main, submaps };
   const objects = readGroup(lsx, templates, group);
   objectCount += objects.length;
   let mapPoints = 0;

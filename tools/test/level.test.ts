@@ -43,6 +43,8 @@ describe("readWilderness", () => {
     "Mods/Gustav/Levels/WLD_Main_A/Scenery/_merged.lsx",
     save(go("wp", "S_DEN_WaypointShrine_geo", "t-wp", "5 0 5"), go("wp-top", "S_CHA_WaypointShrine_Top_geo", "t-wp", "6 0 6"), go("rock", "Rock_Big_A", "t-rock", "7 0 7")),
   );
+  put(root, "Mods/Gustav/Globals/WLD_Main_A/Items/_merged.lsx", save(go("global-wp", "S_DEN_WaypointShrine", "t-wp", "10 1 20", '<attribute id="Type" type="FixedString" value="item" />')));
+  put(root, "Mods/GustavDev/Globals/WLD_Main_A/Characters/_merged.lsx", save(go("global-npc", "S_Volo", "t-npc", "1 1 1", '<attribute id="Type" type="FixedString" value="character" />')));
   const contents =
     '<node id="ItemList"><children><node id="Item"><attribute id="TemplateID" type="FixedString" value="t-ring" /></node></children></node>' +
     '<node id="InventoryList"><children><node id="InventoryItem"><attribute id="Object" type="FixedString" value="UND_KC_Loot" /></node><node id="InventoryItem"><attribute id="Object" type="FixedString" value="Empty" /></node></children></node>' +
@@ -84,10 +86,15 @@ describe("readWilderness", () => {
     expect(byId.get("npc")?.inventory).toEqual([]);
   });
 
-  it("reads waypoint shrines from scenery and nothing else", () => {
-    expect(byId.get("wp")?.kind).toBe("item");
-    expect(byId.has("wp-top")).toBe(false);
+  it("skips scenery", () => {
+    expect(byId.has("wp")).toBe(false);
     expect(byId.has("rock")).toBe(false);
+  });
+
+  it("reads global items and characters of the level", () => {
+    expect(byId.get("global-wp")?.pos).toEqual([10, 1, 20]);
+    expect(byId.get("global-wp")?.level).toBe("WLD_Main_A");
+    expect(byId.get("global-npc")?.kind).toBe("character");
   });
 
   it("reads any map group by its main level and prefix", () => {

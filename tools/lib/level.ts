@@ -22,12 +22,10 @@ export interface RawObject {
 
 export const levelModules = ["Gustav", "GustavDev"];
 
-const sceneryKeep = /WaypointShrine(?!_Top)/;
-
-function levelFiles(lsxRoot: string, level: string, folder: string): LsxNode[][] {
+function levelFiles(lsxRoot: string, level: string, folder: string, kind: "Levels" | "Globals" = "Levels"): LsxNode[][] {
   const out: LsxNode[][] = [];
   for (const m of levelModules) {
-    const file = path.join(lsxRoot, "Mods", m, "Levels", level, folder, "_merged.lsx");
+    const file = path.join(lsxRoot, "Mods", m, kind, level, folder, "_merged.lsx");
     if (existsSync(file)) out.push(readLsxFile(file));
   }
   return out;
@@ -43,12 +41,17 @@ function contentsOf(go: LsxNode): string[] {
 
 export function readLevelObjects(lsxRoot: string, level: string, placement: Placement): RawObject[] {
   const out: RawObject[] = [];
-  for (const [folder, kind] of [["Items", "item"], ["Characters", "character"], ["Scenery", "item"]] as const) {
-    for (const roots of levelFiles(lsxRoot, level, folder)) {
+  const sources = [
+    ["Levels", "Items", "item"],
+    ["Levels", "Characters", "character"],
+    ["Globals", "Items", "item"],
+    ["Globals", "Characters", "character"],
+  ] as const;
+  for (const [base, folder, kind] of sources) {
+    for (const roots of levelFiles(lsxRoot, level, folder, base)) {
       for (const go of findAll(roots, "GameObjects")) {
         const id = attr(go, "MapKey");
         if (!id) continue;
-        if (folder === "Scenery" && !sceneryKeep.test(attr(go, "Name") ?? "")) continue;
         out.push({
           id,
           kind,

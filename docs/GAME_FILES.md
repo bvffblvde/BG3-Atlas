@@ -70,3 +70,10 @@ UI (`Game.pak`):
 - Живой уровень: `Mods/Gustav/Levels/WLD_Chapel_Push`, подключается LevelTemplate `WLD_Chapel` (шаблон `65633591-0aff-40af-a9e1-03095d19add7`, `SubLevelName = WLD_Chapel_Push`) в `WLD_Main_A/LevelTemplates`.
 - `Mods/Gustav/Levels/WLD_Chapel_H`: неиспользуемая копия Push с другими UUID предметов, не извлекать.
 - Триггеры `LTN_*` это `TriggerLighting` (шаблон `LightingTrigger`), уровни они не подгружают.
+
+## Рунные круги (вейпоинты)
+
+- Объекты: предметы в `Mods/Gustav/Globals/WLD_Main_A/Items` и `Mods/GustavDev/Globals/{SCL,BGO,CTY,CRE}_Main_A/Items` (шаблоны `BLD_GEN_WaypointShrine_A`, `Helper_Waypoint_A`, у шаблона `AnubisConfigName = WaypointShrine`). Декорации `*_WaypointShrine_geo` в Scenery только оформление.
+- Связь ключ ↔ объект: факты `DB_WaypointInfo("<Act>","WAYP_*",(ITEM)<имя>_<uuid>,(TRIGGER)...)` в `Mods/Gustav/Story/RawFiles/Goals/_Gustav_Waypoints_Act1.txt` и `Mods/GustavDev/Story/RawFiles/Goals/_Gustav_Waypoints.txt` (часть фактов без `(ITEM)`). 40 фактов.
+- Названия: `Mods/Gustav/Localization/Waypointshrines.lsx` и `Mods/GustavDev/Localization/Waypointshrines2.lsx`, узлы `TranslatedStringKey` (`UUID` = ключ `WAYP_*`, `Content` = handle).
+- В Globals лежат и другие глобальные объекты уровня (сюжетные NPC, торговцы, уникальные предметы), экстрактор читает их вместе с предметами и персонажами уровня.

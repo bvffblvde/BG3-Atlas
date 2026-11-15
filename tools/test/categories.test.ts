@@ -19,7 +19,7 @@ describe("categorize", () => {
     ["exploding mushroom", input({ templateNames: ["PUZ_Underdark_Mushroom_Bibberbang_B"] }), "trap"],
     ["toxic mushroom wall", input({ templateNames: ["PUZ_Underdark_Mushroom_ToxicWall_A"] }), "trap"],
     ["quest npc", input({ kind: "character", attrs: { DefaultDialog: "dlg" } }), "quest_npc"],
-    ["waypoint shrine", input({ name: "S_DEN_WaypointShrine_geo" }), "waypoint"],
+    ["waypoint from story facts", input({ waypoint: true, templateNames: ["Helper_Waypoint_A"] }), "waypoint"],
     ["trap flag", input({ attrs: { IsTrap: "True" } }), "trap"],
     ["trap by name", input({ name: "TRAP_Bear_Trap_001" }), "trap"],
     ["hidden stash", input({ name: "S_FOR_HiddenGift_Gift", attrs: { InventoryType: "1" } }), "hidden_stash"],
@@ -80,6 +80,10 @@ describe("categorize", () => {
     expect(categorize(input({ kind: "character", templateNames: ["SPIDER_Ranged_A", "BASE_Quadruped_Beast"] }))).toBe(null);
   });
 
+  it("does not treat shrine scenery as a waypoint", () => {
+    expect(categorize(input({ name: "S_DEN_WaypointShrine_geo" }))).toBe(null);
+  });
+
   it("does not treat transition doors as waypoints", () => {
     expect(categorize(input({ name: "DOOR_Interior", attrs: { IsPortal: "True" } }))).toBe(null);
   });
@@ -129,7 +133,7 @@ describe("isInteresting", () => {
     ["fairy ring prop", input({ templateNames: ["PUZ_GEN_Mushroom_Fairy_Ring_C"] }), false],
     ["remains prop", input({ templateNames: ["PUZ_Underdark_Mushroom_Exploding_A_Remains_A"] }), false],
     ["transition door", input({ attrs: { IsPortal: "True" } }), false],
-    ["waypoint shrine", input({ name: "S_FOR_WaypointShrine_geo" }), true],
+    ["waypoint from story facts", input({ waypoint: true }), true],
   ])("%s -> %s", (_, i, expected) => {
     expect(isInteresting(i)).toBe(expected);
   });

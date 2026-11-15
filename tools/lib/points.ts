@@ -4,6 +4,7 @@ import type { Loca } from "./loca.ts";
 import type { StatsIndex } from "./stats.ts";
 import { assignSubmap, type Submap } from "./submaps.ts";
 import { isTraderTable, type TemplateIndex } from "./templates.ts";
+import type { WaypointIndex } from "./waypoints.ts";
 
 export interface Point {
   id: string;
@@ -26,6 +27,7 @@ export interface ExtractContext {
   stats: StatsIndex;
   loca: Loca;
   tagNames: Map<string, string>;
+  waypoints: WaypointIndex;
   map: string;
   submaps: Submap[];
 }
@@ -71,11 +73,12 @@ export function categoryInput(obj: RawObject, ctx: ExtractContext): CategoryInpu
     hasTradeTreasures: resolved.hasTradeTreasures || obj.tradeTables.some(isTraderTable),
     contents: obj.contents,
     inventory: [...new Set([...resolved.inventory, ...obj.inventory])],
+    waypoint: ctx.waypoints.has(obj.id),
   };
 }
 
 export function displayName(obj: RawObject, input: CategoryInput, ctx: ExtractContext, lang: "en" | "ru", category?: CategoryId): string {
-  const handles = category === "waypoint" ? [waypointNameHandle] : [obj.attrs.DisplayName, input.attrs.DisplayName];
+  const handles = category === "waypoint" ? [ctx.waypoints.nameHandle(obj.id), waypointNameHandle] : [obj.attrs.DisplayName, input.attrs.DisplayName];
   for (const h of handles) {
     const t = ctx.loca.text(h, lang);
     if (t) return t;
