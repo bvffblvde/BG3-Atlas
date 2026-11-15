@@ -137,16 +137,26 @@ function Layer.ForceRebuild()
     rebuild = true
 end
 
-local function playerEntity()
+local player = nil
+
+local function readPlayer()
     if not BG3Atlas.World.Ready() then
-        return nil
+        player = nil
+        return false
     end
     for _, e in ipairs(Ext.Entity.GetAllEntitiesWithComponent("ClientControl")) do
         if P.Get(e, "ClientCharacter") then
-            return e
+            local pos = P.Pos(e)
+            local level = P.Get(e, "Level")
+            local map = level and P.Get(level, "LevelName")
+            if pos and map then
+                player = { pos = { pos[1], pos[2], pos[3] }, map = P.Str(map) }
+                return true
+            end
         end
     end
-    return nil
+    player = nil
+    return false
 end
 
 function Layer.CurrentMap()
@@ -169,10 +179,9 @@ local function gameBuilding(found)
 end
 
 local function updateView(found)
-    local e = playerEntity()
-    local pos = e and P.Pos(e)
-    local level = e and P.Get(e, "Level")
-    local map = level and P.Str(P.Get(level, "LevelName"))
+    local snap = player
+    local pos = snap and snap.pos
+    local map = snap and snap.map
     if not pos or not map then
         return
     end
@@ -440,8 +449,7 @@ local function updateCursor(entry)
     local ly = (holderH / 2 - ty - (holderH - imageH) / 2) * unit
     if not cursorLogged then
         cursorLogged = true
-        local e = playerEntity()
-        P.Log(string.format("cursor local %.1f %.1f player %s", lx, ly, P.FormatPos(e and P.Pos(e))))
+        P.Log(string.format("cursor local %.1f %.1f player %s", lx, ly, P.FormatPos(player and player.pos)))
     end
     local radius = 30 * worldW / (mapScale * imageW)
     local best, bestD = nil, radius * radius
@@ -573,9 +581,6 @@ end
 local updatePlayer
 
 local function update()
-    if not BG3Atlas.World.Ready() then
-        return
-    end
     register()
     local groups = {}
     local order = {}
@@ -647,6 +652,15 @@ end
 
 local function loop()
     if not running then
+        return
+    end
+    local okRead, ready = pcall(readPlayer)
+    if not okRead then
+        player = nil
+        logOnce("readplayer", "player read failed: " .. P.Str(ready))
+    end
+    if not okRead or not ready then
+        Ext.Timer.WaitForRealtime(Layer.PeriodMs, loop)
         return
     end
     Ext.UI.Defer(function()
@@ -745,8 +759,7 @@ end
 
 local function cmdLayerDump()
     Ext.UI.Defer(function()
-        local e = playerEntity()
-        local lines = { "view " .. viewKey, "player " .. P.FormatPos(e and P.Pos(e)) }
+        local lines = { "view " .. viewKey, "player " .. P.FormatPos(player and player.pos) }
         for _, entry in ipairs(findMaps()) do
             lines[#lines + 1] = "## " .. entry.widget .. " MapScale=" .. P.Str(P.Get(entry.map, "MapScale")) .. " MinWidth=" .. P.Str(P.Get(entry.map, "MinWidth")) .. " worldW=" .. P.Str(worldWidth(entry))
             local data = entry.image and P.Get(entry.image, "DataContext")
