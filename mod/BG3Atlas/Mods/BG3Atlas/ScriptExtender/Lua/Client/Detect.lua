@@ -95,6 +95,9 @@ local function step()
         return
     end
     local ok, err = pcall(function()
+        if not BG3Atlas.World.Ready() then
+            return
+        end
         if not queue then
             buildQueue()
         end

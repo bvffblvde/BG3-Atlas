@@ -138,6 +138,9 @@ function Layer.ForceRebuild()
 end
 
 local function playerEntity()
+    if not BG3Atlas.World.Ready() then
+        return nil
+    end
     for _, e in ipairs(Ext.Entity.GetAllEntitiesWithComponent("ClientControl")) do
         if P.Get(e, "ClientCharacter") then
             return e
@@ -570,6 +573,9 @@ end
 local updatePlayer
 
 local function update()
+    if not BG3Atlas.World.Ready() then
+        return
+    end
     register()
     local groups = {}
     local order = {}
