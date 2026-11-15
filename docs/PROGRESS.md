@@ -8,9 +8,24 @@
 - Распакованы `Game.pak`, `Shared.pak`, `GustavX.pak`, хотфиксы Patch 8, `English.pak` и выборочно из `Gustav.pak`: уровень `WLD_Main_A`, `RootTemplates`, `Localization`.
 - Найдены XAML карты, схема маркеров, данные привязки мира к карте (`WorldMap/*.lsf`). Выводы в `docs/RECON.md`.
 
+- Пользователь согласовал гибридный подход (RECON.md, раздел 6C). Better Maps не ставим, работаем с ванильной картой.
+- SE установлен, собран и установлен пробный мод (`mod/BG3Atlas`, консольные команды `!atlas_*`).
+
 Осталось:
-- Согласовать с пользователем подход к UI.
-- Проба в игре (раздел 7 в `RECON.md`): нужен установленный SE.
+- Проба в игре (раздел 7 в `RECON.md`), разбор `probe_ui.txt` и логов.
+
+## Что установлено в игру и как откатить
+
+- `E:\steam  games\steamapps\common\Baldurs Gate 3\bin\DWrite.dll`: Script Extender v33 (updater). Удалить файл, чтобы отключить SE.
+- `...\bin\ScriptExtenderSettings.json`: консоль, логи в `work/selogs`, DeveloperMode. Удалить вместе с DWrite.dll.
+- `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods\BG3Atlas.pak`: наш мод.
+- `modsettings.lsx`: добавлен один узел `BG3Atlas`, бэкап до изменения в `work/backup/`.
+
+## Сборка и установка
+
+- `npm run build`: собрать `dist/BG3Atlas.pak`.
+- `npm run install-mod`: скопировать пак в `Mods` и зарегистрировать в `modsettings.lsx` (с бэкапом, повторно не добавляет).
+- `npm test`: юнит-тесты и проверка синтаксиса Lua.
 
 ## Не проверено
 
