@@ -114,13 +114,23 @@ local function explored(pt)
     return false
 end
 
+local subregion = nil
+
+local function insideSubregion(pt)
+    if not subregion then
+        return true
+    end
+    local dx, dy = pt.x - subregion.x, pt.y - subregion.y
+    return dx * dx + dy * dy <= subregion.r2
+end
+
 local function inView(pt)
     local key = pt._key
     if not key then
         key = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
         pt._key = key
     end
-    return key == viewKey and explored(pt)
+    return key == viewKey and insideSubregion(pt) and explored(pt)
 end
 
 function Layer.ForceRebuild()
@@ -405,25 +415,24 @@ local function updateCursor(entry)
     if entry.widget ~= "JournalMap_c" or not currentMap or not BG3Atlas.Panel then
         return
     end
-    local a, b, c = vecParts(P.Get(entry.map, "ActualCameraLookatPos"))
-    if type(a) ~= "number" then
-        a, b, c = vecParts(P.Get(entry.map, "MouseWorldCoordinates"))
-    end
-    if type(a) ~= "number" then
+    local tx, ty = vecParts(P.Get(entry.map, "MapPos"))
+    local holderW = P.Get(entry.map, "ActualWidth")
+    local holderH = P.Get(entry.map, "ActualHeight")
+    local mapScale = P.Get(entry.map, "MapScale")
+    local imageW = entry.image and P.Get(entry.image, "ActualWidth")
+    local imageH = entry.image and P.Get(entry.image, "ActualHeight")
+    local worldW = worldWidth(entry)
+    if type(tx) ~= "number" or not holderW or not holderH or not mapScale or mapScale <= 0 or not imageW or imageW <= 0 or not imageH or not worldW then
         logOnce("nocursor", "cursor position not readable on " .. entry.widget)
         return
     end
+    local unit = worldW / imageW
+    local lx = (holderW / 2 - tx - (holderW - imageW) / 2) * unit
+    local ly = (holderH / 2 - ty - (holderH - imageH) / 2) * unit
     if not cursorLogged then
         cursorLogged = true
         local e = playerEntity()
-        P.Log("cursor coords " .. P.Str(a) .. " " .. P.Str(b) .. " " .. P.Str(c) .. " player " .. P.FormatPos(e and P.Pos(e)))
-    end
-    local lx, ly = Points.ToLocal(currentMap, a, type(c) == "number" and c or b)
-    local mapScale = P.Get(entry.map, "MapScale")
-    local imageW = entry.image and P.Get(entry.image, "ActualWidth")
-    local worldW = worldWidth(entry)
-    if not lx or not mapScale or mapScale <= 0 or not imageW or imageW <= 0 or not worldW then
-        return
+        P.Log(string.format("cursor local %.1f %.1f player %s", lx, ly, P.FormatPos(e and P.Pos(e))))
     end
     local radius = 30 * worldW / (mapScale * imageW)
     local best, bestD = nil, radius * radius
@@ -470,6 +479,38 @@ local function scanRegions(found)
     return nil, nil
 end
 
+local function updateSubregion(found)
+    if not currentMap then
+        return
+    end
+    for _, entry in ipairs(found) do
+        local data = entry.image and P.Get(entry.image, "DataContext")
+        if data then
+            local available = P.Get(data, "SubregionAvailable")
+            local cx, cz = vecParts(P.Get(data, "SubregionCenter"))
+            local radius = P.Get(data, "SubregionRadius")
+            local next = nil
+            if available and type(cx) == "number" and type(cz) == "number" and type(radius) == "number" and radius > 0 then
+                local lx, ly = Points.ToLocal(currentMap, cx, cz)
+                if lx then
+                    local r = radius + 2
+                    next = { x = lx, y = ly, r2 = r * r }
+                end
+            end
+            local changed = (next == nil) ~= (subregion == nil)
+            if next and subregion then
+                changed = math.abs(next.x - subregion.x) > 1 or math.abs(next.y - subregion.y) > 1 or math.abs(next.r2 - subregion.r2) > 4
+            end
+            if changed then
+                subregion = next
+                rebuild = true
+                P.Log("subregion " .. (next and string.format("%.1f %.1f r=%.1f", cx, cz, radius) or "none"))
+            end
+            return
+        end
+    end
+end
+
 local function updateRegions(found)
     local now = Ext.Timer.MonotonicTime()
     if now - lastRegionScan < 2000 then
@@ -491,6 +532,7 @@ local function update()
     register()
     local found = findMaps()
     updateView(found)
+    updateSubregion(found)
     updateRegions(found)
     local shared = nil
     local forced = rebuild

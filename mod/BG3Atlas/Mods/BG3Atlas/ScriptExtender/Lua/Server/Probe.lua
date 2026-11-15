@@ -93,6 +93,4 @@ local function cmdStyles()
 end
 
 Ext.RegisterConsoleCommand("atlas_pos", cmdPos)
-Ext.RegisterConsoleCommand("atlas_mark", cmdMark)
-Ext.RegisterConsoleCommand("atlas_unmark", cmdUnmark)
 Ext.RegisterConsoleCommand("atlas_styles", cmdStyles)

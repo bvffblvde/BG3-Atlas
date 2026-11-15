@@ -134,5 +134,4 @@ end)
 
 Ext.RegisterConsoleCommand("atlas_ui", cmdUi)
 Ext.RegisterConsoleCommand("atlas_ccheck", checkMarks)
-Ext.RegisterConsoleCommand("atlas_cmark", cmdClientMark)
 Ext.RegisterConsoleCommand("atlas_cstyles", cmdClientStyles)
