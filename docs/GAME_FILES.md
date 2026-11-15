@@ -64,3 +64,9 @@ UI (`Game.pak`):
 `npm run unpack` раскладывает всё нужное в `work/unpacked/lsx/` (lsx и txt по путям внутри паков) и `work/unpacked/loca/{english,russian}.xml`.
 
 `Public/*/Levelmaps/*.lsx` к карте не относятся: это скейлинг уровня, опыт и золото.
+
+## Склеп под заросшими руинами (Акт 1)
+
+- Живой уровень: `Mods/Gustav/Levels/WLD_Chapel_Push`, подключается LevelTemplate `WLD_Chapel` (шаблон `65633591-0aff-40af-a9e1-03095d19add7`, `SubLevelName = WLD_Chapel_Push`) в `WLD_Main_A/LevelTemplates`.
+- `Mods/Gustav/Levels/WLD_Chapel_H`: неиспользуемая копия Push с другими UUID предметов, не извлекать.
+- Триггеры `LTN_*` это `TriggerLighting` (шаблон `LightingTrigger`), уровни они не подгружают.
