@@ -1,0 +1,8 @@
+work/
+dist/
+*.pak
+node_modules/
+data/*.json
+!data/schema.json
+!data/sample.json
+.env
