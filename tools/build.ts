@@ -11,7 +11,8 @@ const pak = path.join(outDir, "BG3Atlas.pak");
 rmSync(stage, { recursive: true, force: true });
 cpSync(source, stage, { recursive: true });
 
-for (const theme of worldMapThemes) {
+const withTheme = !process.argv.includes("--no-theme");
+for (const theme of withTheme ? worldMapThemes : []) {
   const target = path.join(stage, ...theme.file.split("/"));
   mkdirSync(path.dirname(target), { recursive: true });
   writeFileSync(target, patchTheme(theme));
