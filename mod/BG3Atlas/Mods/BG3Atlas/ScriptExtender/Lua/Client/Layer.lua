@@ -198,6 +198,17 @@ local function describe(node)
         end
     end
     local rt = P.Get(node, "RenderTransform")
+    if rt and P.Get(rt, "X") ~= nil then
+        parts[#parts + 1] = "rtXY=" .. P.Str(P.Get(rt, "X")) .. "," .. P.Str(P.Get(rt, "Y"))
+    end
+    if dc then
+        for _, k in ipairs({ "WorldPos", "WorldSize" }) do
+            local v = P.Get(dc, k)
+            if v ~= nil then
+                parts[#parts + 1] = k .. "=" .. P.Str(P.Get(v, 1) or P.Get(v, "x") or P.Get(v, "X")) .. "," .. P.Str(P.Get(v, 2) or P.Get(v, "y") or P.Get(v, "Y"))
+            end
+        end
+    end
     if rt then
         local ok, props = pcall(function()
             return rt:GetAllProperties()
@@ -247,6 +258,15 @@ local function cmdLayerDump()
             end
             if entry.layer then
                 dumpTree(entry.layer, 0, lines, { n = 60 })
+            end
+            local holder = entry.layer and P.Get(entry.layer, "VisualParent")
+            local count = holder and P.Get(holder, "VisualChildrenCount") or 0
+            for i = 1, count do
+                local c = holder:VisualChild(i)
+                if P.Get(c, "Name") == "RegionsContainer" then
+                    lines[#lines + 1] = "## regions"
+                    dumpTree(c, 0, lines, { n = 40 })
+                end
             end
         end
         P.Save("layer_dump.txt", lines)
