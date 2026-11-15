@@ -616,13 +616,24 @@ local function dumpProps(lines, title, obj)
     end
     table.sort(keys)
     for _, k in ipairs(keys) do
-        lines[#lines + 1] = "  " .. k .. " = " .. P.Str(props[k])
+        local v = props[k]
+        local text = P.Str(v)
+        if type(v) == "table" or type(v) == "userdata" then
+            local a = P.Get(v, 1) or P.Get(v, "x") or P.Get(v, "X")
+            local b = P.Get(v, 2) or P.Get(v, "y") or P.Get(v, "Y")
+            local c = P.Get(v, 3) or P.Get(v, "z") or P.Get(v, "Z")
+            if type(a) == "number" then
+                text = P.Str(a) .. ", " .. P.Str(b) .. (c ~= nil and (", " .. P.Str(c)) or "")
+            end
+        end
+        lines[#lines + 1] = "  " .. k .. " = " .. text
     end
 end
 
 local function cmdLayerDump()
     Ext.UI.Defer(function()
-        local lines = { "view " .. viewKey }
+        local e = playerEntity()
+        local lines = { "view " .. viewKey, "player " .. P.FormatPos(e and P.Pos(e)) }
         for _, entry in ipairs(findMaps()) do
             lines[#lines + 1] = "## " .. entry.widget .. " MapScale=" .. P.Str(P.Get(entry.map, "MapScale")) .. " MinWidth=" .. P.Str(P.Get(entry.map, "MinWidth")) .. " worldW=" .. P.Str(worldWidth(entry))
             local data = entry.image and P.Get(entry.image, "DataContext")
