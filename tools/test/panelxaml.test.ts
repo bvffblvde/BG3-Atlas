@@ -52,6 +52,7 @@ describe("panelXaml pad mode", () => {
     expect(padXaml).toContain('Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"');
     expect(padXaml).not.toContain("<TextBox");
     expect(padXaml).toContain("{Binding PadHint}");
+    expect(padXaml).toContain('x:Name="BG3A_CursorInfo"');
     for (const id of ids) expect(padXaml).toContain(`{Binding Sel_${id}}`);
   });
 

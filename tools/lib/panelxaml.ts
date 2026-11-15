@@ -106,7 +106,12 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     `${pad(i + 12)}</Grid.RowDefinitions>`,
     ...panelOrder().flatMap((id, n) => row(id, i + 12, n, mode)),
     `${pad(i + 8)}</Grid>`,
-    ...(mode === "pad" ? [`${pad(i + 8)}<TextBlock Text="{Binding PadHint}" Foreground="${dim}" FontSize="22" Margin="0,10,0,0" TextWrapping="Wrap"/>`] : []),
+    ...(mode === "pad"
+      ? [
+          `${pad(i + 8)}<TextBlock x:Name="BG3A_CursorInfo" Text="" Foreground="${ink}" FontSize="26" Margin="0,10,0,0" TextWrapping="Wrap"/>`,
+          `${pad(i + 8)}<TextBlock Text="{Binding PadHint}" Foreground="${dim}" FontSize="22" Margin="0,6,0,0" TextWrapping="Wrap"/>`,
+        ]
+      : []),
     `${pad(i + 4)}</StackPanel>`,
     `${pad(i)}</Border>`,
     "",

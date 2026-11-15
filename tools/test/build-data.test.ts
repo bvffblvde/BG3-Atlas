@@ -47,7 +47,7 @@ describe("buildData", () => {
     };
     expect(read("Points_WLD_Main_A.lua")).toContain('{"a","trap",1200,917.5,"Trap","Ловушка",2,nil,nil}');
     expect(read("Submaps_WLD_Main_A.lua")).toContain('{"Underdark",1,');
-    expect(read("Maps.lua")).toBe('return {"WLD_Main_A"}\n');
+    expect(read("Maps.lua")).toBe('return {{"WLD_Main_A",-1200,917.5}}\n');
     const cats = read("Categories.lua");
     for (const r of categoryRules) expect(cats).toContain(`"${r.id}"`);
     expect(existsSync(path.join(dir, "Points_SCL_Main_A.lua"))).toBe(false);

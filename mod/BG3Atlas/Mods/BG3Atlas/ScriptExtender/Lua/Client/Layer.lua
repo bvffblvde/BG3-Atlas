@@ -99,7 +99,12 @@ local function countForKey(key)
 end
 
 local function inView(pt)
-    return BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor) == viewKey
+    local key = pt._key
+    if not key then
+        key = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
+        pt._key = key
+    end
+    return key == viewKey
 end
 
 local function playerEntity()
@@ -115,7 +120,22 @@ function Layer.CurrentMap()
     return currentMap
 end
 
-local function updateView()
+local function gameBuilding(found)
+    for _, entry in ipairs(found) do
+        local data = entry.image and P.Get(entry.image, "DataContext")
+        if data then
+            local building = P.Get(data, "CurrentBuilding")
+            local uuid = building and P.Get(building, "UuidStr")
+            local floor = P.Get(data, "Floor")
+            if type(uuid) == "string" then
+                return true, uuid ~= "" and uuid or nil, tonumber(floor) or 0
+            end
+        end
+    end
+    return false, nil, nil
+end
+
+local function updateView(found)
     local e = playerEntity()
     local pos = e and P.Pos(e)
     local level = e and P.Get(e, "Level")
@@ -129,8 +149,12 @@ local function updateView()
             BG3Atlas.Panel.MarkDirty()
         end
     end
-    local key = BG3Atlas.Submaps.Key(map, BG3Atlas.Submaps.Assign(map, pos[1], pos[2], pos[3]))
-    if countForKey(key) == 0 then
+    local fromGame, building, floor = gameBuilding(found)
+    if not fromGame then
+        building, floor = BG3Atlas.Submaps.Assign(map, pos[1], pos[2], pos[3])
+    end
+    local key = BG3Atlas.Submaps.Key(map, building, floor)
+    if building ~= nil and countForKey(key) == 0 and (not fromGame or BG3Atlas.Submaps.Known(map, building)) then
         key = BG3Atlas.Submaps.Key(map, nil, nil)
     end
     if key ~= viewKey then
@@ -344,10 +368,63 @@ local function updateFilters(entry)
     end
 end
 
+local cursorLogged = false
+local lastCursorText = nil
+
+local function vecParts(v)
+    if v == nil then
+        return nil
+    end
+    local a = P.Get(v, 1) or P.Get(v, "x") or P.Get(v, "X")
+    local b = P.Get(v, 2) or P.Get(v, "y") or P.Get(v, "Y")
+    local c = P.Get(v, 3) or P.Get(v, "z") or P.Get(v, "Z")
+    return a, b, c
+end
+
+local function updateCursor(entry)
+    if entry.widget ~= "JournalMap_c" or not currentMap or not BG3Atlas.Panel then
+        return
+    end
+    local a, b, c = vecParts(P.Get(entry.map, "MouseWorldCoordinates"))
+    if type(a) ~= "number" then
+        return
+    end
+    if not cursorLogged then
+        cursorLogged = true
+        P.Log("cursor coords " .. P.Str(a) .. " " .. P.Str(b) .. " " .. P.Str(c))
+    end
+    local lx, ly = Points.ToLocal(currentMap, a, type(c) == "number" and c or b)
+    local mapScale = P.Get(entry.map, "MapScale")
+    local imageW = entry.image and P.Get(entry.image, "ActualWidth")
+    local worldW = worldWidth(entry)
+    if not lx or not mapScale or mapScale <= 0 or not imageW or imageW <= 0 or not worldW then
+        return
+    end
+    local radius = 30 * worldW / (mapScale * imageW)
+    local best, bestD = nil, radius * radius
+    for cat, list in pairs(Points.ByCategory()) do
+        if Settings.IsEnabled(cat) then
+            for _, pt in ipairs(list) do
+                if inView(pt) and not (Settings.HideFound() and BG3Atlas.Found.IsFound(pt.id)) then
+                    local dx, dy = pt.x - lx, pt.y - ly
+                    local d = dx * dx + dy * dy
+                    if d < bestD then
+                        best, bestD = pt, d
+                    end
+                end
+            end
+        end
+    end
+    local text = best and pointLabel(best, BG3Atlas.Found.IsFound(best.id)) or ""
+    if text ~= lastCursorText and BG3Atlas.Panel.SetCursorInfo(entry.node, text) then
+        lastCursorText = text
+    end
+end
+
 local function update()
     register()
-    updateView()
     local found = findMaps()
+    updateView(found)
     local shared = nil
     local forced = rebuild
     rebuild = false
@@ -373,10 +450,12 @@ local function update()
                 end
                 entry.layer.DataContext = shared
                 model.scale = nil
+                lastCursorText = nil
                 P.Log("layer attached to " .. entry.widget)
             end
             updateScale(entry, model)
             updateFilters(entry)
+            updateCursor(entry)
             if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
                 BG3Atlas.Panel.Update(entry.node)
             end
@@ -450,6 +529,8 @@ local function cmdAll(_, mode)
     P.Log("all categories " .. (mode ~= "off" and "on" or "off"))
 end
 
+local dumpCount = 0
+
 local function dumpProps(lines, title, obj)
     lines[#lines + 1] = "### " .. title .. " " .. P.Str(obj and P.Get(obj, "Type"))
     if not obj then
@@ -486,7 +567,8 @@ local function cmdLayerDump()
                 end
             end
         end
-        P.Save("layer_dump.txt", lines)
+        dumpCount = dumpCount + 1
+        P.Save("layer_dump_" .. dumpCount .. ".txt", lines)
     end)
 end
 

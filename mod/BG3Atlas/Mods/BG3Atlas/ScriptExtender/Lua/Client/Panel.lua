@@ -262,6 +262,14 @@ function Panel.Update(widget)
     return true
 end
 
+function Panel.SetCursorInfo(widget, text)
+    local info = findNamed(widget, "BG3A_CursorInfo", 0)
+    if not info then
+        return false
+    end
+    return P.Set(info, "Text", text)
+end
+
 function Panel.MarkDirty()
     dirty = true
 end

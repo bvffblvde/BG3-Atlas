@@ -35,6 +35,20 @@ function Submaps.Assign(map, x, y, z)
     return nil, nil
 end
 
+local known = {}
+for map, boxes in pairs(boxesByMap) do
+    known[map] = {}
+    for _, b in ipairs(boxes) do
+        if b[1] ~= nil then
+            known[map][b[1]] = true
+        end
+    end
+end
+
+function Submaps.Known(map, building)
+    return known[map] ~= nil and known[map][building] == true
+end
+
 function Submaps.Key(map, submap, floor)
     if submap == nil then
         return tostring(map) .. "|surface"

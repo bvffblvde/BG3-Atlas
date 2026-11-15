@@ -4,7 +4,12 @@ local Points = {}
 BG3Atlas.Points = Points
 
 Points.Categories = Ext.Require("Client/Data/Categories.lua")
-Points.Maps = Ext.Require("Client/Data/Maps.lua")
+Points.Maps = {}
+local origins = {}
+for _, entry in ipairs(Ext.Require("Client/Data/Maps.lua")) do
+    Points.Maps[#Points.Maps + 1] = entry[1]
+    origins[entry[1]] = { x = entry[2], z = entry[3] }
+end
 
 local byCategory = {}
 local counts = {}
@@ -39,6 +44,14 @@ end
 
 function Points.Counts(map)
     return counts[map] or {}
+end
+
+function Points.ToLocal(map, x, z)
+    local o = origins[map]
+    if not o then
+        return nil, nil
+    end
+    return x - o.x, o.z - z
 end
 
 function Points.HasMap(map)

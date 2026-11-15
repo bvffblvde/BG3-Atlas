@@ -43,9 +43,9 @@ export function buildData(opts: BuildDataOptions): string[] {
     }
     writeFileSync(path.join(dir, `Points_${map}.lua`), pointsLua(list, origin));
     writeFileSync(path.join(dir, `Submaps_${map}.lua`), submapsLua(opts.submaps?.[map] ?? []));
-    maps.push(map);
+    maps.push(`{${luaString(map)},${origin.x},${origin.z}}`);
   }
-  writeFileSync(path.join(dir, "Maps.lua"), `return {${maps.map(luaString).join(",")}}\n`);
+  writeFileSync(path.join(dir, "Maps.lua"), `return {${maps.join(",")}}\n`);
   writeFileSync(path.join(dir, "Categories.lua"), categoriesLua());
   return warnings;
 }
