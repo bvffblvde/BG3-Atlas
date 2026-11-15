@@ -14,7 +14,7 @@
                                     <DataTemplate>
                                         <Ellipse Width="4" Height="4" Fill="#FFE8C15A" Stroke="#FF1A1208" StrokeThickness="0.5">
                                             <Ellipse.RenderTransform>
-                                                <TranslateTransform X="{Binding X}" Y="{Binding Y}"/>
+                                                <TranslateTransform X="{Binding PosX}" Y="{Binding PosY}"/>
                                             </Ellipse.RenderTransform>
                                         </Ellipse>
                                     </DataTemplate>

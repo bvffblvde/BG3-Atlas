@@ -30,14 +30,13 @@ local function register()
         return
     end
     Ext.UI.RegisterType("BG3A_Point", {
-        X = { Type = "Single", Notify = true },
-        Y = { Type = "Single", Notify = true },
+        PosX = { Type = "Single" },
+        PosY = { Type = "Single" },
         Name = { Type = "String" },
         Kind = { Type = "String" },
     })
     Ext.UI.RegisterType("BG3A_Layer", {
         Points = { Type = "Collection" },
-        IconScale = { Type = "Single", Notify = true },
     })
     registered = true
 end
@@ -45,26 +44,23 @@ end
 local function newPoint(name, x, z, kind)
     local p = Ext.UI.Instantiate("BG3A_Point")
     p.Name = name
-    p.X = x
-    p.Y = z
+    p.PosX = x
+    p.PosY = z
     p.Kind = kind
     return p
 end
 
 local function newModel()
     local vm = Ext.UI.Instantiate("BG3A_Layer")
-    vm.IconScale = 1.0
     local list = vm.Points
     local n = 0
     for _, def in ipairs(Layer.Points) do
         n = n + 1
         list[n] = newPoint(def[1], def[2], def[3], "Point")
     end
-    local a = newPoint("PlayerA", 0, 0, "PlayerA")
-    local b = newPoint("PlayerB", 0, 0, "PlayerB")
-    list[n + 1] = a
-    list[n + 2] = b
-    return { vm = vm, playerA = a, playerB = b }
+    list[n + 1] = newPoint("PlayerA", 0, 0, "PlayerA")
+    list[n + 2] = newPoint("PlayerB", 0, 0, "PlayerB")
+    return { vm = vm, playerIndex = n + 1, lastPos = nil }
 end
 
 local skip = { PART_MarkerHolder = true, ShroudedRooms = true, SemiShroudedRooms = true, RegionsContainer = true, CurrentBuilding = true }
@@ -132,19 +128,15 @@ local function update()
                 entry.layer.DataContext = model.vm
                 P.Log("layer DataContext set for map " .. key)
             end
-            if pos then
-                model.playerA.X = pos[1]
-                model.playerA.Y = pos[3]
-                model.playerB.X = pos[1]
-                model.playerB.Y = -pos[3]
+            local last = model.lastPos
+            if pos and (not last or math.abs(last[1] - pos[1]) + math.abs(last[3] - pos[3]) > 0.5) then
+                model.lastPos = pos
+                model.vm.Points[model.playerIndex] = newPoint("PlayerA", pos[1], pos[3], "PlayerA")
+                model.vm.Points[model.playerIndex + 1] = newPoint("PlayerB", pos[1], -pos[3], "PlayerB")
             end
             local mapScale = P.Get(entry.map, "MapScale") or 1
             local imageW = entry.image and P.Get(entry.image, "ActualWidth") or 0
             local layerW = P.Get(entry.layer, "ActualWidth") or 0
-            local scale = Layer.IconK / mapScale
-            if math.abs((model.vm.IconScale or 0) - scale) > 0.0001 then
-                model.vm.IconScale = scale
-            end
             if not logged[key] then
                 logged[key] = true
                 P.Log(string.format("layer attached map=%s MapScale=%.3f MapImage.ActualWidth=%.1f layer.ActualWidth=%.1f player=%s", key, mapScale, imageW, layerW, P.FormatPos(pos)))
@@ -163,7 +155,11 @@ local function loop()
     Ext.UI.Defer(function()
         local ok, err = pcall(update)
         if not ok then
-            P.Log("layer update failed: " .. P.Str(err))
+            local msg = P.Str(err)
+            if not logged[msg] then
+                logged[msg] = true
+                P.Log("layer update failed: " .. msg)
+            end
         end
     end)
     Ext.Timer.WaitForRealtime(Layer.PeriodMs, loop)
