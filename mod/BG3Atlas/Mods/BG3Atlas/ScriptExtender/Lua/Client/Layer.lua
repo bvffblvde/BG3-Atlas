@@ -106,7 +106,7 @@ local function findMaps()
     for _, widget in ipairs(children(content)) do
         local wname = P.Get(widget, "Name")
         if wname and Layer.Widgets[wname] then
-            local entry = { widget = wname }
+            local entry = { widget = wname, node = widget }
             findMap(widget, 0, entry)
             if entry.map then
                 out[#out + 1] = entry
@@ -203,6 +203,9 @@ local function update()
             end
             updateScale(entry, model)
             updateFilters(entry)
+            if entry.widget == "JournalMap" and BG3Atlas.Panel then
+                BG3Atlas.Panel.Update(entry.node)
+            end
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")
         end
@@ -257,12 +260,18 @@ local function cmdToggle(_, cat)
     end
     Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
     Settings.Save()
+    if BG3Atlas.Panel then
+        BG3Atlas.Panel.MarkDirty()
+    end
     P.Log(cat .. " " .. (Settings.IsEnabled(cat) and "on" or "off"))
 end
 
 local function cmdAll(_, mode)
     Settings.SetAll(Points.Categories, mode ~= "off")
     Settings.Save()
+    if BG3Atlas.Panel then
+        BG3Atlas.Panel.MarkDirty()
+    end
     P.Log("all categories " .. (mode ~= "off" and "on" or "off"))
 end
 

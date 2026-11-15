@@ -2,7 +2,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path";
 import { divine, repoRoot } from "./lib/game.ts";
 import { buildData } from "./lib/builddata.ts";
-import { ensureUnpacked, patchTheme, worldMapThemes } from "./lib/themes.ts";
+import { ensureUnpacked, journalPages, patchJournal, patchTheme, worldMapThemes } from "./lib/themes.ts";
 
 const source = path.join(repoRoot, "mod", "BG3Atlas");
 const stage = path.join(repoRoot, "work", "build", "BG3Atlas");
@@ -21,6 +21,13 @@ for (const theme of withTheme ? worldMapThemes : []) {
   const vanilla = process.argv.includes("--theme-vanilla");
   writeFileSync(target, vanilla ? readFileSync(ensureUnpacked(theme)) : patchTheme(theme));
   console.log(`${vanilla ? "copied vanilla" : "patched"} ${theme.file}`);
+}
+
+for (const page of withTheme && !process.argv.includes("--theme-vanilla") && !process.argv.includes("--no-panel") ? journalPages : []) {
+  const target = path.join(stage, ...page.file.split("/"));
+  mkdirSync(path.dirname(target), { recursive: true });
+  writeFileSync(target, patchJournal(page));
+  console.log(`patched ${page.file}`);
 }
 
 mkdirSync(outDir, { recursive: true });

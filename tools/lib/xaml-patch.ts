@@ -20,3 +20,13 @@ export function injectWorldMapLayer(xaml: string, snippet: string): string {
   const body = snippet.replace(/\r?\n/g, eol).replace(new RegExp(`(${eol})+$`), "");
   return xaml.slice(0, lineStart) + body + eol + xaml.slice(lineStart);
 }
+
+export function injectBefore(xaml: string, anchor: string, snippet: string, marker: string): string {
+  if (xaml.includes(marker)) throw new Error(`${marker} already injected`);
+  const at = xaml.indexOf(anchor);
+  if (at < 0) throw new Error(`anchor ${anchor} not found`);
+  const lineStart = xaml.lastIndexOf("\n", at) + 1;
+  const eol = xaml.includes("\r\n") ? "\r\n" : "\n";
+  const body = snippet.replace(/\r?\n/g, eol).replace(new RegExp(`(${eol})+$`), "");
+  return xaml.slice(0, lineStart) + body + eol + xaml.slice(lineStart);
+}

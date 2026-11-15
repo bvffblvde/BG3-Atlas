@@ -3,7 +3,8 @@ import path from "node:path";
 import { XMLValidator } from "fast-xml-parser";
 import { divine, findGameDir, repoRoot } from "./game.ts";
 import { layerXaml } from "./layerxaml.ts";
-import { injectWorldMapLayer } from "./xaml-patch.ts";
+import { panelXaml } from "./panelxaml.ts";
+import { injectBefore, injectWorldMapLayer } from "./xaml-patch.ts";
 
 export interface ThemeSource {
   pak: string;
@@ -14,6 +15,8 @@ export const worldMapThemes: ThemeSource[] = [
   { pak: "Game", file: "Public/Game/GUI/Theme/DefaultShared.Styles.xaml" },
   { pak: "Patch8_HotFix9", file: "Public/Game/GUI/Override/Clairmont/Theme/DefaultShared.Styles.xaml" },
 ];
+
+export const journalPages: ThemeSource[] = [{ pak: "Game", file: "Mods/MainUI/GUI/Pages/JournalMap.xaml" }];
 
 export function unpackedPath(src: ThemeSource): string {
   return path.join(repoRoot, "work", "unpacked", src.pak, ...src.file.split("/"));
@@ -36,6 +39,14 @@ export function layerSnippet(): string {
 export function patchTheme(src: ThemeSource): string {
   const xaml = readFileSync(ensureUnpacked(src), "utf8");
   const patched = injectWorldMapLayer(xaml, layerSnippet());
+  const valid = XMLValidator.validate(patched);
+  if (valid !== true) throw new Error(`patched ${src.file} is not well formed: ${JSON.stringify(valid.err)}`);
+  return patched;
+}
+
+export function patchJournal(src: ThemeSource): string {
+  const xaml = readFileSync(ensureUnpacked(src), "utf8");
+  const patched = injectBefore(xaml, '<Grid x:Name="Legend"', panelXaml(), 'x:Name="BG3A_Panel"');
   const valid = XMLValidator.validate(patched);
   if (valid !== true) throw new Error(`patched ${src.file} is not well formed: ${JSON.stringify(valid.err)}`);
   return patched;
