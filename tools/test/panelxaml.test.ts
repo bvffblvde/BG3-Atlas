@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { XMLValidator } from "fast-xml-parser";
 import { describe, expect, it } from "vitest";
 import { categoryRules } from "../categories.ts";
-import { panelXaml } from "../lib/panelxaml.ts";
+import { padHintBar, panelXaml } from "../lib/panelxaml.ts";
 import { injectBefore } from "../lib/xaml-patch.ts";
 import { journalPages, patchJournal, unpackedPath } from "../lib/themes.ts";
 
@@ -40,6 +40,29 @@ describe("panelXaml", () => {
   });
 });
 
+describe("panelXaml pad mode", () => {
+  const padXaml = panelXaml("pad");
+  const bar = padHintBar();
+
+  it("is well formed", () => {
+    expect(XMLValidator.validate(`<Grid xmlns:x="x" xmlns:ls="ls">${padXaml}${bar}</Grid>`)).toBe(true);
+  });
+
+  it("shows the panel only while the pad toggle is on and has no text box", () => {
+    expect(padXaml).toContain('Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"');
+    expect(padXaml).not.toContain("<TextBox");
+    expect(padXaml).toContain("{Binding PadHint}");
+    for (const id of ids) expect(padXaml).toContain(`{Binding Sel_${id}}`);
+  });
+
+  it("binds the toggle to UIFilter and moves the selection with left, right and accept", () => {
+    expect(bar).toContain('x:Name="BG3A_PadBtn" ls:LSToggleButton.BoundEvent="UIFilter"');
+    for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIAccept", "PadToggle"]]) {
+      expect(bar).toContain(`BoundEvent="${event}" Command="{Binding DataContext.${command}, ElementName=BG3A_Panel}"`);
+    }
+  });
+});
+
 describe("injectBefore", () => {
   const page = ["<Grid>", "    <!-- legend -->", '    <Grid x:Name="Legend">', "    </Grid>", "</Grid>"].join("\r\n");
 
@@ -61,5 +84,8 @@ describe("patchJournal", () => {
     expect(out.split('x:Name="BG3A_Panel"').length).toBe(2);
     expect(out.indexOf('x:Name="BG3A_Panel"')).toBeLessThan(out.indexOf('x:Name="Legend"'));
     expect(out.length).toBeGreaterThan(readFileSync(unpackedPath(page), "utf8").length);
+    const padButtons = out.split('x:Name="BG3A_PadBtn"').length - 1;
+    expect(padButtons).toBe(page.mode === "pad" ? 1 : 0);
+    if (page.mode === "pad") expect(out.indexOf('x:Name="BG3A_PadBtn"')).toBeLessThan(out.indexOf('x:Name="LegendBtn"'));
   });
 });

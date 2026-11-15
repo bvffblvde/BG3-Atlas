@@ -29,8 +29,12 @@ function flatButton(indent: number, command: string, parameter: string | null, b
   ];
 }
 
-function row(id: CategoryId, indent: number, index: number): string[] {
+export type PanelMode = "mouse" | "pad";
+
+function row(id: CategoryId, indent: number, index: number, mode: PanelMode): string[] {
   const cell = ` Grid.Row="${Math.floor(index / 2)}" Grid.Column="${index % 2}"`;
+  const selection =
+    mode === "pad" ? [`${pad(indent + 8)}<Rectangle Grid.ColumnSpan="3" Margin="-4,-2,-4,-2" Fill="#40F2DDA0" Opacity="{Binding Sel_${id}}"/>`] : [];
   return flatButton(indent, "Toggle", id, [
     `${pad(indent + 4)}<Grid Opacity="{Binding Alpha_${id}}">`,
     `${pad(indent + 8)}<Grid.ColumnDefinitions>`,
@@ -38,6 +42,7 @@ function row(id: CategoryId, indent: number, index: number): string[] {
     `${pad(indent + 12)}<ColumnDefinition Width="*"/>`,
     `${pad(indent + 12)}<ColumnDefinition Width="Auto"/>`,
     `${pad(indent + 8)}</Grid.ColumnDefinitions>`,
+    ...selection,
     `${pad(indent + 8)}<Viewbox Width="34" Height="34" HorizontalAlignment="Left">`,
     `${pad(indent + 12)}<Canvas Width="24" Height="24">`,
     iconCanvas(id, indent + 16),
@@ -49,10 +54,35 @@ function row(id: CategoryId, indent: number, index: number): string[] {
   ], cell);
 }
 
-export function panelXaml(): string {
+function searchRow(i: number): string[] {
+  return [
+    `${pad(i + 8)}<Grid Margin="0,0,0,10">`,
+    `${pad(i + 12)}<Border BorderBrush="#FF8C7346" BorderThickness="0,0,0,1" Margin="0,0,140,0">`,
+    `${pad(i + 16)}<TextBox Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="26" Foreground="${ink}"/>`,
+    `${pad(i + 12)}</Border>`,
+    `${pad(i + 12)}<TextBlock x:Name="BG3A_SearchInfo" Text="{Binding SearchHint}" Foreground="${dim}" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Center"/>`,
+    `${pad(i + 8)}</Grid>`,
+  ];
+}
+
+export function padHintBar(): string {
+  const i = 24;
+  const enabled = 'IsEnabled="{Binding IsChecked, ElementName=BG3A_PadBtn}" EatInput="True"';
+  return [
+    `${pad(i)}<ls:LSToggleButton x:Name="BG3A_PadBtn" ls:LSToggleButton.BoundEvent="UIFilter" Tag="Atlas" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIFilter, Converter={StaticResource FindInputEventConverter}}" EatInput="False"/>`,
+    `${pad(i)}<ls:LSInputBinding BoundEvent="UILeft" Command="{Binding DataContext.PadPrev, ElementName=BG3A_Panel}" ${enabled}/>`,
+    `${pad(i)}<ls:LSInputBinding BoundEvent="UIRight" Command="{Binding DataContext.PadNext, ElementName=BG3A_Panel}" ${enabled}/>`,
+    `${pad(i)}<ls:LSInputBinding BoundEvent="UIAccept" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" ${enabled}/>`,
+    "",
+  ].join("\n");
+}
+
+export function panelXaml(mode: PanelMode = "mouse"): string {
   const i = 16;
+  const visibility = mode === "pad" ? ' Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"' : "";
+  const placement = mode === "pad" ? 'Margin="60,140,0,0"' : 'Grid.Row="1" Margin="60,170,0,0"';
   const lines = [
-    `${pad(i)}<Border x:Name="BG3A_Panel" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="60,170,0,0" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14">`,
+    `${pad(i)}<Border x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14"${visibility}>`,
     `${pad(i + 4)}<StackPanel>`,
     `${pad(i + 8)}<Grid Margin="0,0,0,8">`,
     `${pad(i + 12)}<TextBlock Text="{Binding Title}" Foreground="${ink}" FontSize="32" VerticalAlignment="Center"/>`,
@@ -63,12 +93,7 @@ export function panelXaml(): string {
     `${pad(i + 12)}</StackPanel>`,
     `${pad(i + 8)}</Grid>`,
     `${pad(i + 8)}<Rectangle Height="2" Fill="#FF8C7346" Opacity="0.6" Margin="0,0,0,8"/>`,
-    `${pad(i + 8)}<Grid Margin="0,0,0,10">`,
-    `${pad(i + 12)}<Border BorderBrush="#FF8C7346" BorderThickness="0,0,0,1" Margin="0,0,140,0">`,
-    `${pad(i + 16)}<TextBox Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="26" Foreground="${ink}"/>`,
-    `${pad(i + 12)}</Border>`,
-    `${pad(i + 12)}<TextBlock x:Name="BG3A_SearchInfo" Text="{Binding SearchHint}" Foreground="${dim}" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Center"/>`,
-    `${pad(i + 8)}</Grid>`,
+    ...(mode === "mouse" ? searchRow(i) : []),
     `${pad(i + 8)}<Grid>`,
     `${pad(i + 12)}<Grid.ColumnDefinitions>`,
     `${pad(i + 16)}<ColumnDefinition Width="*"/>`,
@@ -77,8 +102,9 @@ export function panelXaml(): string {
     `${pad(i + 12)}<Grid.RowDefinitions>`,
     ...panelOrder().filter((_, n) => n % 2 === 0).map(() => `${pad(i + 16)}<RowDefinition Height="Auto"/>`),
     `${pad(i + 12)}</Grid.RowDefinitions>`,
-    ...panelOrder().flatMap((id, n) => row(id, i + 12, n)),
+    ...panelOrder().flatMap((id, n) => row(id, i + 12, n, mode)),
     `${pad(i + 8)}</Grid>`,
+    ...(mode === "pad" ? [`${pad(i + 8)}<TextBlock Text="{Binding PadHint}" Foreground="${dim}" FontSize="22" Margin="0,10,0,0" TextWrapping="Wrap"/>`] : []),
     `${pad(i + 4)}</StackPanel>`,
     `${pad(i)}</Border>`,
     "",

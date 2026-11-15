@@ -12,6 +12,7 @@ local labels = {
         none = "Скрыть",
         hideFound = "Скрыть найденное",
         showFound = "Показать найденное",
+        padHint = "Влево и вправо: выбор, подтвердить: показать или скрыть",
         chest = "Сундуки",
         weapon_unique = "Оружие",
         armor_unique = "Броня",
@@ -37,6 +38,7 @@ local labels = {
         none = "Hide",
         hideFound = "Hide found",
         showFound = "Show found",
+        padHint = "Left and right: select, accept: show or hide",
         chest = "Containers",
         weapon_unique = "Weapons",
         armor_unique = "Armour",
@@ -60,6 +62,7 @@ local labels = {
 
 local registered = false
 local dirty = true
+local selected = 1
 
 local function register()
     if registered then
@@ -86,11 +89,16 @@ local function register()
         ShowAll = { Type = "Command" },
         HideAll = { Type = "Command" },
         ToggleFound = { Type = "Command" },
+        PadHint = { Type = "String" },
+        PadPrev = { Type = "Command" },
+        PadNext = { Type = "Command" },
+        PadToggle = { Type = "Command" },
     }
     for _, cat in ipairs(Points.Categories) do
         props["Label_" .. cat] = { Type = "String" }
         props["Count_" .. cat] = { Type = "String" }
         props["Alpha_" .. cat] = { Type = "Single" }
+        props["Sel_" .. cat] = { Type = "Single" }
     end
     Ext.UI.RegisterType("BG3A_Panel", props)
     registered = true
@@ -131,6 +139,27 @@ local function newModel()
         vm["Count_" .. cat] = done .. "/" .. (counts[cat] or 0)
         vm["Alpha_" .. cat] = Settings.IsEnabled(cat) and 1.0 or 0.35
     end
+    for i, cat in ipairs(Points.Categories) do
+        vm["Sel_" .. cat] = (i == selected) and 1.0 or 0.0
+    end
+    vm.PadHint = text.padHint
+    local n = #Points.Categories
+    vm.PadPrev:SetHandler(function()
+        selected = (selected - 2) % n + 1
+        dirty = true
+    end)
+    vm.PadNext:SetHandler(function()
+        selected = selected % n + 1
+        dirty = true
+    end)
+    vm.PadToggle:SetHandler(function()
+        local cat = Points.Categories[selected]
+        if cat then
+            Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
+            Settings.Save()
+            dirty = true
+        end
+    end)
     vm.ToggleFound:SetHandler(function()
         Settings.SetHideFound(not Settings.HideFound())
         Settings.Save()

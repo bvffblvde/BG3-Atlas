@@ -311,7 +311,7 @@ local function update()
             end
             updateScale(entry, model)
             updateFilters(entry)
-            if entry.widget == "JournalMap" and BG3Atlas.Panel then
+            if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
                 BG3Atlas.Panel.Update(entry.node)
             end
         else

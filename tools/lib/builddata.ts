@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { categoryRules } from "../categories.ts";
+import { panelOrder } from "./panelxaml.ts";
 import { luaString, pointsLua, readMapOrigin } from "./mapdata.ts";
 import type { Point } from "./points.ts";
 
@@ -15,7 +15,7 @@ export function dataDir(stageDir: string): string {
 }
 
 export function categoriesLua(): string {
-  return `return {${categoryRules.map((r) => luaString(r.id)).join(",")}}\n`;
+  return `return {${panelOrder().map((id) => luaString(id)).join(",")}}\n`;
 }
 
 export function buildData(opts: BuildDataOptions): void {
