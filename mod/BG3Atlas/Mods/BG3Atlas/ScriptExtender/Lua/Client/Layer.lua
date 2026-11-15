@@ -159,6 +159,10 @@ local function readPlayer()
     return false
 end
 
+function Layer.PlayerPos()
+    return player and player.pos
+end
+
 function Layer.CurrentMap()
     return currentMap
 end

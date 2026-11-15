@@ -81,3 +81,27 @@ describe("Found", () => {
     expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found return tostring(F.IsFound('a')) .. tostring(F.IsBlocked('a')) end)()", pre("store.Found = { a = true }"))).toBe("truefalse");
   });
 });
+
+const detectStubs = `
+BG3Atlas.Probe = {}
+BG3Atlas.Found = {}
+Ext.Events = { SessionLoaded = { Subscribe = function() end } }
+`;
+
+describe("Detect", () => {
+  const byCategory = `{
+    chest = { { id = "c1", x = 10, y = 10, map = "WLD", name = "Chest" }, { id = "c2", x = 500, y = 500, map = "WLD", name = "Far" } },
+    scroll = { { id = "s1", x = 12, y = 9, map = "WLD", name = "Scroll" }, { id = "s2", x = 10, y = 10, map = "SCL", name = "Other map" } },
+    lever = { { id = "l1", x = 10, y = 10, map = "WLD", name = "Lever" } },
+  }`;
+
+  it("queues only detectable points of the current map", () => {
+    const expr = `(function() local q = BG3Atlas.Detect.BuildQueue(${byCategory}, "WLD") local ids = {} for _, e in ipairs(q) do ids[#ids + 1] = e.id end table.sort(ids) return table.concat(ids, ",") end)()`;
+    expect(run(["Detect.lua"], expr, detectStubs)).toBe("c1,c2,s1");
+  });
+
+  it("finds queued points near the player", () => {
+    const expr = `(function() local q = BG3Atlas.Detect.BuildQueue(${byCategory}, "WLD") local ids = {} for _, e in ipairs(BG3Atlas.Detect.Near(q, 11, 11, 40)) do ids[#ids + 1] = e.id end table.sort(ids) return table.concat(ids, ",") end)()`;
+    expect(run(["Detect.lua"], expr, detectStubs)).toBe("c1,s1");
+  });
+});

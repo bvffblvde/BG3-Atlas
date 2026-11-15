@@ -7,6 +7,8 @@ BG3Atlas.Detect = Detect
 
 Detect.BatchSize = 150
 Detect.PeriodMs = 250
+Detect.NearRadius = 40
+Detect.StatsMs = 60000
 
 local itemCategories = {
     weapon_unique = true,
@@ -26,21 +28,44 @@ local containerCategories = {
 }
 
 local queue = nil
+local queueMap = nil
 local cursor = 1
 local seenInWorld = {}
 local seenFull = {}
 local running = false
+local stats = {}
+local lastStats = nil
 
-local function buildQueue()
-    queue = {}
-    for cat, list in pairs(Points.ByCategory()) do
+local function resetStats()
+    stats = { checked = 0, itemsSeen = 0, full = 0, empty = 0, unreadable = 0, missing = 0, marked = 0 }
+end
+
+resetStats()
+
+function Detect.BuildQueue(byCategory, map)
+    local out = {}
+    for cat, list in pairs(byCategory) do
         if itemCategories[cat] or containerCategories[cat] or cat == "boss" then
             for _, pt in ipairs(list) do
-                queue[#queue + 1] = { id = pt.id, cat = cat, map = pt.map }
+                if pt.map == map then
+                    out[#out + 1] = { id = pt.id, cat = cat, map = pt.map, x = pt.x, y = pt.y, name = pt.name }
+                end
             end
         end
     end
-    cursor = 1
+    return out
+end
+
+function Detect.Near(list, x, y, radius)
+    local out = {}
+    local r2 = radius * radius
+    for _, e in ipairs(list) do
+        local dx, dy = e.x - x, e.y - y
+        if dx * dx + dy * dy <= r2 then
+            out[#out + 1] = e
+        end
+    end
+    return out
 end
 
 local function containerCount(entity)
@@ -58,42 +83,72 @@ local function containerCount(entity)
     return n
 end
 
+local function mark(entry, reason)
+    Found.SetFound(entry.id, true)
+    stats.marked = stats.marked + 1
+    P.Log("auto found " .. entry.cat .. " " .. P.Str(entry.name) .. " (" .. reason .. ")")
+end
+
 local function check(entry)
-    local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
-    if entry.map ~= map or Found.IsFound(entry.id) or Found.IsBlocked(entry.id) then
+    if Found.IsFound(entry.id) or Found.IsBlocked(entry.id) then
         return
     end
+    stats.checked = stats.checked + 1
     local ok, entity = pcall(Ext.Entity.Get, entry.id)
     if not ok then
         entity = nil
     end
+    if not entity then
+        stats.missing = stats.missing + 1
+    end
     if itemCategories[entry.cat] then
         if entity then
             if P.Get(entity, "InventoryMember") then
-                Found.SetFound(entry.id, true)
+                mark(entry, "in inventory")
             else
                 seenInWorld[entry.id] = true
+                stats.itemsSeen = stats.itemsSeen + 1
             end
         elseif seenInWorld[entry.id] then
-            Found.SetFound(entry.id, true)
+            mark(entry, "gone from world")
         end
     elseif containerCategories[entry.cat] then
         if not entity then
             return
         end
         local n = containerCount(entity)
-        if n and n > 0 then
+        if n == nil then
+            stats.unreadable = stats.unreadable + 1
+        elseif n > 0 then
+            stats.full = stats.full + 1
             seenFull[entry.id] = true
-        elseif n == 0 and seenFull[entry.id] then
-            Found.SetFound(entry.id, true)
+        else
+            stats.empty = stats.empty + 1
+            if seenFull[entry.id] then
+                mark(entry, "emptied")
+            end
         end
     elseif entry.cat == "boss" then
         local health = entity and P.Get(entity, "Health")
         local hp = health and P.Get(health, "Hp")
         if type(hp) == "number" and hp <= 0 then
-            Found.SetFound(entry.id, true)
+            mark(entry, "dead")
         end
     end
+end
+
+local function logStats()
+    local now = Ext.Timer.MonotonicTime()
+    if not lastStats then
+        lastStats = now
+        return
+    end
+    if now - lastStats < Detect.StatsMs then
+        return
+    end
+    lastStats = now
+    P.Log(string.format("detect %s: queue %d, checked %d, items seen %d, containers full %d empty %d unreadable %d, missing %d, marked %d", P.Str(queueMap), queue and #queue or 0, stats.checked, stats.itemsSeen, stats.full, stats.empty, stats.unreadable, stats.missing, stats.marked))
+    resetStats()
 end
 
 local function step()
@@ -104,8 +159,23 @@ local function step()
         if not BG3Atlas.World.Ready() then
             return
         end
-        if not queue then
-            buildQueue()
+        local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
+        if not map then
+            return
+        end
+        if map ~= queueMap or not queue then
+            queue = Detect.BuildQueue(Points.ByCategory(), map)
+            queueMap = map
+            cursor = 1
+        end
+        local pos = BG3Atlas.Layer.PlayerPos()
+        if pos then
+            local lx, ly = Points.ToLocal(map, pos[1], pos[3])
+            if lx then
+                for _, entry in ipairs(Detect.Near(queue, lx, ly, Detect.NearRadius)) do
+                    check(entry)
+                end
+            end
         end
         local last = math.min(#queue, cursor + Detect.BatchSize - 1)
         for i = cursor, last do
@@ -115,6 +185,7 @@ local function step()
         if cursor > #queue then
             cursor = 1
         end
+        logStats()
     end)
     if not ok then
         P.Log("detect failed: " .. P.Str(err))
@@ -135,5 +206,7 @@ end
 Ext.Events.SessionLoaded:Subscribe(function()
     seenInWorld = {}
     seenFull = {}
+    queue = nil
+    queueMap = nil
     Detect.Start()
 end)
