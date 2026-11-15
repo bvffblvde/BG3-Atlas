@@ -36,7 +36,7 @@ describe("layerXaml", () => {
   });
 
   it("makes icons clickable with a tooltip, dims found ones, keeps the empty layer transparent to the mouse", () => {
-    expect(xaml.split('Command="{Binding Mark}"').length - 1).toBe(ids.length * 2);
+    expect(xaml).not.toContain("Command=");
     expect(xaml.split('ToolTip="{Binding Label}"').length - 1).toBe(ids.length * 2);
     expect(xaml).toMatch(/x:Name="BG3A_Found_trap"[^>]*Opacity="0.45"/);
     expect(xaml).not.toMatch(/x:Name="BG3A_Layer"[^>]*IsHitTestVisible/);

@@ -120,12 +120,12 @@ end
 local function newModel()
     local text = labels[Settings.Language()]
     local vm = Ext.UI.Instantiate("BG3A_Panel")
-    vm.Title = text.title
-    vm.AllText = text.all
-    vm.NoneText = text.none
-    vm.FoundText = Settings.HideFound() and text.showFound or text.hideFound
-    vm.Query = BG3Atlas.Search.Query()
-    vm.SearchHint = BG3Atlas.Search.Hint()
+    P.Set(vm, "Title", text.title)
+    P.Set(vm, "AllText", text.all)
+    P.Set(vm, "NoneText", text.none)
+    P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
+    P.Set(vm, "Query", BG3Atlas.Search.Query())
+    P.Set(vm, "SearchHint", BG3Atlas.Search.Hint())
     local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
     local counts = Points.Counts(map)
     local byCategory = Points.ByCategory()
@@ -136,24 +136,24 @@ local function newModel()
                 done = done + 1
             end
         end
-        vm["Label_" .. cat] = text[cat] or cat
-        vm["Count_" .. cat] = done .. "/" .. (counts[cat] or 0)
-        vm["Alpha_" .. cat] = Settings.IsEnabled(cat) and 1.0 or 0.35
+        P.Set(vm, "Label_" .. cat, text[cat] or cat)
+        P.Set(vm, "Count_" .. cat, done .. "/" .. (counts[cat] or 0))
+        P.Set(vm, "Alpha_" .. cat, Settings.IsEnabled(cat) and 1.0 or 0.35)
     end
     for i, cat in ipairs(Points.Categories) do
-        vm["Sel_" .. cat] = (i == selected) and 1.0 or 0.0
+        P.Set(vm, "Sel_" .. cat, (i == selected) and 1.0 or 0.0)
     end
-    vm.PadHint = text.padHint
+    P.Set(vm, "PadHint", text.padHint)
     local n = #Points.Categories
-    vm.PadPrev:SetHandler(function()
+    P.Handle(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1
         dirty = true
     end)
-    vm.PadNext:SetHandler(function()
+    P.Handle(vm, "PadNext", function()
         selected = selected % n + 1
         dirty = true
     end)
-    vm.PadToggle:SetHandler(function()
+    P.Handle(vm, "PadToggle", function()
         local cat = Points.Categories[selected]
         if cat then
             Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
@@ -161,23 +161,23 @@ local function newModel()
             dirty = true
         end
     end)
-    vm.ToggleFound:SetHandler(function()
+    P.Handle(vm, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())
         Settings.Save()
         dirty = true
     end)
-    vm.Toggle:SetHandler(function(_, param)
+    P.Handle(vm, "Toggle", function(_, param)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
         Settings.Save()
         dirty = true
     end)
-    vm.ShowAll:SetHandler(function()
+    P.Handle(vm, "ShowAll", function()
         Settings.SetAll(Points.Categories, true)
         Settings.Save()
         dirty = true
     end)
-    vm.HideAll:SetHandler(function()
+    P.Handle(vm, "HideAll", function()
         Settings.SetAll(Points.Categories, false)
         Settings.Save()
         dirty = true

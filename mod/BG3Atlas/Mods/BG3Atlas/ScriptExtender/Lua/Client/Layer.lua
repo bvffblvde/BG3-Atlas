@@ -32,7 +32,6 @@ local function register()
         PosY = { Type = "Single" },
         Id = { Type = "String" },
         Label = { Type = "String" },
-        Mark = { Type = "Command" },
     })
     local props = { Search = { Type = "Collection" } }
     for _, cat in ipairs(Points.Categories) do
@@ -70,14 +69,10 @@ end
 
 local function newPoint(pt, found)
     local p = Ext.UI.Instantiate("BG3A_Point")
-    p.PosX = pt.x
-    p.PosY = pt.y
-    p.Id = pt.id
-    p.Label = pointLabel(pt, found)
-    local id = pt.id
-    p.Mark:SetHandler(function()
-        BG3Atlas.Found.SetFound(id, not BG3Atlas.Found.IsFound(id))
-    end)
+    P.Set(p, "PosX", pt.x)
+    P.Set(p, "PosY", pt.y)
+    P.Set(p, "Id", pt.id)
+    P.Set(p, "Label", pointLabel(pt, found))
     return p
 end
 

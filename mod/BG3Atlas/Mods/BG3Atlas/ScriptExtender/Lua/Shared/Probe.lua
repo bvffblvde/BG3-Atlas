@@ -62,3 +62,27 @@ function P.Uuid(entity)
 end
 
 P.Log("probe loaded, context " .. (Ext.IsServer() and "server" or "client"))
+
+local failed = {}
+
+function P.Set(obj, key, value)
+    local ok, err = pcall(function()
+        obj[key] = value
+    end)
+    if not ok and not failed[key] then
+        failed[key] = true
+        P.Log("cannot set " .. key .. ": " .. P.Str(err))
+    end
+    return ok
+end
+
+function P.Handle(obj, key, fn)
+    local ok, err = pcall(function()
+        obj[key]:SetHandler(fn)
+    end)
+    if not ok and not failed[key] then
+        failed[key] = true
+        P.Log("cannot bind command " .. key .. ": " .. P.Str(err))
+    end
+    return ok
+end
