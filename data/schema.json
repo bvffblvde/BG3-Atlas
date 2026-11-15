@@ -5,27 +5,116 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["id", "category", "level", "submap", "floor", "pos", "template", "name", "nameRu", "description", "descriptionRu", "flags"],
+    "required": [
+      "id",
+      "category",
+      "map",
+      "level",
+      "submap",
+      "floor",
+      "pos",
+      "template",
+      "name",
+      "nameRu",
+      "description",
+      "descriptionRu",
+      "flags"
+    ],
     "properties": {
-      "id": { "type": "string", "description": "MapKey of the object instance in the level" },
-      "category": {
-        "enum": ["chest", "weapon_unique", "armor_unique", "accessory", "scroll", "book", "key", "ingredient", "valuable", "trap", "hidden_stash", "lever", "locked_door", "waypoint", "trader", "quest_npc", "boss", "animal"]
+      "id": {
+        "type": "string",
+        "description": "MapKey of the object instance in the level"
       },
-      "level": { "type": "string", "description": "Level or sublevel the object comes from, e.g. WLD_Main_A, WLD_GoblinCamp_D" },
-      "submap": { "type": ["string", "null"], "description": "WorldMap BuildingUUID, null on the surface" },
-      "floor": { "type": ["integer", "null"] },
+      "category": {
+        "enum": [
+          "chest",
+          "weapon_unique",
+          "armor_unique",
+          "accessory",
+          "scroll",
+          "book",
+          "key",
+          "ingredient",
+          "valuable",
+          "trap",
+          "hidden_stash",
+          "lever",
+          "locked_door",
+          "waypoint",
+          "trader",
+          "quest_npc",
+          "boss",
+          "animal"
+        ]
+      },
+      "map": {
+        "type": "string",
+        "description": "Main level of the map the point is drawn on, e.g. WLD_Main_A, SCL_Main_A"
+      },
+      "level": {
+        "type": "string",
+        "description": "Level or sublevel the object comes from, e.g. WLD_Main_A, WLD_GoblinCamp_D"
+      },
+      "submap": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "WorldMap BuildingUUID, null on the surface"
+      },
+      "floor": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
       "pos": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["x", "y", "z"],
-        "properties": { "x": { "type": "number" }, "y": { "type": "number" }, "z": { "type": "number" } }
+        "required": [
+          "x",
+          "y",
+          "z"
+        ],
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          }
+        }
       },
-      "template": { "type": "string", "description": "Root template MapKey" },
-      "name": { "type": "string" },
-      "nameRu": { "type": "string" },
-      "description": { "type": "string" },
-      "descriptionRu": { "type": "string" },
-      "flags": { "type": "array", "items": { "enum": ["locked", "trapped", "hidden"] }, "uniqueItems": true }
+      "template": {
+        "type": "string",
+        "description": "Root template MapKey"
+      },
+      "name": {
+        "type": "string"
+      },
+      "nameRu": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "descriptionRu": {
+        "type": "string"
+      },
+      "flags": {
+        "type": "array",
+        "items": {
+          "enum": [
+            "locked",
+            "trapped",
+            "hidden"
+          ]
+        },
+        "uniqueItems": true
+      }
     }
   }
 }

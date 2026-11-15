@@ -8,6 +8,7 @@ import { isTraderTable, type TemplateIndex } from "./templates.ts";
 export interface Point {
   id: string;
   category: CategoryId;
+  map: string;
   level: string;
   submap: string | null;
   floor: number | null;
@@ -25,6 +26,7 @@ export interface ExtractContext {
   stats: StatsIndex;
   loca: Loca;
   tagNames: Map<string, string>;
+  map: string;
   submaps: Submap[];
 }
 
@@ -93,6 +95,7 @@ export function buildPoint(obj: RawObject, ctx: ExtractContext): PointResult {
     point: {
       id: obj.id,
       category,
+      map: ctx.map,
       level: obj.level,
       submap: where.submap,
       floor: where.floor,

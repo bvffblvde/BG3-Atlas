@@ -2,6 +2,7 @@
   {
     "id": "eab1365e-eafe-41ed-b7eb-bcf160ada2d4",
     "category": "scroll",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -20,6 +21,7 @@
   {
     "id": "2f3c6448-676e-4037-98b7-e297446912c8",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -38,6 +40,7 @@
   {
     "id": "b8625f40-04f3-45e1-9efe-fed845487ac8",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -56,6 +59,7 @@
   {
     "id": "cf223a48-7164-43c0-91c2-b39c19937f3b",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -74,6 +78,7 @@
   {
     "id": "5f4a2691-5466-461c-bc33-06c41fdaae37",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -92,6 +97,7 @@
   {
     "id": "1a6cc81d-58a1-4724-94eb-0af6c7194600",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,
@@ -110,6 +116,7 @@
   {
     "id": "a4737a13-0ae2-c989-972f-588ed054dc9a",
     "category": "lever",
+    "map": "WLD_Main_A",
     "level": "WLD_RangerCamp_I",
     "submap": "Gate",
     "floor": 0,
@@ -128,6 +135,7 @@
   {
     "id": "c4b0c94b-8560-ce57-67a8-37734febe7da",
     "category": "lever",
+    "map": "WLD_Main_A",
     "level": "WLD_RangerCamp_I",
     "submap": "Gate",
     "floor": 0,
@@ -146,6 +154,7 @@
   {
     "id": "5564d21c-9033-4958-8cc8-cd3f497bb51b",
     "category": "lever",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": "Gate",
     "floor": 0,
@@ -164,6 +173,7 @@
   {
     "id": "df400bfd-7dbb-4c40-a63f-15ed4bbe894b",
     "category": "chest",
+    "map": "WLD_Main_A",
     "level": "WLD_Main_A",
     "submap": null,
     "floor": null,

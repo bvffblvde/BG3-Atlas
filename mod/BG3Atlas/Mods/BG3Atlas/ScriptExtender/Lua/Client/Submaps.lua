@@ -1,7 +1,10 @@
 local Submaps = {}
 BG3Atlas.Submaps = Submaps
 
-local boxes = Ext.Require("Client/Data/Submaps.lua")
+local boxesByMap = {}
+for _, map in ipairs(BG3Atlas.Points.Maps) do
+    boxesByMap[map] = Ext.Require("Client/Data/Submaps_" .. map .. ".lua")
+end
 
 local function cross(ax, ay, az, bx, by, bz)
     return ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx
@@ -17,16 +20,12 @@ local function contains(b, x, y, z)
     return math.abs(lx) <= b[6] and math.abs(ly) <= b[7] and math.abs(lz) <= b[8]
 end
 
-function Submaps.Assign(x, y, z)
-    local building, region = nil, nil
-    for _, b in ipairs(boxes) do
-        if contains(b, x, y, z) then
-            if b[1] ~= nil then
-                if not building or b[13] < building[13] then
-                    building = b
-                end
-            elseif not region or b[13] < region[13] then
-                region = b
+function Submaps.Assign(map, x, y, z)
+    local building = nil
+    for _, b in ipairs(boxesByMap[map] or {}) do
+        if b[1] ~= nil and contains(b, x, y, z) then
+            if not building or b[13] < building[13] then
+                building = b
             end
         end
     end
@@ -36,9 +35,9 @@ function Submaps.Assign(x, y, z)
     return nil, nil
 end
 
-function Submaps.Key(submap, floor)
+function Submaps.Key(map, submap, floor)
     if submap == nil then
-        return "surface"
+        return tostring(map) .. "|surface"
     end
-    return submap .. "#" .. tostring(floor or 0)
+    return tostring(map) .. "|" .. submap .. "#" .. tostring(floor or 0)
 end

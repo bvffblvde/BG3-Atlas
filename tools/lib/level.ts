@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { attr, child, findAll, readLsxFile, type LsxNode } from "./lsx.ts";
-import { findSubLevels, isWildernessSubLevel, readPlacement } from "./sublevels.ts";
+import { isSubLevelOf, type MapGroup } from "./maps.ts";
+import { findSubLevels, readPlacement } from "./sublevels.ts";
 import { subLevelIndex, nodeAttrs, nodeTags, treasureTables, type TemplateIndex } from "./templates.ts";
 import { composePlacement, identity, toWorld, type Placement, type Vec3 } from "./transform.ts";
 
@@ -72,14 +73,14 @@ export interface PlacedLevel {
   placement: Placement;
 }
 
-export function wildernessLevels(lsxRoot: string, templates: TemplateIndex): PlacedLevel[] {
+export function groupLevels(lsxRoot: string, templates: TemplateIndex, group: MapGroup): PlacedLevel[] {
   const subLevels = subLevelIndex(templates);
-  const result: PlacedLevel[] = [{ level: "WLD_Main_A", placement: identity }];
-  const seen = new Set(["WLD_Main_A"]);
+  const result: PlacedLevel[] = [{ level: group.main, placement: identity }];
+  const seen = new Set([group.main]);
   for (let i = 0; i < result.length; i++) {
     const parent = result[i];
     const lts = levelFiles(lsxRoot, parent.level, "LevelTemplates").flat();
-    for (const ref of findSubLevels(lts, subLevels, isWildernessSubLevel)) {
+    for (const ref of findSubLevels(lts, subLevels, (l) => isSubLevelOf(group, l))) {
       if (seen.has(ref.level)) continue;
       seen.add(ref.level);
       result.push({ level: ref.level, placement: composePlacement(parent.placement, ref.placement) });
@@ -88,10 +89,10 @@ export function wildernessLevels(lsxRoot: string, templates: TemplateIndex): Pla
   return result;
 }
 
-export function readWilderness(lsxRoot: string, templates: TemplateIndex): RawObject[] {
+export function readGroup(lsxRoot: string, templates: TemplateIndex, group: MapGroup): RawObject[] {
   const out: RawObject[] = [];
   const seen = new Set<string>();
-  for (const { level, placement } of wildernessLevels(lsxRoot, templates)) {
+  for (const { level, placement } of groupLevels(lsxRoot, templates, group)) {
     for (const obj of readLevelObjects(lsxRoot, level, placement)) {
       if (seen.has(obj.id)) continue;
       seen.add(obj.id);
@@ -99,4 +100,14 @@ export function readWilderness(lsxRoot: string, templates: TemplateIndex): RawOb
     }
   }
   return out;
+}
+
+export const wildernessGroup: MapGroup = { main: "WLD_Main_A", prefix: "WLD" };
+
+export function wildernessLevels(lsxRoot: string, templates: TemplateIndex): PlacedLevel[] {
+  return groupLevels(lsxRoot, templates, wildernessGroup);
+}
+
+export function readWilderness(lsxRoot: string, templates: TemplateIndex): RawObject[] {
+  return readGroup(lsxRoot, templates, wildernessGroup);
 }

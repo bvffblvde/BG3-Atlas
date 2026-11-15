@@ -30,7 +30,7 @@ local function buildQueue()
     for cat, list in pairs(Points.ByCategory()) do
         if itemCategories[cat] or cat == "chest" or cat == "boss" then
             for _, pt in ipairs(list) do
-                queue[#queue + 1] = { id = pt.id, cat = cat }
+                queue[#queue + 1] = { id = pt.id, cat = cat, map = pt.map }
             end
         end
     end
@@ -53,7 +53,8 @@ local function containerCount(entity)
 end
 
 local function check(entry)
-    if Found.IsFound(entry.id) then
+    local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
+    if entry.map ~= map or Found.IsFound(entry.id) then
         return
     end
     local ok, entity = pcall(Ext.Entity.Get, entry.id)

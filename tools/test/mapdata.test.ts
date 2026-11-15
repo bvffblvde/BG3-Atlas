@@ -10,6 +10,7 @@ function point(over: Partial<Point>): Point {
   return {
     id: "id",
     category: "chest",
+    map: "WLD_Main_A",
     level: "WLD_Main_A",
     submap: null,
     floor: null,

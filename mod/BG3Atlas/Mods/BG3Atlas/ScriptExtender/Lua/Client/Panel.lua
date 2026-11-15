@@ -126,12 +126,13 @@ local function newModel()
     vm.FoundText = Settings.HideFound() and text.showFound or text.hideFound
     vm.Query = BG3Atlas.Search.Query()
     vm.SearchHint = BG3Atlas.Search.Hint()
-    local counts = Points.Counts()
+    local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
+    local counts = Points.Counts(map)
     local byCategory = Points.ByCategory()
     for _, cat in ipairs(Points.Categories) do
         local done = 0
         for _, pt in ipairs(byCategory[cat] or {}) do
-            if BG3Atlas.Found.IsFound(pt.id) then
+            if pt.map == map and BG3Atlas.Found.IsFound(pt.id) then
                 done = done + 1
             end
         end

@@ -1,3 +1,5 @@
+import { mapGroups } from "./maps.ts";
+
 export interface UnpackJob {
   pak: string;
   pattern: string;
@@ -24,6 +26,11 @@ export function unpackJobs(): UnpackJob[] {
     { pak: "Gustav.pak", pattern: "Mods/Gustav/Levels/WLD_*", dest: "gustav-levels" },
     { pak: "Gustav.pak", pattern: "Mods/GustavDev/Levels/WLD_*", dest: "gustavdev-levels" },
   ];
+  for (const g of mapGroups.filter((m) => m.prefix !== "WLD")) {
+    const p = g.prefix.toLowerCase();
+    jobs.push({ pak: "Gustav.pak", pattern: `Mods/Gustav/Levels/${g.prefix}_*`, dest: `gustav-levels-${p}` });
+    jobs.push({ pak: "Gustav.pak", pattern: `Mods/GustavDev/Levels/${g.prefix}_*`, dest: `gustavdev-levels-${p}` });
+  }
   for (const pak of dataPaks) {
     for (const [pattern, kind] of dataPatterns) {
       jobs.push({ pak, pattern, dest: `${pak.replace(".pak", "").toLowerCase()}-${kind}` });

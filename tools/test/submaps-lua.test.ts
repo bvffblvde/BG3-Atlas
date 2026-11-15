@@ -27,8 +27,8 @@ function luaAssign(points: Vec3[]): string[] {
   const L = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(L);
   const data = submapsLua(subs).replace(/^return /, "");
-  const stub = `BG3Atlas = {}\nExt = { Require = function() return ${data} end }\n`;
-  const calls = points.map((p) => `do local s, f = Submaps.Assign(${p.join(",")}) out[#out + 1] = tostring(s) .. "#" .. tostring(f) end`).join("\n");
+  const stub = `BG3Atlas = { Points = { Maps = { "M" } } }\nExt = { Require = function() return ${data} end }\n`;
+  const calls = points.map((p) => `do local s, f = Submaps.Assign("M", ${p.join(",")}) out[#out + 1] = tostring(s) .. "#" .. tostring(f) end`).join("\n");
   const src = `${stub}${readFileSync(luaFile, "utf8")}\nlocal Submaps = BG3Atlas.Submaps\nlocal out = {}\n${calls}\nreturn table.concat(out, "|")`;
   if (lauxlib.luaL_loadstring(L, to_luastring(src)) !== lua.LUA_OK || lua.lua_pcall(L, 0, 1, 0) !== lua.LUA_OK) {
     throw new Error(to_jsstring(lua.lua_tostring(L, -1)));

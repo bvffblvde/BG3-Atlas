@@ -3,7 +3,9 @@ import path from "node:path";
 import { divine, repoRoot } from "./lib/game.ts";
 import { existsSync } from "node:fs";
 import { buildData } from "./lib/builddata.ts";
-import { wildernessLevels } from "./lib/level.ts";
+import { groupLevels } from "./lib/level.ts";
+import { mapGroups } from "./lib/maps.ts";
+import type { Submap } from "./lib/submaps.ts";
 import { readLsxFile } from "./lib/lsx.ts";
 import { loadSubmaps } from "./lib/submaps.ts";
 import { TemplateIndex } from "./lib/templates.ts";
@@ -23,8 +25,13 @@ const templates = new TemplateIndex(
     .filter((f) => existsSync(f))
     .map(readLsxFile),
 );
-const submaps = loadSubmaps(lsxRoot, wildernessLevels(lsxRoot, templates));
-buildData({ pointsFile: path.join(repoRoot, "data", "points.json"), lsxRoot, stageDir: stage, submaps });
+const submaps: Record<string, Submap[]> = {};
+for (const group of mapGroups) {
+  if (["Gustav", "GustavDev"].some((m) => existsSync(path.join(lsxRoot, "Mods", m, "Levels", group.main)))) {
+    submaps[group.main] = loadSubmaps(lsxRoot, groupLevels(lsxRoot, templates, group));
+  }
+}
+for (const w of buildData({ pointsFile: path.join(repoRoot, "data", "points.json"), lsxRoot, stageDir: stage, submaps })) console.log(w);
 console.log("generated point data");
 
 const withTheme = !process.argv.includes("--no-theme");

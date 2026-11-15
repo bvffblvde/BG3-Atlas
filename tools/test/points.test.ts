@@ -46,6 +46,7 @@ const ctx: ExtractContext = {
     ]),
   ),
   tagNames: new Map(),
+  map: "WLD_Main_A",
   submaps: [{ trigger: "u", building: "Underdark", floor: 2, center: [0, 0, 0], half: [10, 10, 10], rot: [0, 0, 0, 1], area: 400 }],
 };
 
@@ -60,6 +61,7 @@ describe("buildPoint", () => {
     expect(point).toEqual({
       id: "c1",
       category: "chest",
+      map: "WLD_Main_A",
       level: "WLD_Main_A",
       submap: "Underdark",
       floor: 2,

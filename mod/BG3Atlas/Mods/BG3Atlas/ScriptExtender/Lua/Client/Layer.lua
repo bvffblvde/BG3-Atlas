@@ -84,28 +84,42 @@ end
 local placed = {}
 local syncedVersion = -1
 local searchVersion = -1
-local viewKey = "surface"
+local viewKey = "none"
+local currentMap = nil
 local rebuild = false
 
 local function inView(pt)
-    return BG3Atlas.Submaps.Key(pt.submap, pt.floor) == viewKey
+    return BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor) == viewKey
 end
 
-local function playerPos()
+local function playerEntity()
     for _, e in ipairs(Ext.Entity.GetAllEntitiesWithComponent("ClientControl")) do
         if P.Get(e, "ClientCharacter") then
-            return P.Pos(e)
+            return e
         end
     end
     return nil
 end
 
+function Layer.CurrentMap()
+    return currentMap
+end
+
 local function updateView()
-    local pos = playerPos()
-    if not pos then
+    local e = playerEntity()
+    local pos = e and P.Pos(e)
+    local level = e and P.Get(e, "Level")
+    local map = level and P.Str(P.Get(level, "LevelName"))
+    if not pos or not map then
         return
     end
-    local key = BG3Atlas.Submaps.Key(BG3Atlas.Submaps.Assign(pos[1], pos[2], pos[3]))
+    if map ~= currentMap then
+        currentMap = map
+        if BG3Atlas.Panel then
+            BG3Atlas.Panel.MarkDirty()
+        end
+    end
+    local key = BG3Atlas.Submaps.Key(map, BG3Atlas.Submaps.Assign(map, pos[1], pos[2], pos[3]))
     if key ~= viewKey then
         viewKey = key
         rebuild = true

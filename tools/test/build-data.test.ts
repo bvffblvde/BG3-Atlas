@@ -22,7 +22,8 @@ function setup() {
   writeFileSync(
     points,
     JSON.stringify([
-      { id: "a", category: "trap", level: "WLD_Main_A", submap: null, floor: null, pos: { x: 0, y: 0, z: 0 }, template: "t", name: "Trap", nameRu: "Ловушка", description: "", descriptionRu: "", flags: ["trapped"] },
+      { id: "a", category: "trap", map: "WLD_Main_A", level: "WLD_Main_A", submap: null, floor: null, pos: { x: 0, y: 0, z: 0 }, template: "t", name: "Trap", nameRu: "Ловушка", description: "", descriptionRu: "", flags: ["trapped"] },
+      { id: "b", category: "chest", map: "SCL_Main_A", level: "SCL_Main_A", submap: null, floor: null, pos: { x: 0, y: 0, z: 0 }, template: "t", name: "Chest", nameRu: "Сундук", description: "", descriptionRu: "", flags: [] },
     ]),
   );
   const stage = path.join(root, "stage");
@@ -30,19 +31,27 @@ function setup() {
 }
 
 describe("buildData", () => {
-  it("writes points and categories modules that parse as Lua", () => {
+  it("writes per-map points, submaps, a map index and categories as Lua", () => {
     const { lsx, points, stage } = setup();
-    buildData({ pointsFile: points, lsxRoot: lsx, stageDir: stage, submaps: [{ trigger: "u", building: "Underdark", floor: 1, center: [0, 0, 0], half: [1, 1, 1], rot: [0, 0, 0, 1], area: 4 }] });
+    const warnings = buildData({
+      pointsFile: points,
+      lsxRoot: lsx,
+      stageDir: stage,
+      submaps: { WLD_Main_A: [{ trigger: "u", building: "Underdark", floor: 1, center: [0, 0, 0], half: [1, 1, 1], rot: [0, 0, 0, 1], area: 4 }] },
+    });
     const dir = dataDir(stage);
-    const pts = readFileSync(path.join(dir, "Wilderness.lua"), "utf8");
-    const cats = readFileSync(path.join(dir, "Categories.lua"), "utf8");
-    expect(() => luaparse.parse(pts, { luaVersion: "5.3" })).not.toThrow();
-    expect(() => luaparse.parse(cats, { luaVersion: "5.3" })).not.toThrow();
-    expect(pts).toContain('{"a","trap",1200,917.5,"Trap","Ловушка",2,nil,nil}');
-    const subs = readFileSync(path.join(dir, "Submaps.lua"), "utf8");
-    expect(() => luaparse.parse(subs, { luaVersion: "5.3" })).not.toThrow();
-    expect(subs).toContain('{"Underdark",1,');
+    const read = (name: string) => {
+      const text = readFileSync(path.join(dir, name), "utf8");
+      expect(() => luaparse.parse(text, { luaVersion: "5.3" })).not.toThrow();
+      return text;
+    };
+    expect(read("Points_WLD_Main_A.lua")).toContain('{"a","trap",1200,917.5,"Trap","Ловушка",2,nil,nil}');
+    expect(read("Submaps_WLD_Main_A.lua")).toContain('{"Underdark",1,');
+    expect(read("Maps.lua")).toBe('return {"WLD_Main_A"}\n');
+    const cats = read("Categories.lua");
     for (const r of categoryRules) expect(cats).toContain(`"${r.id}"`);
+    expect(existsSync(path.join(dir, "Points_SCL_Main_A.lua"))).toBe(false);
+    expect(warnings.join(" ")).toContain("SCL_Main_A");
   });
 
   it("fails with a hint when points.json is missing", () => {

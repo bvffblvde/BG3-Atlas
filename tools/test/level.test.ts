@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseLsx } from "../lib/lsx.ts";
-import { readWilderness } from "../lib/level.ts";
+import { readGroup, readWilderness } from "../lib/level.ts";
 import { TemplateIndex } from "../lib/templates.ts";
 
 function go(key: string, name: string, template: string, pos: string, extra = "", rot = "0 0 0 1", children = "") {
@@ -88,6 +88,13 @@ describe("readWilderness", () => {
     expect(byId.get("wp")?.kind).toBe("item");
     expect(byId.has("wp-top")).toBe(false);
     expect(byId.has("rock")).toBe(false);
+  });
+
+  it("reads any map group by its main level and prefix", () => {
+    put(root, "Mods/Gustav/Levels/SCL_Main_A/Items/_merged.lsx", save(go("scl-item", "CONT_Act2", "t-chest", "5 0 5", '<attribute id="Type" type="FixedString" value="item" />')));
+    const scl = readGroup(root, templates, { main: "SCL_Main_A", prefix: "SCL" });
+    expect(scl.map((o) => o.id)).toEqual(["scl-item"]);
+    expect(scl[0].level).toBe("SCL_Main_A");
   });
 
   it("keeps the first object when ids repeat", () => {

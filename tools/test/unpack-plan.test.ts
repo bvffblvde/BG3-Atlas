@@ -17,6 +17,11 @@ describe("unpackJobs", () => {
   const jobs = unpackJobs();
   const has = (pak: string, pattern: string) => jobs.some((j) => j.pak === pak && j.pattern === pattern);
 
+  it.each(["SCL", "CTY", "BGO", "CRE", "INT", "END", "IRN", "TUT", "EPI"])("includes %s levels from both Gustav modules", (prefix) => {
+    expect(has("Gustav.pak", `Mods/Gustav/Levels/${prefix}_*`)).toBe(true);
+    expect(has("Gustav.pak", `Mods/GustavDev/Levels/${prefix}_*`)).toBe(true);
+  });
+
   it("includes wilderness levels from both Gustav modules", () => {
     expect(has("Gustav.pak", "Mods/Gustav/Levels/WLD_*")).toBe(true);
     expect(has("Gustav.pak", "Mods/GustavDev/Levels/WLD_*")).toBe(true);
