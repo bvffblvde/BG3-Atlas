@@ -5,10 +5,10 @@ local Points = BG3Atlas.Points
 local Layer = {}
 BG3Atlas.Layer = Layer
 
-Layer.IconPixels = { JournalMap = 40, Minimap = 32 }
+Layer.IconPixels = { JournalMap = 40, JournalMap_c = 40, Minimap = 32 }
 Layer.IconUnits = 24
 Layer.PeriodMs = 250
-Layer.Widgets = { JournalMap = true, Minimap = true }
+Layer.Widgets = { JournalMap = true, JournalMap_c = true, Minimap = true }
 
 local registered = false
 local models = {}
@@ -248,6 +248,7 @@ end
 
 local function cmdIconPx(_, journal, minimap)
     Layer.IconPixels.JournalMap = tonumber(journal) or Layer.IconPixels.JournalMap
+    Layer.IconPixels.JournalMap_c = Layer.IconPixels.JournalMap
     Layer.IconPixels.Minimap = tonumber(minimap) or Layer.IconPixels.Minimap
     Layer.Refresh()
     P.Log("icon size journal=" .. Layer.IconPixels.JournalMap .. " minimap=" .. Layer.IconPixels.Minimap)
