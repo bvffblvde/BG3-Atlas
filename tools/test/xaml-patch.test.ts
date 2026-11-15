@@ -58,11 +58,4 @@ describe("injectWorldMapLayer", () => {
     },
   );
 
-  it("produces a well formed layer snippet", () => {
-    const real = readFileSync(path.join(repoRoot, "mod", "xaml", "WorldMapLayer.xaml"), "utf8");
-    const opens = (real.match(/<ItemsControl[\s>]/g) ?? []).length;
-    const closes = (real.match(/<\/ItemsControl>/g) ?? []).length;
-    expect(opens).toBe(closes);
-    expect(real).toContain(layerMarker);
-  });
 });

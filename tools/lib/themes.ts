@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { XMLValidator } from "fast-xml-parser";
 import { divine, findGameDir, repoRoot } from "./game.ts";
+import { layerXaml } from "./layerxaml.ts";
 import { injectWorldMapLayer } from "./xaml-patch.ts";
 
 export interface ThemeSource {
@@ -29,7 +30,7 @@ export function ensureUnpacked(src: ThemeSource): string {
 }
 
 export function layerSnippet(): string {
-  return readFileSync(path.join(repoRoot, "mod", "xaml", "WorldMapLayer.xaml"), "utf8");
+  return layerXaml();
 }
 
 export function patchTheme(src: ThemeSource): string {
