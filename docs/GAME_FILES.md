@@ -55,4 +55,12 @@ UI (`Game.pak`):
 
 Локализация: `Localization/English/english.loca` в `English.pak`; доп. тексты `Mods/Gustav*/Localization/*.lsf` в `Gustav.pak` (книги, подрегионы, вейпоинты).
 
+Подуровни: `WLD_Main_A` подключает подуровни объектами `Type="LevelTemplate"` в `<L>/LevelTemplates/_merged.lsf`; их root template содержит `SubLevelName`. Объекты подуровня в локальных координатах, мир = позиция LT + поворот LT. Для Wilderness это 39 папок `Mods/Gustav/Levels/WLD_*` (плюс `GustavDev`), например `WLD_GoblinCamp_D`, `WLD_Underdark_C`, `WLD_RangerCamp_I` (Роща), `WLD_Plains_D`, `WLD_Forest_G`, `WLD_HagLair_D`.
+
+Статы: `Public/{Shared,SharedDev,Gustav,GustavDev,GustavX,Honour,HonourX}/Stats/Generated/Data/*.txt`. Теги: `Public/{Shared,SharedDev,Gustav,GustavDev,GustavX}/Tags/<guid>.lsf`.
+
+Локализация: базовые файлы `Localization/English/english.loca` (`English.pak`) и `Localization/Russian/russian.loca` (`Localization/Russian/Russian.pak`). Рядом лежат гендерные варианты (`*_to_F`, `Gender/...`), их не берём.
+
+`npm run unpack` раскладывает всё нужное в `work/unpacked/lsx/` (lsx и txt по путям внутри паков) и `work/unpacked/loca/{english,russian}.xml`.
+
 `Public/*/Levelmaps/*.lsx` к карте не относятся: это скейлинг уровня, опыт и золото.

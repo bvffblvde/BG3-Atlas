@@ -5,7 +5,9 @@
   "scripts": {
     "build": "tsx tools/build.ts",
     "install-mod": "tsx tools/install.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "unpack": "tsx tools/unpack.ts",
+    "extract": "tsx tools/extract.ts"
   },
   "devDependencies": {
     "@types/luaparse": "^0.2.13",
