@@ -234,6 +234,4 @@ Ext.RegisterConsoleCommand("atlas_calib", cmdCalib)
 Ext.RegisterConsoleCommand("atlas_layer_stop", Layer.Stop)
 Ext.RegisterConsoleCommand("atlas_layer_start", Layer.Start)
 
-Ext.Events.SessionLoaded:Subscribe(function()
-    Layer.Start()
-end)
+P.Log("layer ready, start with !atlas_layer_start in client console")
