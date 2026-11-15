@@ -58,7 +58,7 @@ function searchRow(i: number): string[] {
   return [
     `${pad(i + 8)}<Grid Margin="0,0,0,10">`,
     `${pad(i + 12)}<Border BorderBrush="#FF8C7346" BorderThickness="0,0,0,1" Margin="0,0,140,0">`,
-    `${pad(i + 16)}<TextBox Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="26" Foreground="${ink}"/>`,
+    `${pad(i + 16)}<TextBox x:Name="BG3A_SearchBox" Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="26" Foreground="${ink}"/>`,
     `${pad(i + 12)}</Border>`,
     `${pad(i + 12)}<TextBlock x:Name="BG3A_SearchInfo" Text="{Binding SearchHint}" Foreground="${dim}" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Center"/>`,
     `${pad(i + 8)}</Grid>`,
@@ -76,6 +76,7 @@ export function padHintBar(): string {
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIDown" Command="{Binding DataContext.PadDown, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIAccept" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UITakeAll" ls:LSButton.EatInput="True" Tag="Вкл/выкл" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UITakeAll, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
+    `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UIMessageBoxY" ls:LSButton.EatInput="True" Tag="{Binding DataContext.FoundMarkText, ElementName=BG3A_Panel}" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIMessageBoxY, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadFound, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
     "",
   ].join("\n");
 }

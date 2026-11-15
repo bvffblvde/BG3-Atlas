@@ -15,6 +15,7 @@ local labels = {
         fogOn = "Показать везде",
         fogOff = "Только исследованное",
         padHint = "Стрелки: выбор, подтвердить: показать или скрыть",
+        foundMark = "Найдено",
         chest = "Сундуки",
         container = "Бочки, ящики, мешки",
         remains = "Останки",
@@ -45,6 +46,7 @@ local labels = {
         fogOn = "Show everywhere",
         fogOff = "Explored only",
         padHint = "D-pad: select, accept: show or hide",
+        foundMark = "Found",
         chest = "Chests",
         container = "Barrels, crates, sacks",
         remains = "Remains",
@@ -104,6 +106,8 @@ local function register()
         PadPrev = { Type = "Command" },
         PadNext = { Type = "Command" },
         PadToggle = { Type = "Command" },
+        PadFound = { Type = "Command" },
+        FoundMarkText = { Type = "String" },
         PadUp = { Type = "Command" },
         PadDown = { Type = "Command" },
     }
@@ -130,7 +134,13 @@ local function paramString(param)
     return P.Str(param)
 end
 
-local function newModel()
+local searchFocused = false
+
+function Panel.SearchFocused()
+    return searchFocused
+end
+
+local function newModel(player)
     local text = labels[Settings.Language()]
     local vm = Ext.UI.Instantiate("BG3A_Panel")
     P.Set(vm, "Title", text.title)
@@ -158,6 +168,12 @@ local function newModel()
         P.Set(vm, "Sel_" .. cat, (i == selected) and 1.0 or 0.0)
     end
     P.Set(vm, "PadHint", text.padHint)
+    P.Set(vm, "FoundMarkText", text.foundMark)
+    P.Handle(vm, "PadFound", function()
+        if BG3Atlas.Layer then
+            BG3Atlas.Layer.RequestToggle(player)
+        end
+    end)
     local n = #Points.Categories
     P.Handle(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1
@@ -272,9 +288,11 @@ function Panel.Update(widget, player)
     local ours = dc and P.Str(P.Get(dc, "Type")):find("BG3A_Panel", 1, true)
     local key = player or 1
     if applied[key] ~= version or not ours then
-        panel.DataContext = newModel()
+        panel.DataContext = newModel(key)
         applied[key] = version
     end
+    local box = findNamed(panel, "BG3A_SearchBox", 0)
+    searchFocused = box ~= nil and P.Get(box, "IsKeyboardFocused") == true
     local info = findNamed(panel, "BG3A_SearchInfo", 0)
     local hint = BG3Atlas.Search.Hint()
     if info and P.Get(info, "Text") ~= hint then

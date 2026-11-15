@@ -417,7 +417,35 @@ local function updateFilters(entry)
 end
 
 local cursorLogged = false
+local mouseLogged = false
 local lastCursorText = nil
+local hovered = {}
+local mouseSeen = -100000
+
+Layer.HoverMs = 1000
+
+local pendingToggles = {}
+
+function Layer.RequestToggle(player)
+    pendingToggles[#pendingToggles + 1] = player or 1
+end
+
+function Layer.MouseMapVisible()
+    return Ext.Timer.MonotonicTime() - mouseSeen <= Layer.HoverMs
+end
+
+function Layer.ToggleHovered(player)
+    local h = hovered[player or 1]
+    if not h or Ext.Timer.MonotonicTime() - h.t > Layer.HoverMs then
+        return false
+    end
+    local on = BG3Atlas.Found.Toggle(h.pt.id)
+    P.Log("manual found " .. P.Str(h.pt.id) .. " " .. (on and "on" or "off"))
+    if BG3Atlas.Panel then
+        BG3Atlas.Panel.MarkDirty()
+    end
+    return true
+end
 
 local function vecParts(v)
     if v == nil then
@@ -430,7 +458,11 @@ local function vecParts(v)
 end
 
 local function updateCursor(entry)
-    if entry.widget ~= "JournalMap_c" or not currentMap or not BG3Atlas.Panel then
+    local pad = entry.widget == "JournalMap_c"
+    if (not pad and entry.widget ~= "JournalMap") or not currentMap or not BG3Atlas.Panel then
+        return
+    end
+    if P.Get(entry.map, "IsVisible") == false then
         return
     end
     local tx, ty = vecParts(P.Get(entry.map, "MapPos"))
@@ -447,7 +479,22 @@ local function updateCursor(entry)
     local unit = worldW / imageW
     local lx = (holderW / 2 - tx - (holderW - imageW) / 2) * unit
     local ly = (holderH / 2 - ty - (holderH - imageH) / 2) * unit
-    if not cursorLogged then
+    if not pad then
+        mouseSeen = Ext.Timer.MonotonicTime()
+        local a, b, c = vecParts(P.Get(entry.map, "MouseWorldCoordinates"))
+        if type(a) ~= "number" then
+            logOnce("nomouse", "mouse position not readable on " .. entry.widget)
+            return
+        end
+        lx, ly = Points.ToLocal(currentMap, a, type(c) == "number" and c or b)
+        if not lx then
+            return
+        end
+        if not mouseLogged then
+            mouseLogged = true
+            P.Log(string.format("mouse coords %s %s %s local %.1f %.1f", P.Str(a), P.Str(b), P.Str(c), lx, ly))
+        end
+    elseif not cursorLogged then
         cursorLogged = true
         P.Log(string.format("cursor local %.1f %.1f player %s", lx, ly, P.FormatPos(player and player.pos)))
     end
@@ -465,6 +512,10 @@ local function updateCursor(entry)
                 end
             end
         end
+    end
+    hovered[entry.player or 1] = best and { pt = best, t = Ext.Timer.MonotonicTime() } or nil
+    if not pad then
+        return
     end
     local text = best and pointLabel(best, BG3Atlas.Found.IsFound(best.id)) or ""
     if text ~= lastCursorText and BG3Atlas.Panel.SetCursorInfo(entry.node, text) then
@@ -653,6 +704,11 @@ end
 local function loop()
     if not running then
         return
+    end
+    local queued = pendingToggles
+    pendingToggles = {}
+    for _, pid in ipairs(queued) do
+        pcall(Layer.ToggleHovered, pid)
     end
     local okRead, ready = pcall(readPlayer)
     if not okRead then
