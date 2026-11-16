@@ -1,6 +1,7 @@
 {
   "name": "bg3-atlas",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "tsx tools/build.ts",

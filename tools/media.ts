@@ -6,7 +6,7 @@ import { categoryColors, categoryIcons, iconGlyph } from "../mod/xaml/icons.ts";
 import type { CategoryId } from "./categories.ts";
 import { repoRoot } from "./lib/game.ts";
 
-const outDir = path.join(repoRoot, "docs", "media");
+const outDir = path.join(repoRoot, ".github", "assets");
 
 export function argbToCss(argb: string): string {
   const h = argb.replace("#", "");
@@ -22,6 +22,12 @@ export function iconSvg(id: CategoryId, size: number): string {
   const c = categoryColors[id];
   const i = categoryIcons[id];
   return `<svg width="${size}" height="${size}" viewBox="-1.2 -1.2 26.4 26.4"><circle cx="12" cy="12" r="11" fill="${argbToCss(c.disc)}" stroke="${argbToCss(c.rim)}" stroke-width="2.2"/><path d="${i.glyph}" fill="none" stroke="${argbToCss(iconGlyph)}" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
+}
+
+export function logoSvg(): string {
+  const glyph = categoryIcons.waypoint.glyph;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="-1.2 -1.2 26.4 26.4"><circle cx="12" cy="12" r="11" fill="#1A1208" stroke="#C9A45C" stroke-width="2.2"/><circle cx="12" cy="12" r="8.4" fill="none" stroke="#C9A45C" stroke-opacity="0.45" stroke-width="0.6"/><path d="${glyph}" fill="none" stroke="#F2DDA0" stroke-width="1.5" stroke-linejoin="round"/></svg>
+`;
 }
 
 function rng(seed: number): () => number {
@@ -248,4 +254,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.met
   mkdirSync(outDir, { recursive: true });
   render("cover", coverHtml());
   render("legend", legendHtml());
+  writeFileSync(path.join(outDir, "logo.svg"), logoSvg());
+  console.log("wrote logo.svg");
 }

@@ -8,4 +8,4 @@ data/*.json
 .env
 tools/bin/
 .superpowers/
-docs/media/*.html
+.github/assets/*.html
