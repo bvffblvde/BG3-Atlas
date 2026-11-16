@@ -281,6 +281,27 @@ export function headerHtml(background: string, focusY: number, side: "left" | "r
   </body></html>`;
 }
 
+export function bannerHtml(background: string, focusY: number, languages: string[]): string {
+  const badges = languages.map((l) => `<span>${l}</span>`).join("");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1300px; height: 372px; overflow: hidden; background: #1b130b; ${fonts} }
+  .shot { position: absolute; inset: 0; background: url("${background}") center ${focusY}% / cover no-repeat; }
+  .fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,9,4,0.92) 0%, rgba(14,9,4,0.55) 30%, rgba(14,9,4,0) 52%); }
+  .logo { position: absolute; left: 40px; top: 22px; display: flex; align-items: baseline; gap: 12px; }
+  .logo b { font-weight: normal; font-size: 54px; color: #f4e2ac; letter-spacing: -0.5px; text-shadow: 0 2px 14px rgba(0,0,0,0.9); }
+  .logo i { font-style: normal; font-size: 30px; color: #c9a45c; letter-spacing: 1px; }
+  .tag { position: absolute; left: 42px; top: 88px; font-size: 18px; font-style: italic; color: #dcc896; text-shadow: 0 1px 8px rgba(0,0,0,0.9); }
+  .langs { position: absolute; right: 40px; top: 30px; display: flex; gap: 8px; }
+  .langs span { font-size: 16px; letter-spacing: 1px; color: #f2dda0; border: 1px solid #c9a45c; background: rgba(26,18,8,0.85); padding: 5px 10px 4px; border-radius: 3px; }
+  </style></head><body>
+  <div class="shot"></div><div class="fade"></div>
+  <div class="logo"><i>BG3</i><b>Atlas</b></div>
+  <div class="tag">Every chest, stash, trap and trader, on your in-game map</div>
+  <div class="langs">${badges}</div>
+  </body></html>`;
+}
+
 function render(name: string, html: string, dir = outDir, size = "1920,1080", scale = 1): void {
   const htmlPath = path.join(dir, `${name}.html`);
   const pngPath = path.join(dir, `${name}.png`);
@@ -298,6 +319,13 @@ function render(name: string, html: string, dir = outDir, size = "1920,1080", sc
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
+  const banner = process.argv.indexOf("--banner");
+  if (banner > 0) {
+    const bg = path.resolve(process.argv[banner + 1]);
+    const focus = Number(process.argv[banner + 2] ?? 50);
+    render("banner", bannerHtml(pathToFileURL(bg).href, focus, ["EN", "RU", "PT-BR"]), path.dirname(bg), "1300,372", 2);
+    process.exit(0);
+  }
   const header = process.argv.indexOf("--header");
   if (header > 0) {
     const bg = path.resolve(process.argv[header + 1]);

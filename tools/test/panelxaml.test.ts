@@ -42,7 +42,7 @@ describe("panelXaml", () => {
     const showAll = xaml.indexOf("{Binding ShowAll}");
     expect(title).toBeLessThan(search);
     expect(search).toBeLessThan(showAll);
-    expect(xaml).toContain('Margin="60,340,0,0"');
+    expect(xaml).toContain('Margin="60,444,0,0"');
   });
 
   it("avoids constructs that crashed the game", () => {

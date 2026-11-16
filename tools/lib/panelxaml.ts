@@ -19,7 +19,7 @@ function flatButton(indent: number, command: string, parameter: string | null, b
     `${pad(indent)}<Button Command="{Binding ${command}}"${p}${cell}>`,
     `${pad(indent + 4)}<Button.Template>`,
     `${pad(indent + 8)}<ControlTemplate TargetType="Button">`,
-    `${pad(indent + 12)}<Border Background="#01000000" Padding="6,4,6,4">`,
+    `${pad(indent + 12)}<Border Background="#01000000" Padding="6,2,6,2">`,
     `${pad(indent + 16)}<ContentPresenter/>`,
     `${pad(indent + 12)}</Border>`,
     `${pad(indent + 8)}</ControlTemplate>`,
@@ -82,7 +82,7 @@ export function padHintBar(): string {
 export function panelXaml(mode: PanelMode = "mouse"): string {
   const i = 16;
   const visibility = mode === "pad" ? ' Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"' : "";
-  const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Margin="60,340,0,0"';
+  const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Margin="60,444,0,0"';
   const lines = [
     `${pad(i)}<Border x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14"${visibility}>`,
     `${pad(i + 4)}<StackPanel>`,
