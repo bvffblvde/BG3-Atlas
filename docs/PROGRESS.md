@@ -206,3 +206,9 @@ Remaining:
 - Waypoints assigned to a building submap move back to the surface view when at least 5 surface points within 40 m lie within 4 m height (`surfaceWaypoints`). Moved: Blighted Village, Reithwin Town, Basilisk Gate, Lower City Central Wall, South Span of Wyrm's Crossing. Kept underground: Grymforge, Ancient Forge, Gauntlet of Shar, Verge of the Shadows, Cazador's Dungeon. Wyrm's Rock stays in `Fort` (only 1 surface neighbour). Unverified in game.
 - Exact duplicates (same map, name and position to 0.1 m) are dropped: 11710 -> 11648 points.
 - Auntie Ethel's teahouse: both `WLD_Hag_C_Happy` and `WLD_Hag_C_Evil` stay, which state is live is unverified.
+
+## Release 1.1.0 (2026-11-16)
+
+- Verified in game: fog of war layer, LB and LT toggles, hide grid, panel widget on mouse and gamepad, split screen panels, tooltips next to the icon, compact panel rows, F with a working counter.
+- Package: `dist/release/v1.1/BG3Atlas-1.1.0.zip` (meta Version64 36169534507319296). Nexus description, banner and changelog are in `dist/release/v1.1/`.
+- Still open: F on mouse does not refresh the tooltip and dimmed style of the hovered icon until the cursor leaves it, Lower City vault and harbour points on the surface map, Auntie Ethel teahouse state variants, Blighted Village waypoint unverified in game, Brazilian Portuguese point names (needs the game's pt-BR localization pak).
