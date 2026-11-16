@@ -75,7 +75,6 @@ export function padHintBar(): string {
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIUp" Command="{Binding DataContext.PadUp, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIDown" Command="{Binding DataContext.PadDown, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UIAccept" ls:LSButton.EatInput="True" Tag="{Binding DataContext.ToggleMarkText, ElementName=BG3A_Panel}" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIAccept, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" IsEnabled="{Binding IsChecked, ElementName=BG3A_PadBtn}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
-    `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UIMessageBoxY" ls:LSButton.EatInput="True" Tag="{Binding DataContext.FoundMarkText, ElementName=BG3A_Panel}" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIMessageBoxY, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadFound, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
     "",
   ].join("\n");
 }

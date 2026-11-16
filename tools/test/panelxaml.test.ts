@@ -90,14 +90,9 @@ describe("panelXaml pad mode", () => {
     expect(bar).toMatch(/ls:LSButton[^>]*Visibility="\{Binding IsChecked, ElementName=BG3A_PadBtn, Converter=\{StaticResource BoolToVisibleConverter\}\}"/);
   });
 
-  it("adds one found button for the point under the cursor while the panel is open", () => {
-    const buttons = bar.split("\n").filter((l) => l.includes('ls:LSButton.BoundEvent="UIMessageBoxY"'));
-    expect(buttons).toHaveLength(1);
-    expect(buttons[0]).toContain('Command="{Binding DataContext.PadFound, ElementName=BG3A_Panel}"');
-    expect(buttons[0]).toContain('Tag="{Binding DataContext.FoundMarkText, ElementName=BG3A_Panel}"');
-    expect(buttons[0]).toContain("ConverterParameter=UIMessageBoxY");
-    expect(buttons[0]).toContain('ls:LSButton.EatInput="True"');
-    expect(buttons[0]).toContain("ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}");
+  it("leaves found marking to the raw RB handler, no hint bar button on Y", () => {
+    expect(bar).not.toContain("UIMessageBoxY");
+    expect(bar).not.toContain("PadFound");
     expect(panelXaml("mouse")).not.toContain("UIMessageBoxY");
   });
 });

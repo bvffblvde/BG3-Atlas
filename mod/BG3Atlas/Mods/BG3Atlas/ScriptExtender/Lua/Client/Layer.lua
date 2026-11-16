@@ -444,6 +444,18 @@ function Layer.RequestToggle(player)
     pendingToggles[#pendingToggles + 1] = player or 1
 end
 
+function Layer.PadHoverPlayers()
+    local out = {}
+    local now = Ext.Timer.MonotonicTime()
+    for pid, h in pairs(hovered) do
+        if h.pad and now - h.t <= Layer.HoverMs then
+            out[#out + 1] = pid
+        end
+    end
+    table.sort(out)
+    return out
+end
+
 function Layer.MouseMapVisible()
     return Ext.Timer.MonotonicTime() - mouseSeen <= Layer.HoverMs
 end
@@ -523,7 +535,7 @@ local function updateCursor(entry)
             best, bestD = pt, d
         end
     end
-    hovered[entry.player or 1] = best and { pt = best, t = Ext.Timer.MonotonicTime() } or nil
+    hovered[entry.player or 1] = best and { pt = best, t = Ext.Timer.MonotonicTime(), pad = pad } or nil
     if not pad then
         return
     end

@@ -14,8 +14,7 @@ local labels = {
         showFound = "Показать найденное",
         fogOn = "Показать везде",
         fogOff = "Только исследованное",
-        padHint = "Стрелки: выбор, подтвердить: показать или скрыть",
-        foundMark = "Найдено",
+        padHint = "Стрелки: выбор, A: показать или скрыть, RB: отметить найденным",
         toggleMark = "Вкл/выкл",
         chest = "Сундуки",
         container = "Бочки и ящики",
@@ -46,8 +45,7 @@ local labels = {
         showFound = "Show found",
         fogOn = "Show everywhere",
         fogOff = "Explored only",
-        padHint = "D-pad: select, accept: show or hide",
-        foundMark = "Found",
+        padHint = "D-pad: select, A: show or hide, RB: mark as found",
         toggleMark = "On/off",
         chest = "Chests",
         container = "Barrels and crates",
@@ -108,8 +106,6 @@ local function register()
         PadPrev = { Type = "Command" },
         PadNext = { Type = "Command" },
         PadToggle = { Type = "Command" },
-        PadFound = { Type = "Command" },
-        FoundMarkText = { Type = "String" },
         ToggleMarkText = { Type = "String" },
         PadUp = { Type = "Command" },
         PadDown = { Type = "Command" },
@@ -171,13 +167,7 @@ local function newModel(player)
         P.Set(vm, "Sel_" .. cat, (i == selected) and 1.0 or 0.0)
     end
     P.Set(vm, "PadHint", text.padHint)
-    P.Set(vm, "FoundMarkText", text.foundMark)
     P.Set(vm, "ToggleMarkText", text.toggleMark)
-    P.Handle(vm, "PadFound", function()
-        if BG3Atlas.Layer then
-            BG3Atlas.Layer.RequestToggle(player)
-        end
-    end)
     local n = #Points.Categories
     P.Handle(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1

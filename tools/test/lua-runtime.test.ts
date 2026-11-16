@@ -82,6 +82,29 @@ describe("Found", () => {
   });
 });
 
+const hotkeyStubs = `
+BG3Atlas.Probe = { Str = tostring }
+Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end } }
+`;
+
+describe("Hotkey.PadTarget", () => {
+  const call = (button: string, ev: string, players: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.PadTarget("${button}", "${ev}", ${players}))`, hotkeyStubs);
+
+  it("marks for the only pad player hovering a point when RB goes down", () => {
+    expect(call("RightShoulder", "KeyDown", "{ 2 }")).toBe("2");
+  });
+
+  it("ignores other buttons, key up and nobody hovering", () => {
+    expect(call("Y", "KeyDown", "{ 1 }")).toBe("nil");
+    expect(call("RightShoulder", "KeyUp", "{ 1 }")).toBe("nil");
+    expect(call("RightShoulder", "KeyDown", "{}")).toBe("nil");
+  });
+
+  it("picks the first player when several pad players hover", () => {
+    expect(call("RightShoulder", "KeyDown", "{ 1, 2 }")).toBe("1");
+  });
+});
+
 const detectStubs = `
 BG3Atlas.Probe = {}
 BG3Atlas.Found = {}
