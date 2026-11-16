@@ -179,3 +179,10 @@ Remaining:
 - Game language is detected by matching the translated text of the waypoint legend handle `h2020fdf6g224eg40cfg80ecg91fed5d32d11` against a probe string registered by each locale. `settings.json` can force it with `"language": "pt-BR"`.
 - Search folds Latin diacritics and Russian yo, so "cha" finds "Chá".
 - Point names exist only in English and Russian. Brazilian Portuguese names need `Localization/BrazilianPortuguese` from the game (switch the game language in Steam to download it) and a third name column in the data. Not done yet.
+
+## Compatibility with Better Maps All-In-One by Caites (2026-11-16, from pak contents, unverified in game)
+
+- Better Map (all scale variants) does not override vanilla files. It adds its own pages (`BetterJournalMap.xaml`, `BetterJournalMap_c.xaml`, `BetterMinimap*.xaml`) and switches the `JournalMap` and `IUI_Minimap` states to them through `StateMachines/*.xaml` with `ModType="Override"`. Its `LSWorldMap` elements use the implicit style, so our layer in `DefaultShared.Styles.xaml` should still draw icons. Our panel and gamepad hint buttons live in the vanilla journal pages, so they will not appear. Lua widget lookups by name may also miss the new pages.
+- Better Map Icons only replaces character marker textures under `Public/Game/GUI/Assets/Map`: no conflict.
+- Clear Map (No Grid, Transparent Shroud, No Shroud) defines an implicit `Style TargetType="ls:LSWorldMap"` with a full `ControlTemplate` in `GUI/Library/Lib_Keyboard.xaml` and `Lib_Controller.xaml`. If it wins over the vanilla theme style, our layer disappears from the map and minimap while the panel stays.
+- Robust fix idea: move the panel into our own overlay state instead of patching the journal pages, and find a way to inject the layer that survives a replaced `LSWorldMap` template.
