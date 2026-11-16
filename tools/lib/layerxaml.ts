@@ -35,7 +35,7 @@ function pointsControl(id: CategoryId, kind: "Cat" | "Found"): string {
     `${pad(48)}</Canvas.RenderTransform>`,
     `${pad(48)}<Canvas Width="24" Height="24" Background="#01000000">`,
     `${pad(52)}<Canvas.ToolTip>`,
-    `${pad(56)}<ToolTip>`,
+    `${pad(56)}<ToolTip Placement="Right" HorizontalOffset="6">`,
     `${pad(60)}<ToolTip.Template>`,
     `${pad(64)}<ControlTemplate TargetType="ToolTip">`,
     `${pad(68)}<Border Background="#F01A1208" BorderBrush="#FF8C7346" BorderThickness="1" Padding="10,6,10,7">`,

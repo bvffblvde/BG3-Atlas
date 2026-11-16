@@ -51,6 +51,7 @@ describe("layerXaml", () => {
     expect(xaml).not.toContain("Command=");
     expect(xaml.split('<TextBlock Text="{Binding Label}" FontSize="15"').length - 1).toBe(ids.length * 2);
     expect(xaml.split("<ToolTip.Template>").length - 1).toBe(ids.length * 2);
+    expect(xaml.split('<ToolTip Placement="Right" HorizontalOffset="6">').length - 1).toBe(ids.length * 2);
     expect(xaml).not.toContain("LSTooltip");
     expect(xaml).toMatch(/x:Name="BG3A_Found_trap"[^>]*Opacity="0.45"/);
     expect(xaml).not.toMatch(/x:Name="BG3A_Layer"[^>]*IsHitTestVisible/);
