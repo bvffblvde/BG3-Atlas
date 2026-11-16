@@ -711,6 +711,9 @@ function updatePlayer(found)
                     P.Log("layer model built: " .. total .. " points")
                 end
                 entry.layer.DataContext = shared
+                if entry.widget == "Minimap" or entry.widget == "Minimap_c" then
+                    P.Set(entry.layer, "IsHitTestVisible", false)
+                end
                 model.scale = nil
                 lastCursorText = nil
                 P.Log("layer attached to " .. entry.widget)

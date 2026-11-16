@@ -43,6 +43,7 @@ English · [Українська](./README.uk.md)
 Map sites are great until you alt-tab for the hundredth time. BG3 Atlas puts the points **on the game's own map**, so you plan a route, check what you missed and keep playing.
 
 - 🗺️ **On the real map.** Icons on the journal map and the minimap, sized like the game's markers and pinned while you zoom and pan.
+- 🌫️ **Respects the fog of war.** Icons stay hidden until you explore the area, one click or `LB` shows everything.
 - 🧭 **20 categories.** Turn each on or off, or show and hide all at once. Found / total counter per category.
 - ✅ **Found tracking.** Looted containers, picked up items and defeated bosses are marked automatically. Mark or unmark any point yourself.
 - 🔎 **Search.** Find a point by name in English or Russian.
