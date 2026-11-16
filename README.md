@@ -11,6 +11,7 @@ An interactive map mod for Baldur's Gate 3. Open the journal map or glance at th
 
 **No second monitor. No browser. All data comes from the game's own files.**
 
+[**Download on Nexus Mods**](https://www.nexusmods.com/baldursgate3/mods/26685) &nbsp;·&nbsp;
 [Install](#-install) &nbsp;·&nbsp;
 [Controls](#-controls) &nbsp;·&nbsp;
 [Build from source](#-build-from-source) &nbsp;·&nbsp;
@@ -18,6 +19,7 @@ An interactive map mod for Baldur's Gate 3. Open the journal map or glance at th
 [Roadmap](#-roadmap) &nbsp;·&nbsp;
 [Contribute](#-contributing)
 
+[![Nexus Mods](https://img.shields.io/badge/download-Nexus_Mods-d98f40?style=flat-square)](https://www.nexusmods.com/baldursgate3/mods/26685)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black?style=flat-square)](./LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/bvffblvde/BG3-Atlas/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/bvffblvde/BG3-Atlas/actions)
 [![Stars](https://img.shields.io/github/stars/bvffblvde/BG3-Atlas?style=flat-square&color=yellow)](https://github.com/bvffblvde/BG3-Atlas/stargazers)
@@ -79,7 +81,7 @@ Barrels, crates and remains are off by default: there are thousands of them.
 ## 📥 Install
 
 1. Install [BG3 Script Extender](https://github.com/Norbyte/bg3se).
-2. Put `BG3Atlas.pak` into `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods`.
+2. Download the latest version from [Nexus Mods](https://www.nexusmods.com/baldursgate3/mods/26685) and put `BG3Atlas.pak` into `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods`.
 3. Enable **BG3 Atlas** in your mod manager or the in-game mod manager and start the game.
 
 Enable or disable the mod from the main menu, not while a save is loaded.
@@ -177,7 +179,9 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 - [x] Found tracking, manual marking, tooltips, search
 - [x] Sub maps and all three acts
 - [x] Gamepad and split screen
-- [ ] **v1.0**: in-game testing of acts 2 and 3, screenshots, clean profile check, Nexus release
+- [x] **v1.0**: [released on Nexus Mods](https://www.nexusmods.com/baldursgate3/mods/26685)
+- [ ] Lower City basement points drawn on the surface map
+- [ ] In-game testing of act 2, clean profile check
 - [ ] "Explored only" filter that follows the fog of war
 - [ ] Better Maps All-In-One compatibility
 

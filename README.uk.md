@@ -11,6 +11,7 @@
 
 **Без другого монітора. Без браузера. Усі дані беруться з файлів самої гри.**
 
+[**Завантажити на Nexus Mods**](https://www.nexusmods.com/baldursgate3/mods/26685) &nbsp;·&nbsp;
 [Встановлення](#-встановлення) &nbsp;·&nbsp;
 [Керування](#-керування) &nbsp;·&nbsp;
 [Збірка з коду](#-збірка-з-коду) &nbsp;·&nbsp;
@@ -18,6 +19,7 @@
 [Дорожня карта](#-дорожня-карта) &nbsp;·&nbsp;
 [Долучитися](#-як-долучитися)
 
+[![Nexus Mods](https://img.shields.io/badge/download-Nexus_Mods-d98f40?style=flat-square)](https://www.nexusmods.com/baldursgate3/mods/26685)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black?style=flat-square)](./LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/bvffblvde/BG3-Atlas/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/bvffblvde/BG3-Atlas/actions)
 [![Stars](https://img.shields.io/github/stars/bvffblvde/BG3-Atlas?style=flat-square&color=yellow)](https://github.com/bvffblvde/BG3-Atlas/stargazers)
@@ -79,7 +81,7 @@
 ## 📥 Встановлення
 
 1. Встановіть [BG3 Script Extender](https://github.com/Norbyte/bg3se).
-2. Покладіть `BG3Atlas.pak` у `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods`.
+2. Завантажте останню версію з [Nexus Mods](https://www.nexusmods.com/baldursgate3/mods/26685) і покладіть `BG3Atlas.pak` у `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods`.
 3. Увімкніть **BG3 Atlas** у менеджері модів або вбудованому менеджері гри й запустіть гру.
 
 Вмикайте й вимикайте мод у головному меню, а не із завантаженим збереженням.
@@ -177,7 +179,9 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 - [x] Облік знайденого, ручні позначки, підказки, пошук
 - [x] Підмапи й усі три акти
 - [x] Геймпад і розділений екран
-- [ ] **v1.0**: перевірка 2 і 3 актів у грі, скриншоти, перевірка на чистому профілі, реліз на Nexus
+- [x] **v1.0**: [реліз на Nexus Mods](https://www.nexusmods.com/baldursgate3/mods/26685)
+- [ ] Точки підвалів Нижнього міста на мапі поверхні
+- [ ] Перевірка 2 акту в грі, перевірка на чистому профілі
 - [ ] Фільтр «Лише досліджене», що враховує туман війни
 - [ ] Сумісність з Better Maps All-In-One
 
