@@ -60,7 +60,7 @@ describe("Locale", () => {
       local L = BG3Atlas.Locale
       local bad = {}
       for code, t in pairs(L.Raw()) do
-        for k in pairs(L.Raw().en) do if t[k] == nil and code ~= "pt-BR" then bad[#bad + 1] = code .. " missing " .. k end end
+        for k in pairs(L.Raw().en) do if t[k] == nil then bad[#bad + 1] = code .. " missing " .. k end end
         for k in pairs(t) do if L.Raw().en[k] == nil then bad[#bad + 1] = code .. " extra " .. k end end
       end
       table.sort(bad)
