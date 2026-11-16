@@ -186,3 +186,10 @@ Remaining:
 - Better Map Icons only replaces character marker textures under `Public/Game/GUI/Assets/Map`: no conflict.
 - Clear Map (No Grid, Transparent Shroud, No Shroud) defines an implicit `Style TargetType="ls:LSWorldMap"` with a full `ControlTemplate` in `GUI/Library/Lib_Keyboard.xaml` and `Lib_Controller.xaml`. If it wins over the vanilla theme style, our layer disappears from the map and minimap while the panel stays.
 - Robust fix idea: move the panel into our own overlay state instead of patching the journal pages, and find a way to inject the layer that survives a replaced `LSWorldMap` template.
+
+## Compatibility with Mazzle's Maps Unleashed (2026-11-16, from pak contents, unverified in game)
+
+- No XAML overrides at all. Everything is Script Extender Lua, with dependencies MCM, Mazzle_Lib and Mazzle_Docs.
+- Its map icons and windows are IMGUI overlays (`Ext.IMGUI.NewWindow`, `AddImage`) positioned through its own world to screen transform, not Noesis elements, so they should coexist with our XAML layer. Risks: IMGUI windows taking mouse input over our tooltips and the F hotkey, and its map scale and subregion lock settings changing `LSWorldMap` properties we read.
+- Its fog of war toggle only changes `Opacity` of the template elements `ShroudedRooms`, `SemiShroudedRooms` and `Shroud`. It does not read which areas are explored, so it does not help our "Explored only" filter.
+- Idea for our own Better Maps and Clear Map compatibility: an overlay that does not live inside the `LSWorldMap` template survives template replacement. IMGUI would not look native and needs checking with a gamepad.
