@@ -122,7 +122,8 @@ In the Script Extender console:
 
 - Automatic marking needs the object to be loaded near you. Items taken out of a container are not points of their own, the container is.
 - Found marks in online multiplayer are kept per client and may overwrite each other. Single player and split screen are fine.
-- Better Maps All-In-One and other mods that replace the same map files have not been tested.
+- Better Maps All-In-One by Caites: Better Map Icons works. With Better Map (scale versions) put BG3 Atlas **below** it in the load order, otherwise the Atlas panel does not show. Clear Map replaces the whole map template and hides the Atlas icons: remove it and use "Hide grid" in the Atlas panel (or `LT`) instead.
+- Mazzle's Maps Unleashed works alongside BG3 Atlas.
 
 ## 🛠️ Build from source
 
@@ -185,7 +186,7 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 - [ ] Lower City basement points drawn on the surface map
 - [ ] In-game testing of act 2, clean profile check
 - [x] "Explored only": icons stay under the fog of war until you explore the area
-- [ ] Better Maps All-In-One compatibility
+- [x] Better Maps All-In-One and Maps Unleashed compatibility, built in "Hide grid"
 
 Have an idea or found a misplaced icon? [Open an issue](https://github.com/bvffblvde/BG3-Atlas/issues).
 
