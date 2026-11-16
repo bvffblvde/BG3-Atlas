@@ -35,6 +35,7 @@ export interface CategoryInput {
   contents: string[];
   inventory: string[];
   waypoint?: boolean;
+  ownName?: boolean;
 }
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
@@ -81,6 +82,20 @@ const beastRe = /Quadruped_Beast/;
 const chestRe = /(^|_)(Chest|Safe|Strongbox|Lockbox|Vault)(_|$)/;
 const remainsRe = /(^|_)(Skeleton|BonePile|Bones|Ribcage|Skull|Corpse|Body|Bodies|Viscera|Cocoon|Coffin|Casket|Sarcophagus|Tomb|Urn|Grave|Remains)(_|$)/;
 
+const readableRe = /^(BASE_BOOK|REF_BOOK)|(^|_)BOOK_GEN_MOO_Map/;
+const blankRe = /^BOOK_GEN_(Scroll_Parchment|Paper)/;
+
+function isSpellScroll(i: CategoryInput): boolean {
+  return objectCategory(i).includes("MagicScroll") || i.templateNames.includes("BASE_BOOK_Scroll_Magic");
+}
+
+function isNote(i: CategoryInput): boolean {
+  if (isContainer(i) || isSpellScroll(i)) return false;
+  const readable = set(i.attrs.BookId) || objectCategory(i).startsWith("Book") || i.templateNames.some((n) => readableRe.test(n));
+  const blank = !i.ownName && blankRe.test(i.templateNames[0] ?? "");
+  return readable && !blank;
+}
+
 function isHazard(i: CategoryInput): boolean {
   return anyName(i, hazardRe) && !anyName(i, propRe);
 }
@@ -120,8 +135,8 @@ export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolea
   { id: "locked_door", test: (i) => !isCharacter(i) && anyName(i, /(^|_)DOOR_/) && isLocked(i) },
   { id: "lever", test: (i) => !isCharacter(i) && anyName(i, /(^|_)PUZ_/) && anyName(i, /Lever|Button|Switch|Pressure/i) },
   { id: "key", test: (i) => !isCharacter(i) && (isTrue(i.attrs.IsKey) || anyName(i, keyRe)) },
-  { id: "book", test: (i) => !isCharacter(i) && (set(i.attrs.BookId) || objectCategory(i).startsWith("Book")) },
-  { id: "scroll", test: (i) => !isCharacter(i) && (objectCategory(i).includes("MagicScroll") || anyName(i, /Scroll/i)) },
+  { id: "scroll", test: (i) => !isCharacter(i) && isSpellScroll(i) },
+  { id: "book", test: (i) => !isCharacter(i) && isNote(i) },
   { id: "weapon_unique", test: (i) => isRareGear(i, "Weapon") },
   { id: "accessory", test: (i) => i.stat?.type === "Armor" && accessorySlots.has(i.stat.data.Slot ?? "") },
   { id: "armor_unique", test: (i) => isRareGear(i, "Armor") },

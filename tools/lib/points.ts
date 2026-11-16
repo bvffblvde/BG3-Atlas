@@ -74,6 +74,7 @@ export function categoryInput(obj: RawObject, ctx: ExtractContext): CategoryInpu
     contents: obj.contents,
     inventory: [...new Set([...resolved.inventory, ...obj.inventory])],
     waypoint: ctx.waypoints.has(obj.id),
+    ownName: !!obj.attrs.DisplayName,
   };
 }
 

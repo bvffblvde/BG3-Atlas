@@ -156,3 +156,9 @@ Remaining:
 - Lower City basements and other detached sublevels (`CTY_*_Basement_A`, `CTY_Catacombs_A`, `CTY_DockWarehouseBasement_A` and more) sit far outside the city in world space and have no WorldMap submap region, so the extractor leaves `submap = null` and the mod draws their points on the surface map, in the sea and fog around the city.
 - Tried rule: a sublevel is detached when no surface point of the main level lies within 30 m of its bounding box. It does not work: the main level `CTY_Main_A` itself places objects inside the basement areas, so only 6 sublevels across all maps qualify.
 - Next idea: give each detached sublevel a synthetic submap box from its LevelTemplate bounds (or the point bounding box), shown only when the player is inside. How the vanilla map behaves while the player is in such a basement is unverified.
+
+## Scrolls and notes (2026-11-16)
+
+- Every letter, note, poster and newspaper inherits `BASE_BOOK_Scroll_Letter`, so the old `Scroll` name rule put them all into `scroll`, and books without a `BookId` attribute were not categorized at all.
+- Now `scroll` is spell scrolls only (`MagicScroll` object category or the `BASE_BOOK_Scroll_Magic` template). `book` is everything readable under `BASE_BOOK` or `REF_BOOK` (letters, notes, posters, maps, books), except containers and blank generic paper (`BOOK_GEN_Scroll_Parchment*`, `BOOK_GEN_Paper*` placed without their own `DisplayName`).
+- Counts: scroll 845 -> 77, book 102 -> 1411 (Lower City 14 -> 621 notes and books).

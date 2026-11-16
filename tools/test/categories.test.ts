@@ -10,6 +10,22 @@ function stat(type: string, data: Record<string, string> = {}, name = "STAT"): S
   return { name, type, data };
 }
 
+describe("notes and scrolls", () => {
+  it("skips blank generic parchment without its own name", () => {
+    expect(categorize(input({ templateNames: ["BOOK_GEN_Scroll_Parchment_B_Long_D", "BASE_BOOK_Scroll_Letter", "BASE_BOOK"] }))).toBeNull();
+    expect(categorize(input({ templateNames: ["BOOK_GEN_Paper_Poster_E", "BASE_BOOK_Scroll_Letter", "BASE_BOOK"] }))).toBeNull();
+  });
+
+  it("does not treat wine shelves and backpacks as scrolls", () => {
+    expect(categorize(input({ templateNames: ["CONT_GEN_ScrollShelf_Wine_Bottle_A", "BASE_CONT_Immovable", "BASE_CONT"] }))).not.toBe("scroll");
+    expect(categorize(input({ templateNames: ["LOOT_GEN_Backpack_D_Posed_A", "BASE_CONT_Movable_Pickable"], name: "S_Scroll_Backpack" }))).not.toBe("scroll");
+  });
+
+  it("keeps a stack of scrolls with loot a container", () => {
+    expect(categorize(input({ templateNames: ["BOOK_GEN_Scroll_Parchment_Row_Multiple_A", "BASE_CONT_BOOKS", "BASE_CONT_Immovable"], attrs: { InventoryType: "2" }, inventory: ["X"] }))).toBe("container");
+  });
+});
+
 describe("categorize", () => {
   it.each<[string, CategoryInput, string]>([
     ["trader", input({ kind: "character", hasTradeTreasures: true, attrs: { DefaultDialog: "d" } }), "trader"],
@@ -31,6 +47,11 @@ describe("categorize", () => {
     ["key by stat", input({ stat: stat("Object", {}, "UND_SeluneOutpost_Key") }), "key"],
     ["book", input({ attrs: { BookId: "BOOK_1" } }), "book"],
     ["scroll", input({ stat: stat("Object", { ObjectCategory: "MagicScroll_2;MagicScroll_Illusion_2" }) }), "scroll"],
+    ["spell scroll by template", input({ templateNames: ["LOOT_SCROLL_Blight", "BASE_BOOK_Scroll_Magic", "BASE_BOOK"] }), "scroll"],
+    ["named letter is a note", input({ templateNames: ["BOOK_LOW_Graveyard_LastWishes", "BOOK_GEN_Paper_Sheet_A", "BASE_BOOK_Scroll_Letter", "BASE_BOOK"] }), "book"],
+    ["poster is a note", input({ templateNames: ["DEC_GEN_Circus_Poster_Large_A", "BASE_BOOK_Scroll_Letter", "BASE_BOOK"] }), "book"],
+    ["generic parchment with its own name is a note", input({ ownName: true, templateNames: ["BOOK_GEN_Scroll_Parchment_C_Open_C", "BASE_BOOK_Scroll_Letter", "BASE_BOOK"] }), "book"],
+    ["map is a note", input({ templateNames: ["QUEST_SHA_TempleMap", "PUZ_GEN_Map_World_A", "REF_BOOK_Letter_Map"] }), "book"],
     ["unique weapon", input({ stat: stat("Weapon", { Rarity: "Rare" }) }), "weapon_unique"],
     ["story weapon", input({ stat: stat("Weapon", { Rarity: "Common" }), attrs: { StoryItem: "True" } }), "weapon_unique"],
     ["unique armor", input({ stat: stat("Armor", { Rarity: "VeryRare", Slot: "Breast" }) }), "armor_unique"],
