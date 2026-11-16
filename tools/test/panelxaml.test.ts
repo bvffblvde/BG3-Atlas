@@ -99,8 +99,10 @@ describe("injectBefore", () => {
   });
 });
 
-describe("patchJournal", () => {
-  it.each(journalPages.filter((t) => existsSync(unpackedPath(t))).map((t) => [t.file, t] as const))("patches %s once before the legend", (_, page) => {
+const unpackedPages = journalPages.filter((t) => existsSync(unpackedPath(t)));
+
+describe.skipIf(unpackedPages.length === 0)("patchJournal", () => {
+  it.each(unpackedPages.map((t) => [t.file, t] as const))("patches %s once before the legend", (_, page) => {
     const out = patchJournal(page);
     expect(out.split('x:Name="BG3A_Panel"').length).toBe(2);
     expect(out.indexOf('x:Name="BG3A_Panel"')).toBeLessThan(out.indexOf('x:Name="Legend"'));
