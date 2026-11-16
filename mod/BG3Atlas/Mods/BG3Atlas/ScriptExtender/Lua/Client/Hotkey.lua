@@ -27,19 +27,11 @@ function Hotkey.Fresh(seen, key, now)
     return true
 end
 
-function Hotkey.DevicePlayer(which, lists)
-    if type(which) ~= "number" or type(lists) ~= "table" then
+function Hotkey.DevicePlayer(which, owners)
+    if type(which) ~= "number" or type(owners) ~= "table" then
         return nil
     end
-    local id = Hotkey.ControllerBase + which
-    for p = 1, 4 do
-        for _, d in ipairs(lists[p] or {}) do
-            if tonumber(d) == id then
-                return p
-            end
-        end
-    end
-    return nil
+    return owners[Hotkey.ControllerBase + which]
 end
 
 Hotkey.PressWindowMs = 300
@@ -83,22 +75,23 @@ end
 local deviceLogged = {}
 
 local function playerDevices()
-    local ok, lists = pcall(function()
+    local ok, owners = pcall(function()
         local im = Ext.Input.GetInputManager()
-        local scheme = im and im.InputScheme
-        if not scheme then
+        if not im then
             return nil
         end
         local out = {}
-        for p = 1, 4 do
-            out[p] = {}
-            for _, d in pairs(scheme.DeviceLists[p] or {}) do
-                out[p][#out[p] + 1] = tonumber(d)
+        for i = 1, 12 do
+            local d = im.PerDeviceData[i]
+            local id = d and tonumber(d.DeviceId)
+            local idx = d and tonumber(d.InputPlayerIndex)
+            if id and idx and idx >= 0 and idx < 4 then
+                out[id] = idx + 1
             end
         end
         return out
     end)
-    return ok and lists or nil
+    return ok and owners or nil
 end
 
 local dumped = false
@@ -149,15 +142,16 @@ local function ownerOf(which)
     dumpInput()
     local ids = playerDevices()
     local owner = Hotkey.DevicePlayer(tonumber(which), ids)
-    local key = tostring(which)
+    local key = tostring(which) .. ">" .. tostring(owner)
     if not deviceLogged[key] then
         deviceLogged[key] = true
         local shown = "unreadable"
         if ids then
             local parts = {}
-            for p = 1, 4 do
-                parts[p] = p .. ":" .. table.concat(ids[p], "/")
+            for id, p in pairs(ids) do
+                parts[#parts + 1] = tostring(id) .. "=" .. tostring(p)
             end
+            table.sort(parts)
             shown = table.concat(parts, " ")
         end
         P.Log("pad device " .. key .. " -> player " .. tostring(owner) .. " (player devices " .. shown .. ")")

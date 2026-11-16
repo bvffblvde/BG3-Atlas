@@ -692,7 +692,10 @@ local function update()
     if BG3Atlas.Panel then
         BG3Atlas.Panel.Reset()
         for _, p in ipairs(panels) do
-            BG3Atlas.Panel.Update(p.node, p.player)
+            local ok, err = pcall(BG3Atlas.Panel.Update, p.node, p.player)
+            if not ok then
+                logOnce("panelerr" .. P.Str(err), "panel update failed: " .. P.Str(err))
+            end
         end
     end
     for _, entry in ipairs(maps) do

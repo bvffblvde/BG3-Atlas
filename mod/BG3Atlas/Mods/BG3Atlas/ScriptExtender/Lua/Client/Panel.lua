@@ -116,7 +116,7 @@ end
 
 local commandSeen = {}
 
-local function guarded(vm, player, player, name, fn)
+local function guarded(vm, player, name, fn)
     P.Handle(vm, name, function(a, b)
         local key = name .. "@" .. tostring(player or 1)
         if name == "Toggle" then

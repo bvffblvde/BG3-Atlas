@@ -164,14 +164,14 @@ Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput 
 describe("Hotkey.DevicePlayer", () => {
   const call = (which: number, lists: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.DevicePlayer(${which}, ${lists}))`, hotkeyStubs);
 
-  it("maps an SDL controller to the player whose device list holds it", () => {
-    expect(call(0, "{ { 3 }, { 4 } }")).toBe("1");
-    expect(call(1, "{ { 3 }, { 4 } }")).toBe("2");
-    expect(call(1, "{ { 0, 1, 4 }, { 3 } }")).toBe("1");
+  it("maps an SDL controller to the player of its device slot", () => {
+    expect(call(0, "{ [3] = 2, [4] = 1 }")).toBe("2");
+    expect(call(1, "{ [3] = 2, [4] = 1 }")).toBe("1");
+    expect(call(1, "{ [4] = 3 }")).toBe("3");
   });
 
   it("returns nil when no player owns the controller", () => {
-    expect(call(5, "{ { 3 }, { 4 } }")).toBe("nil");
+    expect(call(5, "{ [3] = 2, [4] = 1 }")).toBe("nil");
     expect(call(0, "nil")).toBe("nil");
   });
 });

@@ -17,6 +17,16 @@ describe("mod Lua files", () => {
     expect(() => luaparse.parse(src, { luaVersion: "5.3" })).not.toThrow();
   });
 
+  it.each(files)("%s has no function with a repeated parameter name", (file) => {
+    const src = readFileSync(path.join(luaRoot, file), "utf8");
+    const dupes: string[] = [];
+    for (const m of src.matchAll(/functions*[w.:]*s*(([^)]*))/g)) {
+      const params = m[1].split(",").map((p) => p.trim()).filter(Boolean);
+      if (new Set(params).size !== params.length) dupes.push(m[0]);
+    }
+    expect(dupes).toEqual([]);
+  });
+
   it.each(files)("%s has no comments", (file) => {
     const ast = luaparse.parse(readFileSync(path.join(luaRoot, file), "utf8"), { luaVersion: "5.3", comments: true });
     expect(ast.comments ?? []).toEqual([]);
