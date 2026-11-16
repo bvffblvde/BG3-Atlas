@@ -262,7 +262,26 @@ export function coverShotHtml(background: string, layout: "left" | "right" = "le
   </body></html>`;
 }
 
-function render(name: string, html: string, dir = outDir): void {
+export function headerHtml(background: string, focusY: number, side: "left" | "right" = "right"): string {
+  const left = side === "left";
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1300px; height: 372px; overflow: hidden; background: #1b130b; ${fonts} }
+  .shot { position: absolute; inset: 0; background: url("${background}") center ${focusY}% / cover no-repeat; }
+  .fade { position: absolute; inset: 0; background: linear-gradient(${left ? 90 : 270}deg, rgba(14,9,4,0.95) 0%, rgba(14,9,4,0.82) 28%, rgba(14,9,4,0.2) 55%, rgba(14,9,4,0) 70%); }
+  .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 90px 20px rgba(0,0,0,0.7); }
+  .title { position: absolute; ${left ? "left" : "right"}: 70px; top: 50%; transform: translateY(-50%); text-align: ${left ? "left" : "right"}; }
+  .title h1 { margin: 0; font-weight: normal; font-size: 92px; line-height: 1; color: #f4e2ac; letter-spacing: -1px; text-shadow: 0 3px 20px rgba(0,0,0,0.8); }
+  .title h1 span { color: #c9a45c; font-size: 52px; letter-spacing: 1px; margin-right: 14px; }
+  .rule { width: 90px; height: 2px; background: #c9a45c; margin: 20px ${left ? "auto 18px 0" : "0 18px auto"}; }
+  .title p { margin: 0; font-size: 24px; color: #dcc896; font-style: italic; }
+  </style></head><body>
+  <div class="shot"></div><div class="fade"></div><div class="vignette"></div>
+  <div class="title"><h1><span>BG3</span>Atlas</h1><div class="rule"></div><p>Every chest, stash, trap and trader, on your in-game map.</p></div>
+  </body></html>`;
+}
+
+function render(name: string, html: string, dir = outDir, size = "1920,1080", scale = 1): void {
   const htmlPath = path.join(dir, `${name}.html`);
   const pngPath = path.join(dir, `${name}.png`);
   writeFileSync(htmlPath, html);
@@ -270,8 +289,8 @@ function render(name: string, html: string, dir = outDir): void {
     "--headless=new",
     "--disable-gpu",
     "--hide-scrollbars",
-    "--force-device-scale-factor=1",
-    "--window-size=1920,1080",
+    `--force-device-scale-factor=${scale}`,
+    `--window-size=${size}`,
     `--screenshot=${pngPath}`,
     pathToFileURL(htmlPath).href,
   ]);
@@ -279,6 +298,14 @@ function render(name: string, html: string, dir = outDir): void {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
+  const header = process.argv.indexOf("--header");
+  if (header > 0) {
+    const bg = path.resolve(process.argv[header + 1]);
+    const focus = Number(process.argv[header + 2] ?? 50);
+    const side = process.argv.includes("--left") ? "left" : "right";
+    render("header", headerHtml(pathToFileURL(bg).href, focus, side), path.dirname(bg), "1300,372", 2);
+    process.exit(0);
+  }
   const shot = process.argv.indexOf("--shot");
   if (shot > 0) {
     const bg = path.resolve(process.argv[shot + 1]);
