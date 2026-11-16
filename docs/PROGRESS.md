@@ -136,6 +136,13 @@ Remaining:
 - Whether the game creates a map marker if `MapMarkerStyle` is added to an item at runtime.
 - Whether the scale and offset of `LSWorldMap` are accessible from Lua.
 - How Better Maps All-In-One changes the map (no paks).
+- Keyboard text reaches only `ls:LSTextBox`, not a plain `TextBox` (the search box got no letters in game with `TextBox`; every vanilla input uses `LSTextBox`).
+- A custom `ToolTip.Template` removes the yellow frame around the hover tooltip text on the mouse map.
+
+## Gamepad bindings on the map page (JournalMap_c)
+
+- `X`: `UIMapAddCustomMarker` (place marker). `Y`: `UIDelete` (waypoint list) and also `UITakeAll` and `UIMessageBoxY`, so those two must not be used. `A`: `UIAccept` (fast travel to the hovered waypoint, Atlas toggle while the panel is open). `B`: `UICancel`. Left stick click: `UIFilter` (Atlas). `UISort`: legend. Right stick click: `UIShowInfo` (center).
+- Script Extender exposes raw pad buttons through `Ext.Events.ControllerButtonInput` (`Button`, `Pressed`, `DeviceId`) and triggers through `Ext.Events.ControllerAxisInput`.
 
 ## Environment notes
 

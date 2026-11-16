@@ -54,14 +54,14 @@ function row(id: CategoryId, indent: number, index: number, mode: PanelMode): st
   ], cell);
 }
 
-function searchRow(i: number): string[] {
+function searchBox(i: number): string[] {
   return [
-    `${pad(i + 8)}<Grid Margin="0,0,0,10">`,
-    `${pad(i + 12)}<Border BorderBrush="#FF8C7346" BorderThickness="0,0,0,1" Margin="0,0,140,0">`,
-    `${pad(i + 16)}<TextBox x:Name="BG3A_SearchBox" Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="26" Foreground="${ink}"/>`,
-    `${pad(i + 12)}</Border>`,
-    `${pad(i + 12)}<TextBlock x:Name="BG3A_SearchInfo" Text="{Binding SearchHint}" Foreground="${dim}" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Center"/>`,
-    `${pad(i + 8)}</Grid>`,
+    `${pad(i)}<Grid Grid.Column="1" Margin="18,0,12,0" VerticalAlignment="Center">`,
+    `${pad(i + 4)}<Border BorderBrush="#FF8C7346" BorderThickness="0,0,0,1">`,
+    `${pad(i + 8)}<ls:LSTextBox x:Name="BG3A_SearchBox" Text="{Binding Query, Mode=TwoWay}" TextImmediateSourceUpdate="True" Style="{StaticResource DefaultInputBox}" TextAlignment="Left" FontSize="24" Foreground="${ink}"/>`,
+    `${pad(i + 4)}</Border>`,
+    `${pad(i + 4)}<TextBlock x:Name="BG3A_SearchInfo" Text="{Binding SearchHint}" Foreground="${dim}" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"/>`,
+    `${pad(i)}</Grid>`,
   ];
 }
 
@@ -74,8 +74,7 @@ export function padHintBar(): string {
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIRight" Command="{Binding DataContext.PadNext, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIUp" Command="{Binding DataContext.PadUp, ElementName=BG3A_Panel}" ${enabled}/>`,
     `${pad(i)}<ls:LSInputBinding BoundEvent="UIDown" Command="{Binding DataContext.PadDown, ElementName=BG3A_Panel}" ${enabled}/>`,
-    `${pad(i)}<ls:LSInputBinding BoundEvent="UIAccept" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" ${enabled}/>`,
-    `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UITakeAll" ls:LSButton.EatInput="True" Tag="Вкл/выкл" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UITakeAll, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
+    `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UIAccept" ls:LSButton.EatInput="True" Tag="{Binding DataContext.ToggleMarkText, ElementName=BG3A_Panel}" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIAccept, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadToggle, ElementName=BG3A_Panel}" IsEnabled="{Binding IsChecked, ElementName=BG3A_PadBtn}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
     `${pad(i)}<ls:LSButton ls:LSButton.BoundEvent="UIMessageBoxY" ls:LSButton.EatInput="True" Tag="{Binding DataContext.FoundMarkText, ElementName=BG3A_Panel}" ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, ConverterParameter=UIMessageBoxY, Converter={StaticResource FindInputEventConverter}}" Command="{Binding DataContext.PadFound, ElementName=BG3A_Panel}" Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"/>`,
     "",
   ].join("\n");
@@ -84,13 +83,19 @@ export function padHintBar(): string {
 export function panelXaml(mode: PanelMode = "mouse"): string {
   const i = 16;
   const visibility = mode === "pad" ? ' Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"' : "";
-  const placement = mode === "pad" ? 'Margin="60,140,0,0"' : 'Grid.Row="1" Margin="60,170,0,0"';
+  const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Grid.Row="1" Margin="60,170,0,0"';
   const lines = [
     `${pad(i)}<Border x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14"${visibility}>`,
     `${pad(i + 4)}<StackPanel>`,
     `${pad(i + 8)}<Grid Margin="0,0,0,8">`,
+    `${pad(i + 12)}<Grid.ColumnDefinitions>`,
+    `${pad(i + 16)}<ColumnDefinition Width="Auto"/>`,
+    `${pad(i + 16)}<ColumnDefinition Width="*"/>`,
+    `${pad(i + 16)}<ColumnDefinition Width="Auto"/>`,
+    `${pad(i + 12)}</Grid.ColumnDefinitions>`,
     `${pad(i + 12)}<TextBlock Text="{Binding Title}" Foreground="${ink}" FontSize="32" VerticalAlignment="Center"/>`,
-    `${pad(i + 12)}<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">`,
+    ...(mode === "mouse" ? searchBox(i + 12) : []),
+    `${pad(i + 12)}<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">`,
     ...flatButton(i + 16, "ShowAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding AllText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 16, "HideAll", null, [`${pad(i + 20)}<TextBlock Text="{Binding NoneText}" Foreground="${dim}" FontSize="24"/>`]),
     `${pad(i + 12)}</StackPanel>`,
@@ -100,7 +105,6 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     ...flatButton(i + 12, "ToggleFog", null, [`${pad(i + 16)}<TextBlock Text="{Binding FogText}" Foreground="${dim}" FontSize="24"/>`]),
     `${pad(i + 8)}</StackPanel>`,
     `${pad(i + 8)}<Rectangle Height="2" Fill="#FF8C7346" Opacity="0.6" Margin="0,0,0,8"/>`,
-    ...(mode === "mouse" ? searchRow(i) : []),
     `${pad(i + 8)}<Grid>`,
     `${pad(i + 12)}<Grid.ColumnDefinitions>`,
     `${pad(i + 16)}<ColumnDefinition Width="*"/>`,

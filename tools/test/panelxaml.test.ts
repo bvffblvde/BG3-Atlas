@@ -26,12 +26,22 @@ describe("panelXaml", () => {
     expect(xaml).toContain("{Binding ShowAll}");
     expect(xaml).toContain("{Binding HideAll}");
     expect(xaml).toContain("{Binding ToggleFound}");
-    expect(xaml).toContain('Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"');
+    expect(xaml).toContain('<ls:LSTextBox x:Name="BG3A_SearchBox" Text="{Binding Query, Mode=TwoWay}" TextImmediateSourceUpdate="True"');
+    expect(xaml).not.toContain("<TextBox");
     expect(xaml).toContain('Style="{StaticResource DefaultInputBox}"');
     expect(xaml).toContain('x:Name="BG3A_SearchInfo"');
     expect(xaml).toContain("{Binding FoundText}");
     expect(xaml).toContain("{Binding ToggleFog}");
     expect(xaml).toContain("{Binding FogText}");
+  });
+
+  it("puts the search box in the title row so the panel stays above the legend", () => {
+    const title = xaml.indexOf("{Binding Title}");
+    const search = xaml.indexOf('x:Name="BG3A_SearchBox"');
+    const showAll = xaml.indexOf("{Binding ShowAll}");
+    expect(title).toBeLessThan(search);
+    expect(search).toBeLessThan(showAll);
+    expect(xaml).toContain('Grid.Row="1" Margin="60,170,0,0"');
   });
 
   it("avoids constructs that crashed the game", () => {
@@ -60,15 +70,23 @@ describe("panelXaml pad mode", () => {
 
   it("binds the toggle to UIFilter and moves the selection with left, right and accept", () => {
     expect(bar).toContain('x:Name="BG3A_PadBtn" ls:LSToggleButton.BoundEvent="UIFilter"');
-    for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIUp", "PadUp"], ["UIDown", "PadDown"], ["UIAccept", "PadToggle"]]) {
+    for (const [event, command] of [["UILeft", "PadPrev"], ["UIRight", "PadNext"], ["UIUp", "PadUp"], ["UIDown", "PadDown"]]) {
       expect(bar).toContain(`BoundEvent="${event}" Command="{Binding DataContext.${command}, ElementName=BG3A_Panel}"`);
     }
   });
 
-  it("shows a hint with the glyph of the second toggle button while the panel is open", () => {
-    expect(bar).toContain('ls:LSButton.BoundEvent="UITakeAll"');
-    expect(bar).toMatch(/ls:LSButton[^>]*Command="\{Binding DataContext\.PadToggle, ElementName=BG3A_Panel\}"/);
-    expect(bar).toContain("ConverterParameter=UITakeAll");
+  it("sits below the zone name on the pad page", () => {
+    expect(padXaml).toContain('Margin="60,230,0,0"');
+  });
+
+  it("shows the accept glyph as the localized toggle hint and never binds Y events", () => {
+    const toggles = bar.split("\n").filter((l) => l.includes("DataContext.PadToggle"));
+    expect(toggles).toHaveLength(1);
+    expect(toggles[0]).toContain('ls:LSButton.BoundEvent="UIAccept"');
+    expect(toggles[0]).toContain("ConverterParameter=UIAccept");
+    expect(toggles[0]).toContain('Tag="{Binding DataContext.ToggleMarkText, ElementName=BG3A_Panel}"');
+    expect(bar).not.toContain("UITakeAll");
+    expect(bar).not.toContain("Вкл/выкл");
     expect(bar).toMatch(/ls:LSButton[^>]*Visibility="\{Binding IsChecked, ElementName=BG3A_PadBtn, Converter=\{StaticResource BoolToVisibleConverter\}\}"/);
   });
 

@@ -172,7 +172,7 @@ const groups: { title: string; ids: CategoryId[] }[] = [
 
 export const names: Record<CategoryId, { en: string; ru: string }> = {
   chest: { en: "Chests", ru: "Сундуки" },
-  container: { en: "Barrels, crates, sacks", ru: "Бочки, ящики, мешки" },
+  container: { en: "Barrels and crates", ru: "Бочки и ящики" },
   remains: { en: "Remains", ru: "Останки" },
   weapon_unique: { en: "Unique weapons", ru: "Уникальное оружие" },
   armor_unique: { en: "Unique armour", ru: "Уникальная броня" },

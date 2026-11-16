@@ -16,8 +16,9 @@ local labels = {
         fogOff = "Только исследованное",
         padHint = "Стрелки: выбор, подтвердить: показать или скрыть",
         foundMark = "Найдено",
+        toggleMark = "Вкл/выкл",
         chest = "Сундуки",
-        container = "Бочки, ящики, мешки",
+        container = "Бочки и ящики",
         remains = "Останки",
         weapon_unique = "Оружие",
         armor_unique = "Броня",
@@ -47,8 +48,9 @@ local labels = {
         fogOff = "Explored only",
         padHint = "D-pad: select, accept: show or hide",
         foundMark = "Found",
+        toggleMark = "On/off",
         chest = "Chests",
-        container = "Barrels, crates, sacks",
+        container = "Barrels and crates",
         remains = "Remains",
         weapon_unique = "Weapons",
         armor_unique = "Armour",
@@ -108,6 +110,7 @@ local function register()
         PadToggle = { Type = "Command" },
         PadFound = { Type = "Command" },
         FoundMarkText = { Type = "String" },
+        ToggleMarkText = { Type = "String" },
         PadUp = { Type = "Command" },
         PadDown = { Type = "Command" },
     }
@@ -169,6 +172,7 @@ local function newModel(player)
     end
     P.Set(vm, "PadHint", text.padHint)
     P.Set(vm, "FoundMarkText", text.foundMark)
+    P.Set(vm, "ToggleMarkText", text.toggleMark)
     P.Handle(vm, "PadFound", function()
         if BG3Atlas.Layer then
             BG3Atlas.Layer.RequestToggle(player)

@@ -57,11 +57,11 @@ In-game screenshots are coming with the first release.
 ## 🧩 Features
 
 **Categories**
-- Loot: `Chests` `Barrels, crates, sacks` `Remains` `Unique weapons` `Unique armour` `Accessories` `Scrolls` `Books and notes` `Keys` `Ingredients` `Valuables`
+- Loot: `Chests` `Barrels and crates` `Remains` `Unique weapons` `Unique armour` `Accessories` `Scrolls` `Books and notes` `Keys` `Ingredients` `Valuables`
 - World: `Traps` `Hidden stashes` `Levers and buttons` `Locked doors` `Waypoints`
 - Characters: `Traders` `Quest characters` `Bosses` `Talking animals`
 
-Barrels, crates, sacks and remains are off by default: there are thousands of them.
+Barrels, crates and remains are off by default: there are thousands of them.
 
 **Map**
 - Icons on the journal map (mouse and gamepad pages) and the minimap
