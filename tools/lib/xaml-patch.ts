@@ -20,7 +20,8 @@ export function injectWorldMapLayer(xaml: string, snippet: string): string {
   const lineStart = xaml.lastIndexOf("\n", anchor) + 1;
   const eol = xaml.includes("\r\n") ? "\r\n" : "\n";
   const body = snippet.replace(/\r?\n/g, eol).replace(new RegExp(`(${eol})+$`), "");
-  return xaml.slice(0, lineStart) + body + eol + xaml.slice(lineStart);
+  const holderPart = xaml.slice(lineStart, holderClose).replace(/x:Name="(ShroudedRooms|SemiShroudedRooms|Shroud)"(?! IsHitTestVisible)/g, 'x:Name="$1" IsHitTestVisible="False"');
+  return xaml.slice(0, lineStart) + body + eol + holderPart + xaml.slice(holderClose);
 }
 
 export function injectBefore(xaml: string, anchor: string, snippet: string, marker: string): string {

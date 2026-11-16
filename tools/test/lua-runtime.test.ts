@@ -132,6 +132,17 @@ BG3Atlas.Probe = { Str = tostring }
 Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end } }
 `;
 
+describe("Hotkey.PadFog", () => {
+  const call = (button: string, ev: string, open: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.PadFog("${button}", "${ev}", ${open}))`, hotkeyStubs);
+
+  it("toggles the fog mode with LB only while the gamepad map is open", () => {
+    expect(call("LeftShoulder", "KeyDown", "true")).toBe("true");
+    expect(call("LeftShoulder", "KeyDown", "false")).toBe("false");
+    expect(call("LeftShoulder", "KeyUp", "true")).toBe("false");
+    expect(call("RightShoulder", "KeyDown", "true")).toBe("false");
+  });
+});
+
 describe("Hotkey.PadTarget", () => {
   const call = (button: string, ev: string, players: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.PadTarget("${button}", "${ev}", ${players}))`, hotkeyStubs);
 

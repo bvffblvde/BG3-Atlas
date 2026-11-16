@@ -5,6 +5,11 @@ BG3Atlas.Hotkey = Hotkey
 
 Hotkey.FoundKey = "F"
 Hotkey.PadFoundButton = "RightShoulder"
+Hotkey.PadFogButton = "LeftShoulder"
+
+function Hotkey.PadFog(button, event, open)
+    return button == Hotkey.PadFogButton and event == "KeyDown" and open == true
+end
 
 function Hotkey.PadTarget(button, event, players)
     if button ~= Hotkey.PadFoundButton or event ~= "KeyDown" then
@@ -28,13 +33,32 @@ Ext.Events.KeyInput:Subscribe(function(e)
 end)
 
 local swallowUp = false
+local swallowFogUp = false
 
 Ext.Events.ControllerButtonInput:Subscribe(function(e)
     local button = P.Str(e.Button)
+    local event = P.Str(e.Event)
+    if button == Hotkey.PadFogButton then
+        if event == "KeyUp" then
+            if swallowFogUp and e.CanPreventAction then
+                e:PreventAction()
+            end
+            swallowFogUp = false
+            return
+        end
+        local Layer = BG3Atlas.Layer
+        if Layer and Hotkey.PadFog(button, event, Layer.PadMapVisible()) then
+            if e.CanPreventAction then
+                e:PreventAction()
+                swallowFogUp = true
+            end
+            Layer.RequestFogToggle()
+        end
+        return
+    end
     if button ~= Hotkey.PadFoundButton then
         return
     end
-    local event = P.Str(e.Event)
     if event == "KeyUp" then
         if swallowUp and e.CanPreventAction then
             e:PreventAction()

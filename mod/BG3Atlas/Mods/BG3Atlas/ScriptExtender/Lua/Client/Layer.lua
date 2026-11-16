@@ -420,6 +420,8 @@ local mouseLogged = false
 local lastCursorText = nil
 local hovered = {}
 local mouseSeen = -100000
+local padSeen = -100000
+local fogToggleQueued = false
 
 Layer.HoverMs = 1000
 
@@ -439,6 +441,14 @@ function Layer.PadHoverPlayers()
     end
     table.sort(out)
     return out
+end
+
+function Layer.PadMapVisible()
+    return Ext.Timer.MonotonicTime() - padSeen <= Layer.HoverMs
+end
+
+function Layer.RequestFogToggle()
+    fogToggleQueued = true
 end
 
 function Layer.MouseMapVisible()
@@ -486,6 +496,9 @@ local function updateCursor(entry)
     if type(tx) ~= "number" or not holderW or not holderH or not mapScale or mapScale <= 0 or not imageW or imageW <= 0 or not imageH or not worldW then
         logOnce("nocursor", "cursor position not readable on " .. entry.widget)
         return
+    end
+    if pad then
+        padSeen = Ext.Timer.MonotonicTime()
     end
     local unit = worldW / imageW
     local lx = (holderW / 2 - tx - (holderW - imageW) / 2) * unit
@@ -718,6 +731,14 @@ end
 local function loop(gen)
     if not running or gen ~= loopGen then
         return
+    end
+    if fogToggleQueued then
+        fogToggleQueued = false
+        Settings.SetFogOnly(not Settings.FogOnly())
+        Settings.Save()
+        if BG3Atlas.Panel then
+            BG3Atlas.Panel.MarkDirty()
+        end
     end
     local queued = pendingToggles
     pendingToggles = {}

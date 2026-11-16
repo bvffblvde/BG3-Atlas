@@ -49,6 +49,13 @@ describe("injectWorldMapLayer", () => {
     expect(out.indexOf(layerMarker)).toBeGreaterThan(out.indexOf('x:Name="MapImage"'));
   });
 
+  it("makes the fog layers transparent to the mouse so tooltips under them still work", () => {
+    const fogTheme = theme.replace('                            <Grid x:Name="Shroud">', '                            <ItemsControl x:Name="ShroudedRooms"/>\r\n                            <Grid x:Name="Shroud">');
+    const out = injectWorldMapLayer(fogTheme, snippet);
+    expect(out).toContain('<ItemsControl x:Name="ShroudedRooms" IsHitTestVisible="False"/>');
+    expect(out).toContain('<Grid x:Name="Shroud" IsHitTestVisible="False">');
+  });
+
   it("refuses to inject twice", () => {
     expect(() => injectWorldMapLayer(injectWorldMapLayer(theme, snippet), snippet)).toThrow();
   });
@@ -63,6 +70,9 @@ describe("injectWorldMapLayer", () => {
       const out = patchTheme(theme);
       expect(out.split(layerMarker).length).toBe(2);
       expect(out.indexOf(layerMarker)).toBeLessThan(out.indexOf('x:Name="ShroudedRooms"'));
+      for (const name of ["ShroudedRooms", "SemiShroudedRooms", "Shroud"]) {
+        expect(out).toMatch(new RegExp(`x:Name="${name}" IsHitTestVisible="False"`));
+      }
     },
   );
 

@@ -6,7 +6,7 @@ BG3Atlas.Locale.Add("pt-BR", {
     showFound = "Mostrar encontrados",
     fogOn = "Mostrar em todos os lugares",
     fogOff = "Apenas áreas exploradas",
-    padHint = "D-pad: selecionar, A: mostrar ou ocultar, RB: marcar como encontrado",
+    padHint = "D-pad: selecionar, A: mostrar ou ocultar, RB: marcar como encontrado, LB: apenas áreas exploradas ou tudo",
     toggleMark = "Ativar/desativar",
     searchHint = "pesquisar",
     searchNone = "nenhum resultado",
