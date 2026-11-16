@@ -8,7 +8,7 @@
                 <node id="ModuleInfo">
                     <attribute id="Author" type="LSString" value="bvffblvde"/>
                     <attribute id="CharacterCreationLevelName" type="FixedString" value=""/>
-                    <attribute id="Description" type="LSString" value="Interactive map points"/>
+                    <attribute id="Description" type="LSString" value="Points of interest on the journal map and minimap: chests, unique gear, books, keys, traps, hidden stashes, levers, waypoints, traders and bosses. Category filters, search and found tracking. Requires BG3 Script Extender."/>
                     <attribute id="Folder" type="LSString" value="BG3Atlas"/>
                     <attribute id="LobbyLevelName" type="FixedString" value=""/>
                     <attribute id="MD5" type="LSString" value=""/>

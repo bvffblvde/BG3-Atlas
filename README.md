@@ -1,5 +1,7 @@
 # BG3 Atlas
 
+![BG3 Atlas](docs/media/cover.png)
+
 An interactive map inside Baldur's Gate 3. Open the journal map (M) or look at the minimap and you see icons for chests, unique gear, books, keys, traps, hidden stashes, levers, waypoints, traders, bosses and more. Filter by category, hide what you have already found, search by name and hover an icon to see what it is. No second monitor, no browser.
 
 All point data is extracted from the game's own files. Nothing is taken from third party map sites or other mods.
@@ -7,7 +9,7 @@ All point data is extracted from the game's own files. Nothing is taken from thi
 ## Features
 
 - Icons on the journal map and on the minimap, sized like the game's own markers and kept in place while you zoom and pan.
-- 20 categories in four groups:
+- 20 categories in three groups:
   - Loot: chests, barrels crates and sacks, remains, unique weapons, unique armour, accessories, scrolls, books and notes, keys, ingredients, valuables.
   - World: traps, hidden stashes, levers and buttons, locked doors, waypoints.
   - Characters: traders, quest characters, bosses, talking animals.
