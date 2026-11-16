@@ -94,7 +94,8 @@ Enable or disable the mod from the main menu, not while a save is loaded.
 | Open the Atlas panel | Open the journal map, the panel sits on it | Open the map, press the button shown next to "Legend" |
 | Show or hide a category | Click it | D-pad to select, the "On/off" button in the hint bar |
 | See a point's name | Hover the icon | Move the map cursor onto it, the name shows in the panel |
-| Mark or unmark as found | Hover the icon and press `F` | The "Found" button in the hint bar |
+| Mark or unmark as found | Hover the icon and press `F` | Move the map cursor onto it and press `RB` |
+| Explored only or everywhere | The button in the panel | `LB` |
 | Search | Type in the search box | Not available |
 
 `F` does nothing while you type in the search box.
@@ -118,7 +119,6 @@ In the Script Extender console:
 
 ## ⚠️ Known limitations
 
-- "Explored only" is work in progress: the game's fog of war is not readable by mods, so the filter may not hide anything yet.
 - Automatic marking needs the object to be loaded near you. Items taken out of a container are not points of their own, the container is.
 - Found marks in online multiplayer are kept per client and may overwrite each other. Single player and split screen are fine.
 - Better Maps All-In-One and other mods that replace the same map files have not been tested.
@@ -183,7 +183,7 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 - [x] **v1.0**: [released on Nexus Mods](https://www.nexusmods.com/baldursgate3/mods/26685)
 - [ ] Lower City basement points drawn on the surface map
 - [ ] In-game testing of act 2, clean profile check
-- [ ] "Explored only" filter that follows the fog of war
+- [x] "Explored only": icons stay under the fog of war until you explore the area
 - [ ] Better Maps All-In-One compatibility
 
 Have an idea or found a misplaced icon? [Open an issue](https://github.com/bvffblvde/BG3-Atlas/issues).
