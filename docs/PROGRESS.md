@@ -163,3 +163,12 @@ Remaining:
 - Now `scroll` is spell scrolls only (`MagicScroll` object category or the `BASE_BOOK_Scroll_Magic` template). `book` is everything readable under `BASE_BOOK` or `REF_BOOK` (letters, notes, posters, maps, books), except containers and blank generic paper (`BOOK_GEN_Scroll_Parchment*`, `BOOK_GEN_Paper*` placed without their own `DisplayName`).
 - Counts: scroll 845 -> 77, book 102 -> 1411 (Lower City 14 -> 621 notes and books).
 - Update: the points in the sea next to the Lower City are not basements. Around x -305..-99, z -244..-171 there are 82 surface points at y 0..6 (streets are at y 15..45): Gilded Chests of the Counting House vault south of the `CH` footprint, plus chests and barrels around `WQH` and `SeaTower`. Submap boxes in the data have an unbounded height, so assignment is by XZ footprint only, and these points fall outside every footprint. Unverified in game which of them are the vault, ship holds or real dock objects.
+
+## Location risk analysis, all acts (2026-11-16, from data only, unverified in game)
+
+1. Outdoor waypoints assigned to building submaps, hidden on the surface view: Blighted Village (Apothercary), Reithwin Town (Tax), Basilisk Gate (BarracksSideShed), Lower City Central Wall (BellTower), South Span of Wyrm's Crossing (Bridge, floor -3), Wyrm's Rock (Fort). Underground ones are probably right: Grymforge and Ancient Forge (KethericCity), Gauntlet of Shar and Verge of the Shadows (Shar), Cazador's Dungeon.
+2. Points outside every submap footprint but inside an interior (Counting House vault and the harbour, see above). Footprints are XZ only, so any vault or cellar wider than its building leaks onto the surface map. Not detectable from data alone.
+3. Detached sublevels with no submap at all, drawn on the surface map at their world position: CTY_Guildhall_Basement_A 44, CTY_PhilgraveBasement_A 27, END_KarlachDock_A 24, SCL_Nightsong_A 15 (2 unique armour), END_Beach_A 5.
+4. State variants loaded together: WLD_Hag_C_Evil and WLD_Hag_C_Happy (Auntie Ethel's teahouse) both contribute points, so one set is always stale.
+5. 52 exact duplicate spots (same name, same position, same level), they inflate counters.
+6. Vertical outliers (points 6+ m below their neighbours without a submap) are few: Jungle of Chult bones, Reithwin and battlefield bones, a few WLD caves (Underdark, around 0,500 and 250,500).
