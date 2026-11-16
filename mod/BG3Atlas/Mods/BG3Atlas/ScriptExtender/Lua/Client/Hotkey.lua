@@ -81,7 +81,52 @@ local function playerDevices()
     return ok and ids or nil
 end
 
+local dumped = false
+
+local function dumpInput()
+    if dumped then
+        return
+    end
+    dumped = true
+    local ok, err = pcall(function()
+        local im = Ext.Input.GetInputManager()
+        local scheme = im.InputScheme
+        for p = 1, 4 do
+            local list = {}
+            for _, d in pairs(scheme.DeviceLists[p] or {}) do
+                list[#list + 1] = tostring(d)
+            end
+            P.Log("input player " .. p .. " devices: " .. table.concat(list, ","))
+        end
+        for i = 1, 12 do
+            local d = im.PerDeviceData[i]
+            if d then
+                P.Log("input device slot " .. i .. ": id " .. tostring(d.DeviceId) .. " player " .. tostring(d.InputPlayerIndex))
+            end
+        end
+        local wanted = { leftshoulder = true, rightshoulder = true, lefttrigger = true }
+        for p = 1, 2 do
+            for eventId, bindings in pairs(scheme.InputBindings[p] or {}) do
+                for _, b in pairs(bindings) do
+                    local raw = tostring(b.InputId)
+                    if wanted[raw] then
+                        local def = im.InputDefinitions[eventId]
+                        local name = def and tostring(def.EventName) or "?"
+                        if name:sub(1, 2) == "UI" then
+                            P.Log("input binding player " .. p .. " " .. raw .. " -> " .. name)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    if not ok then
+        P.Log("input dump failed: " .. P.Str(err))
+    end
+end
+
 local function ownerOf(which)
+    dumpInput()
     local ids = playerDevices()
     local owner = Hotkey.DevicePlayer(tonumber(which), ids)
     local key = tostring(which)
