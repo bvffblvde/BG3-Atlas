@@ -149,6 +149,28 @@ BG3Atlas.Probe = { Str = tostring }
 Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end }, ControllerAxisInput = { Subscribe = function() end } }
 `;
 
+describe("Hotkey.DevicePlayer", () => {
+  const call = (which: number, ids: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.DevicePlayer(${which}, ${ids}))`, hotkeyStubs);
+
+  it("maps an SDL controller to the player that owns it", () => {
+    expect(call(0, "{ 3, 4, 0, 0 }")).toBe("1");
+    expect(call(1, "{ 3, 4, 0, 0 }")).toBe("2");
+    expect(call(1, "{ 4, 3, 0, 0 }")).toBe("1");
+  });
+
+  it("returns nil when no player owns the controller", () => {
+    expect(call(5, "{ 3, 4, 0, 0 }")).toBe("nil");
+    expect(call(0, "nil")).toBe("nil");
+  });
+});
+
+describe("Hotkey.Fresh", () => {
+  it("lets a command through once per press even if several panels fire it", () => {
+    const expr = '(function() local H = BG3Atlas.Hotkey local seen = {} return tostring(H.Fresh(seen, "PadToggle", 1000)) .. tostring(H.Fresh(seen, "PadToggle", 1010)) .. tostring(H.Fresh(seen, "PadNext", 1010)) .. tostring(H.Fresh(seen, "PadToggle", 1200)) end)()';
+    expect(run(["Hotkey.lua"], expr, hotkeyStubs)).toBe("truefalsetruetrue");
+  });
+});
+
 describe("Hotkey.Accept", () => {
   it("ignores a second F press within the debounce window", () => {
     expect(run(["Hotkey.lua"], "tostring(BG3Atlas.Hotkey.Accept(1000, 900))", hotkeyStubs)).toBe("false");

@@ -110,27 +110,43 @@ local function fillModel(vm)
     P.Set(vm, "ToggleMarkText", text.toggleMark)
 end
 
+local commandSeen = {}
+
+local function guarded(vm, name, fn)
+    P.Handle(vm, name, function(a, b)
+        local key = name
+        if name == "Toggle" then
+            key = name .. "|" .. paramString(b)
+        end
+        local H = BG3Atlas.Hotkey
+        if H and not H.Fresh(commandSeen, key, Ext.Timer.MonotonicTime()) then
+            return
+        end
+        fn(a, b)
+    end)
+end
+
 local function newModel(player)
     local vm = Ext.UI.Instantiate("BG3A_Panel")
     fillModel(vm)
     local n = #Points.Categories
-    P.Handle(vm, "PadPrev", function()
+    guarded(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1
         version = version + 1
     end)
-    P.Handle(vm, "PadNext", function()
+    guarded(vm, "PadNext", function()
         selected = selected % n + 1
         version = version + 1
     end)
-    P.Handle(vm, "PadUp", function()
+    guarded(vm, "PadUp", function()
         selected = (selected - 3) % n + 1
         version = version + 1
     end)
-    P.Handle(vm, "PadDown", function()
+    guarded(vm, "PadDown", function()
         selected = (selected + 1) % n + 1
         version = version + 1
     end)
-    P.Handle(vm, "PadToggle", function()
+    guarded(vm, "PadToggle", function()
         local cat = Points.Categories[selected]
         if cat then
             Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
@@ -138,7 +154,7 @@ local function newModel(player)
             version = version + 1
         end
     end)
-    P.Handle(vm, "ToggleFog", function()
+    guarded(vm, "ToggleFog", function()
         Settings.SetFogOnly(not Settings.FogOnly())
         Settings.Save()
         if BG3Atlas.Layer then
@@ -146,29 +162,29 @@ local function newModel(player)
         end
         version = version + 1
     end)
-    P.Handle(vm, "ToggleGrid", function()
+    guarded(vm, "ToggleGrid", function()
         Settings.NextMapStyle()
         Settings.Save()
         version = version + 1
     end)
-    P.Handle(vm, "ToggleFound", function()
+    guarded(vm, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())
         Settings.Save()
         version = version + 1
     end)
-    P.Handle(vm, "Toggle", function(_, param)
+    guarded(vm, "Toggle", function(_, param)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
         Settings.Save()
         P.Log("panel toggle " .. P.Str(cat) .. " -> " .. tostring(Settings.IsEnabled(cat)))
         version = version + 1
     end)
-    P.Handle(vm, "ShowAll", function()
+    guarded(vm, "ShowAll", function()
         Settings.SetAll(Points.Categories, true)
         Settings.Save()
         version = version + 1
     end)
-    P.Handle(vm, "HideAll", function()
+    guarded(vm, "HideAll", function()
         Settings.SetAll(Points.Categories, false)
         Settings.Save()
         version = version + 1

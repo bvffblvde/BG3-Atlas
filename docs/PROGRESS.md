@@ -217,3 +217,9 @@ Remaining:
 
 - `LT` and the panel button cycle three map styles: default (vanilla grid and fog), no grid, clear (no grid, `Shroud` at 0.8 opacity like Clear Map No Grid Transparent Shroud). Settings store `mapStyle` 0..2, old `hideGrid: true` reads as 1.
 - With the clear style the Atlas icons under the fog are faintly visible too, so "Explored only" no longer hides them fully.
+
+## Split screen input fixes (unverified in game)
+
+- With both players on the map, one gamepad press reached both Atlas panels, so A toggled a category twice (back to where it was) and the D-pad moved the selection two steps. Panel commands are now deduplicated within 120 ms (`Hotkey.Fresh`).
+- RB, LB and LT come from raw SDL controller events, which do not say which player pressed them. The owner is now looked up in `Ext.Input.GetInputManager().PlayerDeviceIDs`, assuming the game's controller id is `3 + SDL device index` (unverified). The first press of each controller is logged as `pad device N -> player P (player devices ...)`. When the owner is unknown the old behaviour applies.
+- Map open state for the gamepad is tracked per player, so the other player's buttons are no longer swallowed while only one of them has the map open.

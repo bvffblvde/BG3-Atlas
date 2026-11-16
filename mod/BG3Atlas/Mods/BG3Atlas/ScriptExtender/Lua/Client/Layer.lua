@@ -427,6 +427,7 @@ local lastCursorText = nil
 local hovered = {}
 local mouseSeen = -100000
 local padSeen = -100000
+local padSeenBy = {}
 local fogToggleQueued = false
 local gridToggleQueued = false
 Layer.GridOpacity = 0.2
@@ -451,8 +452,12 @@ function Layer.PadHoverPlayers()
     return out
 end
 
-function Layer.PadMapVisible()
-    return Ext.Timer.MonotonicTime() - padSeen <= Layer.HoverMs
+function Layer.PadMapVisible(player)
+    local seen = padSeen
+    if player then
+        seen = padSeenBy[player] or -100000
+    end
+    return Ext.Timer.MonotonicTime() - seen <= Layer.HoverMs
 end
 
 function Layer.RequestFogToggle()
@@ -511,6 +516,7 @@ local function updateCursor(entry)
     end
     if pad then
         padSeen = Ext.Timer.MonotonicTime()
+        padSeenBy[entry.player or 1] = padSeen
     end
     local unit = worldW / imageW
     local lx = (holderW / 2 - tx - (holderW - imageW) / 2) * unit
