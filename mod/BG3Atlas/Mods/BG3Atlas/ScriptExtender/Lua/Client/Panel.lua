@@ -8,7 +8,11 @@ BG3Atlas.Panel = Panel
 
 local registered = false
 local version = 1
-local selected = 1
+local selectedBy = {}
+
+local function sel(player)
+    return selectedBy[player or 1] or 1
+end
 
 local function register()
     if registered then
@@ -77,14 +81,14 @@ function Panel.SearchFocused()
     return searchFocused
 end
 
-local function fillModel(vm)
+local function fillModel(vm, player)
     local text = BG3Atlas.Locale.Text(Settings.Language())
     P.Set(vm, "Title", text.title)
     P.Set(vm, "AllText", text.all)
     P.Set(vm, "NoneText", text.none)
     P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
-    P.Set(vm, "FogText", Settings.FogOnly() and text.fogOn or text.fogOff)
-    P.Set(vm, "GridText", text["mapStyle" .. Settings.MapStyle()])
+    P.Set(vm, "FogText", Settings.FogOnly(player) and text.fogOn or text.fogOff)
+    P.Set(vm, "GridText", text["mapStyle" .. Settings.MapStyle(player)])
     if P.Get(vm, "Query") ~= BG3Atlas.Search.Query() then
         P.Set(vm, "Query", BG3Atlas.Search.Query())
     end
@@ -104,7 +108,7 @@ local function fillModel(vm)
         P.Set(vm, "Alpha_" .. cat, Settings.IsEnabled(cat) and 1.0 or 0.35)
     end
     for i, cat in ipairs(Points.Categories) do
-        P.Set(vm, "Sel_" .. cat, (i == selected) and 1.0 or 0.0)
+        P.Set(vm, "Sel_" .. cat, (i == sel(player)) and 1.0 or 0.0)
     end
     P.Set(vm, "PadHint", text.padHint)
     P.Set(vm, "ToggleMarkText", text.toggleMark)
@@ -112,14 +116,18 @@ end
 
 local commandSeen = {}
 
-local function guarded(vm, name, fn)
+local function guarded(vm, player, player, name, fn)
     P.Handle(vm, name, function(a, b)
-        local key = name
+        local key = name .. "@" .. tostring(player or 1)
         if name == "Toggle" then
-            key = name .. "|" .. paramString(b)
+            key = key .. "|" .. paramString(b)
         end
         local H = BG3Atlas.Hotkey
-        if H and not H.Fresh(commandSeen, key, Ext.Timer.MonotonicTime()) then
+        local now = Ext.Timer.MonotonicTime()
+        if H and not H.AllowFor(player, now) then
+            return
+        end
+        if H and not H.Fresh(commandSeen, key, now) then
             return
         end
         fn(a, b)
@@ -128,63 +136,63 @@ end
 
 local function newModel(player)
     local vm = Ext.UI.Instantiate("BG3A_Panel")
-    fillModel(vm)
+    fillModel(vm, player)
     local n = #Points.Categories
-    guarded(vm, "PadPrev", function()
-        selected = (selected - 2) % n + 1
+    guarded(vm, player, "PadPrev", function()
+        selectedBy[player or 1] = (sel(player) - 2) % n + 1
         version = version + 1
     end)
-    guarded(vm, "PadNext", function()
-        selected = selected % n + 1
+    guarded(vm, player, "PadNext", function()
+        selectedBy[player or 1] = sel(player) % n + 1
         version = version + 1
     end)
-    guarded(vm, "PadUp", function()
-        selected = (selected - 3) % n + 1
+    guarded(vm, player, "PadUp", function()
+        selectedBy[player or 1] = (sel(player) - 3) % n + 1
         version = version + 1
     end)
-    guarded(vm, "PadDown", function()
-        selected = (selected + 1) % n + 1
+    guarded(vm, player, "PadDown", function()
+        selectedBy[player or 1] = (sel(player) + 1) % n + 1
         version = version + 1
     end)
-    guarded(vm, "PadToggle", function()
-        local cat = Points.Categories[selected]
+    guarded(vm, player, "PadToggle", function()
+        local cat = Points.Categories[sel(player)]
         if cat then
             Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
             Settings.Save()
             version = version + 1
         end
     end)
-    guarded(vm, "ToggleFog", function()
-        Settings.SetFogOnly(not Settings.FogOnly())
+    guarded(vm, player, "ToggleFog", function()
+        Settings.SetFogOnly(not Settings.FogOnly(player), player)
         Settings.Save()
         if BG3Atlas.Layer then
             BG3Atlas.Layer.ForceRebuild()
         end
         version = version + 1
     end)
-    guarded(vm, "ToggleGrid", function()
-        Settings.NextMapStyle()
+    guarded(vm, player, "ToggleGrid", function()
+        Settings.NextMapStyle(player)
         Settings.Save()
         version = version + 1
     end)
-    guarded(vm, "ToggleFound", function()
+    guarded(vm, player, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())
         Settings.Save()
         version = version + 1
     end)
-    guarded(vm, "Toggle", function(_, param)
+    guarded(vm, player, "Toggle", function(_, param)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
         Settings.Save()
         P.Log("panel toggle " .. P.Str(cat) .. " -> " .. tostring(Settings.IsEnabled(cat)))
         version = version + 1
     end)
-    guarded(vm, "ShowAll", function()
+    guarded(vm, player, "ShowAll", function()
         Settings.SetAll(Points.Categories, true)
         Settings.Save()
         version = version + 1
     end)
-    guarded(vm, "HideAll", function()
+    guarded(vm, player, "HideAll", function()
         Settings.SetAll(Points.Categories, false)
         Settings.Save()
         version = version + 1
@@ -260,7 +268,7 @@ function Panel.Update(widget, player)
         P.Set(vm, "Ver", version)
         panel.DataContext = vm
     elseif P.Get(dc, "Ver") ~= version then
-        fillModel(dc)
+        fillModel(dc, key)
         P.Set(dc, "Ver", version)
     end
     local box = findNamed(panel, "BG3A_SearchBox", 0)

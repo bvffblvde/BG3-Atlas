@@ -428,8 +428,8 @@ local hovered = {}
 local mouseSeen = -100000
 local padSeen = -100000
 local padSeenBy = {}
-local fogToggleQueued = false
-local gridToggleQueued = false
+local fogToggleQueued = {}
+local gridToggleQueued = {}
 Layer.GridOpacity = 0.2
 
 Layer.HoverMs = 1000
@@ -452,6 +452,17 @@ function Layer.PadHoverPlayers()
     return out
 end
 
+function Layer.PadOpenPlayer()
+    local now = Ext.Timer.MonotonicTime()
+    local best, bestT = 1, -100000
+    for pid, t in pairs(padSeenBy) do
+        if now - t <= Layer.HoverMs and t > bestT then
+            best, bestT = pid, t
+        end
+    end
+    return best
+end
+
 function Layer.PadMapVisible(player)
     local seen = padSeen
     if player then
@@ -460,12 +471,12 @@ function Layer.PadMapVisible(player)
     return Ext.Timer.MonotonicTime() - seen <= Layer.HoverMs
 end
 
-function Layer.RequestFogToggle()
-    fogToggleQueued = true
+function Layer.RequestFogToggle(player)
+    fogToggleQueued[#fogToggleQueued + 1] = player or 1
 end
 
-function Layer.RequestGridToggle()
-    gridToggleQueued = true
+function Layer.RequestGridToggle(player)
+    gridToggleQueued[#gridToggleQueued + 1] = player or 1
 end
 
 function Layer.MouseMapVisible()
@@ -746,8 +757,9 @@ function updatePlayer(found)
                 lastCursorText = nil
                 P.Log("layer attached to " .. entry.widget)
             end
-            P.Set(shared, "LayerZ", Settings.FogOnly() and 0 or 1)
-            local grid, fog = Settings.StyleOpacity(Settings.MapStyle(), Layer.GridOpacity)
+            local pid = entry.player or 1
+            P.Set(shared, "LayerZ", Settings.FogOnly(pid) and 0 or 1)
+            local grid, fog = Settings.StyleOpacity(Settings.MapStyle(pid), Layer.GridOpacity)
             P.Set(shared, "GridOpacity", tonumber(grid))
             P.Set(shared, "ShroudOpacity", tonumber(fog))
             updateScale(entry, model)
@@ -763,17 +775,15 @@ local function loop(gen)
     if not running or gen ~= loopGen then
         return
     end
-    if gridToggleQueued then
-        gridToggleQueued = false
-        Settings.NextMapStyle()
-        Settings.Save()
-        if BG3Atlas.Panel then
-            BG3Atlas.Panel.MarkDirty()
+    if #gridToggleQueued > 0 or #fogToggleQueued > 0 then
+        local grids, fogs = gridToggleQueued, fogToggleQueued
+        gridToggleQueued, fogToggleQueued = {}, {}
+        for _, pid in ipairs(grids) do
+            Settings.NextMapStyle(pid)
         end
-    end
-    if fogToggleQueued then
-        fogToggleQueued = false
-        Settings.SetFogOnly(not Settings.FogOnly())
+        for _, pid in ipairs(fogs) do
+            Settings.SetFogOnly(not Settings.FogOnly(pid), pid)
+        end
         Settings.Save()
         if BG3Atlas.Panel then
             BG3Atlas.Panel.MarkDirty()

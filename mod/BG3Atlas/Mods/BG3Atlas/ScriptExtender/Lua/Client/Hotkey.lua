@@ -27,17 +27,34 @@ function Hotkey.Fresh(seen, key, now)
     return true
 end
 
-function Hotkey.DevicePlayer(which, playerDevices)
-    if type(which) ~= "number" or type(playerDevices) ~= "table" then
+function Hotkey.DevicePlayer(which, lists)
+    if type(which) ~= "number" or type(lists) ~= "table" then
         return nil
     end
     local id = Hotkey.ControllerBase + which
-    for i = 1, 4 do
-        if playerDevices[i] == id then
-            return i
+    for p = 1, 4 do
+        for _, d in ipairs(lists[p] or {}) do
+            if tonumber(d) == id then
+                return p
+            end
         end
     end
     return nil
+end
+
+Hotkey.PressWindowMs = 300
+local lastPress = { owner = nil, at = -100000 }
+
+function Hotkey.NotePress(owner, now)
+    lastPress.owner = owner
+    lastPress.at = now
+end
+
+function Hotkey.AllowFor(player, now)
+    if not lastPress.owner or now - lastPress.at > Hotkey.PressWindowMs then
+        return true
+    end
+    return lastPress.owner == (player or 1)
 end
 
 function Hotkey.TriggerPressed(axis, value, was, open)
@@ -66,19 +83,22 @@ end
 local deviceLogged = {}
 
 local function playerDevices()
-    local ok, ids = pcall(function()
+    local ok, lists = pcall(function()
         local im = Ext.Input.GetInputManager()
-        local list = im and im.PlayerDeviceIDs
-        if not list then
+        local scheme = im and im.InputScheme
+        if not scheme then
             return nil
         end
         local out = {}
-        for i = 1, 4 do
-            out[i] = tonumber(list[i])
+        for p = 1, 4 do
+            out[p] = {}
+            for _, d in pairs(scheme.DeviceLists[p] or {}) do
+                out[p][#out[p] + 1] = tonumber(d)
+            end
         end
         return out
     end)
-    return ok and ids or nil
+    return ok and lists or nil
 end
 
 local dumped = false
@@ -132,7 +152,14 @@ local function ownerOf(which)
     local key = tostring(which)
     if not deviceLogged[key] then
         deviceLogged[key] = true
-        local shown = ids and table.concat({ tostring(ids[1]), tostring(ids[2]), tostring(ids[3]), tostring(ids[4]) }, ",") or "unreadable"
+        local shown = "unreadable"
+        if ids then
+            local parts = {}
+            for p = 1, 4 do
+                parts[p] = p .. ":" .. table.concat(ids[p], "/")
+            end
+            shown = table.concat(parts, " ")
+        end
         P.Log("pad device " .. key .. " -> player " .. tostring(owner) .. " (player devices " .. shown .. ")")
     end
     return owner
@@ -169,6 +196,9 @@ local swallowFogUp = {}
 
 Ext.Events.ControllerButtonInput:Subscribe(function(e)
     local button = P.Str(e.Button)
+    if P.Str(e.Event) == "KeyDown" then
+        Hotkey.NotePress(ownerOf(e.DeviceId), Ext.Timer.MonotonicTime())
+    end
     if button ~= Hotkey.PadFogButton and button ~= Hotkey.PadFoundButton then
         return
     end
@@ -189,7 +219,7 @@ Ext.Events.ControllerButtonInput:Subscribe(function(e)
                 e:PreventAction()
                 swallowFogUp[device] = true
             end
-            Layer.RequestFogToggle()
+            Layer.RequestFogToggle(owner or Layer.PadOpenPlayer())
         end
         return
     end
@@ -233,7 +263,7 @@ Ext.Events.ControllerAxisInput:Subscribe(function(e)
     local owner = ownerOf(e.DeviceId)
     local open = Layer ~= nil and mapOpen(Layer, owner)
     if Hotkey.TriggerPressed(axis, value, was, open) then
-        Layer.RequestGridToggle()
+        Layer.RequestGridToggle(owner or Layer.PadOpenPlayer())
     end
     triggerDown[device] = pressing
     if open and e.CanPreventAction then

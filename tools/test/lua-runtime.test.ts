@@ -70,6 +70,18 @@ describe("Locale", () => {
   });
 });
 
+describe("Settings per player view", () => {
+  it("keeps map style and fog mode separate per player", () => {
+    const expr = '(function() S.NextMapStyle(2) S.SetFogOnly(false, 2) return S.MapStyle(1) .. tostring(S.FogOnly(1)) .. S.MapStyle(2) .. tostring(S.FogOnly(2)) end)()';
+    expect(run(["Settings.lua"], expr)).toBe("0true1false");
+  });
+
+  it("reads per player view settings and falls back to the shared ones", () => {
+    const parse = 'Ext.Json.Parse = function() return { mapStyle = 1, fogOnly = false, view = { ["2"] = { mapStyle = 2, fogOnly = true } } } end\n';
+    expect(run(["Settings.lua"], `(function() ${parse} S.Load = nil local st = S.Parse("x") return st.view["1"].mapStyle .. tostring(st.view["1"].fogOnly) .. st.view["2"].mapStyle .. tostring(st.view["2"].fogOnly) end)()`)).toBe("1false2true");
+  });
+});
+
 describe("Settings map style", () => {
   it("cycles normal, no grid, clear and back", () => {
     expect(run(["Settings.lua"], '(function() local out = {} for _ = 1, 4 do S.NextMapStyle() out[#out + 1] = S.MapStyle() end return table.concat(out, ",") end)()')).toBe("1,2,0,1");
@@ -150,17 +162,28 @@ Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput 
 `;
 
 describe("Hotkey.DevicePlayer", () => {
-  const call = (which: number, ids: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.DevicePlayer(${which}, ${ids}))`, hotkeyStubs);
+  const call = (which: number, lists: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.DevicePlayer(${which}, ${lists}))`, hotkeyStubs);
 
-  it("maps an SDL controller to the player that owns it", () => {
-    expect(call(0, "{ 3, 4, 0, 0 }")).toBe("1");
-    expect(call(1, "{ 3, 4, 0, 0 }")).toBe("2");
-    expect(call(1, "{ 4, 3, 0, 0 }")).toBe("1");
+  it("maps an SDL controller to the player whose device list holds it", () => {
+    expect(call(0, "{ { 3 }, { 4 } }")).toBe("1");
+    expect(call(1, "{ { 3 }, { 4 } }")).toBe("2");
+    expect(call(1, "{ { 0, 1, 4 }, { 3 } }")).toBe("1");
   });
 
   it("returns nil when no player owns the controller", () => {
-    expect(call(5, "{ 3, 4, 0, 0 }")).toBe("nil");
+    expect(call(5, "{ { 3 }, { 4 } }")).toBe("nil");
     expect(call(0, "nil")).toBe("nil");
+  });
+});
+
+describe("Hotkey.AllowFor", () => {
+  it("lets a panel command through only for the player who pressed", () => {
+    const expr = '(function() local H = BG3Atlas.Hotkey H.NotePress(2, 1000) return tostring(H.AllowFor(2, 1050)) .. tostring(H.AllowFor(1, 1050)) .. tostring(H.AllowFor(1, 2000)) end)()';
+    expect(run(["Hotkey.lua"], expr, hotkeyStubs)).toBe("truefalsetrue");
+  });
+
+  it("allows everything when the presser is unknown", () => {
+    expect(run(["Hotkey.lua"], '(function() local H = BG3Atlas.Hotkey H.NotePress(nil, 1000) return tostring(H.AllowFor(1, 1010)) end)()', hotkeyStubs)).toBe("true");
   });
 });
 
