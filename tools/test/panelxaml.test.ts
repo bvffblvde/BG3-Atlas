@@ -32,6 +32,8 @@ describe("panelXaml", () => {
     expect(xaml).toContain("{Binding FoundText}");
     expect(xaml).toContain("{Binding ToggleFog}");
     expect(xaml).toContain("{Binding FogText}");
+    expect(xaml).toContain("{Binding ToggleGrid}");
+    expect(xaml).toContain("{Binding GridText}");
   });
 
   it("puts the search box in the title row so the panel stays above the legend", () => {

@@ -96,6 +96,7 @@ Enable or disable the mod from the main menu, not while a save is loaded.
 | See a point's name | Hover the icon | Move the map cursor onto it, the name shows in the panel |
 | Mark or unmark as found | Hover the icon and press `F` | Move the map cursor onto it and press `RB` |
 | Explored only or everywhere | The button in the panel | `LB` |
+| Hide or show the map grid | The button in the panel | `LT` |
 | Search | Type in the search box | Not available |
 
 `F` does nothing while you type in the search box.

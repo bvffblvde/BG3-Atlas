@@ -97,6 +97,9 @@ describe("Settings.Parse", () => {
     const stubbedParse = 'Ext.Json.Parse = function() return { language = "pt-BR" } end\n';
     expect(run(["Settings.lua"], `(function() ${stubbedParse} return tostring(S.Parse("x").language) end)()`)).toBe("pt-BR");
     expect(run(["Settings.lua"], "tostring(S.Parse(nil).language)")).toBe("nil");
+    expect(run(["Settings.lua"], "tostring(S.Parse(nil).hideGrid)")).toBe("false");
+    const grid = 'Ext.Json.Parse = function() return { hideGrid = true } end\n';
+    expect(run(["Settings.lua"], `(function() ${grid} return tostring(S.Parse("x").hideGrid) end)()`)).toBe("true");
   });
 
   it("treats a missing file as defaults", () => {
@@ -129,13 +132,24 @@ describe("Found", () => {
 
 const hotkeyStubs = `
 BG3Atlas.Probe = { Str = tostring }
-Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end } }
+Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end }, ControllerAxisInput = { Subscribe = function() end } }
 `;
 
 describe("Hotkey.Accept", () => {
   it("ignores a second F press within the debounce window", () => {
     expect(run(["Hotkey.lua"], "tostring(BG3Atlas.Hotkey.Accept(1000, 900))", hotkeyStubs)).toBe("false");
     expect(run(["Hotkey.lua"], "tostring(BG3Atlas.Hotkey.Accept(1300, 900))", hotkeyStubs)).toBe("true");
+  });
+});
+
+describe("Hotkey.TriggerPressed", () => {
+  it("fires once when LT crosses the threshold on the open gamepad map", () => {
+    const call = (axis: string, value: number, was: string, open: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.TriggerPressed("${axis}", ${value}, ${was}, ${open}))`, hotkeyStubs);
+    expect(call("TriggerLeft", 0.9, "false", "true")).toBe("true");
+    expect(call("TriggerLeft", 0.9, "true", "true")).toBe("false");
+    expect(call("TriggerLeft", 0.9, "false", "false")).toBe("false");
+    expect(call("TriggerLeft", 0.2, "false", "true")).toBe("false");
+    expect(call("TriggerRight", 0.9, "false", "true")).toBe("false");
   });
 });
 

@@ -34,7 +34,7 @@ local function register()
         Id = { Type = "String" },
         Label = { Type = "String" },
     })
-    local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" } }
+    local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" }, GridOpacity = { Type = "Single" } }
     for _, cat in ipairs(Points.Categories) do
         props["Cat_" .. cat] = { Type = "Collection" }
         props["Found_" .. cat] = { Type = "Collection" }
@@ -426,6 +426,8 @@ local hovered = {}
 local mouseSeen = -100000
 local padSeen = -100000
 local fogToggleQueued = false
+local gridToggleQueued = false
+Layer.GridOpacity = 0.2
 
 Layer.HoverMs = 1000
 
@@ -453,6 +455,10 @@ end
 
 function Layer.RequestFogToggle()
     fogToggleQueued = true
+end
+
+function Layer.RequestGridToggle()
+    gridToggleQueued = true
 end
 
 function Layer.MouseMapVisible()
@@ -730,6 +736,7 @@ function updatePlayer(found)
                 P.Log("layer attached to " .. entry.widget)
             end
             P.Set(shared, "LayerZ", Settings.FogOnly() and 0 or 1)
+            P.Set(shared, "GridOpacity", Settings.HideGrid() and 0.0 or Layer.GridOpacity)
             updateScale(entry, model)
             updateFilters(entry)
             updateCursor(entry)
@@ -742,6 +749,14 @@ end
 local function loop(gen)
     if not running or gen ~= loopGen then
         return
+    end
+    if gridToggleQueued then
+        gridToggleQueued = false
+        Settings.SetHideGrid(not Settings.HideGrid())
+        Settings.Save()
+        if BG3Atlas.Panel then
+            BG3Atlas.Panel.MarkDirty()
+        end
     end
     if fogToggleQueued then
         fogToggleQueued = false

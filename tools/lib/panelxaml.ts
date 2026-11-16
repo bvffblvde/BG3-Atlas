@@ -102,6 +102,7 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     `${pad(i + 8)}<StackPanel Orientation="Horizontal" Margin="-6,0,0,6">`,
     ...flatButton(i + 12, "ToggleFound", null, [`${pad(i + 16)}<TextBlock Text="{Binding FoundText}" Foreground="${dim}" FontSize="24"/>`]),
     ...flatButton(i + 12, "ToggleFog", null, [`${pad(i + 16)}<TextBlock Text="{Binding FogText}" Foreground="${dim}" FontSize="24"/>`]),
+    ...flatButton(i + 12, "ToggleGrid", null, [`${pad(i + 16)}<TextBlock Text="{Binding GridText}" Foreground="${dim}" FontSize="24"/>`]),
     `${pad(i + 8)}</StackPanel>`,
     `${pad(i + 8)}<Rectangle Height="2" Fill="#FF8C7346" Opacity="0.6" Margin="0,0,0,8"/>`,
     `${pad(i + 8)}<Grid>`,

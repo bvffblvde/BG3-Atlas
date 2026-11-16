@@ -14,6 +14,13 @@ end
 Hotkey.PadFoundButton = "RightShoulder"
 Hotkey.PadFogButton = "LeftShoulder"
 
+Hotkey.GridAxis = "TriggerLeft"
+Hotkey.TriggerThreshold = 0.5
+
+function Hotkey.TriggerPressed(axis, value, was, open)
+    return axis == Hotkey.GridAxis and value >= Hotkey.TriggerThreshold and not was and open == true
+end
+
 function Hotkey.PadFog(button, event, open)
     return button == Hotkey.PadFogButton and event == "KeyDown" and open == true
 end
@@ -91,4 +98,23 @@ Ext.Events.ControllerButtonInput:Subscribe(function(e)
         swallowUp = true
     end
     Layer.RequestToggle(player)
+end)
+
+local triggerDown = false
+
+Ext.Events.ControllerAxisInput:Subscribe(function(e)
+    local axis = P.Str(e.Axis)
+    if axis ~= Hotkey.GridAxis then
+        return
+    end
+    local value = tonumber(e.Value) or 0
+    local Layer = BG3Atlas.Layer
+    local open = Layer ~= nil and Layer.PadMapVisible()
+    if Hotkey.TriggerPressed(axis, value, triggerDown, open) then
+        Layer.RequestGridToggle()
+    end
+    triggerDown = value >= Hotkey.TriggerThreshold
+    if open and e.CanPreventAction then
+        e:PreventAction()
+    end
 end)

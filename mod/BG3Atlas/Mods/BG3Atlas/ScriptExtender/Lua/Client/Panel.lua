@@ -22,6 +22,8 @@ local function register()
         FoundText = { Type = "String" },
         FogText = { Type = "String" },
         ToggleFog = { Type = "Command" },
+        ToggleGrid = { Type = "Command" },
+        GridText = { Type = "String" },
         SearchHint = { Type = "String" },
         Query = {
             Type = "String",
@@ -82,6 +84,7 @@ local function fillModel(vm)
     P.Set(vm, "NoneText", text.none)
     P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
     P.Set(vm, "FogText", Settings.FogOnly() and text.fogOn or text.fogOff)
+    P.Set(vm, "GridText", Settings.HideGrid() and text.gridShow or text.gridHide)
     if P.Get(vm, "Query") ~= BG3Atlas.Search.Query() then
         P.Set(vm, "Query", BG3Atlas.Search.Query())
     end
@@ -141,6 +144,11 @@ local function newModel(player)
         if BG3Atlas.Layer then
             BG3Atlas.Layer.ForceRebuild()
         end
+        version = version + 1
+    end)
+    P.Handle(vm, "ToggleGrid", function()
+        Settings.SetHideGrid(not Settings.HideGrid())
+        Settings.Save()
         version = version + 1
     end)
     P.Handle(vm, "ToggleFound", function()

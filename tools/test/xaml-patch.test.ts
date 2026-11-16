@@ -56,6 +56,13 @@ describe("injectWorldMapLayer", () => {
     expect(out).toContain('<Grid x:Name="Shroud" IsHitTestVisible="False">');
   });
 
+  it("binds the grid opacity to the Atlas layer so the grid can be hidden", () => {
+    const gridTheme = theme.replace('                            <Grid x:Name="Shroud">', '                            <ItemsControl x:Name="ShroudedRooms"/>\r\n                            <Grid x:Name="Shroud" GridOpacity="0.20">');
+    const out = injectWorldMapLayer(gridTheme, snippet);
+    expect(out).toContain('GridOpacity="{Binding DataContext.GridOpacity, ElementName=BG3A_Layer, FallbackValue=0.20}"');
+    expect(out).not.toContain('GridOpacity="0.20"');
+  });
+
   it("refuses to inject twice", () => {
     expect(() => injectWorldMapLayer(injectWorldMapLayer(theme, snippet), snippet)).toThrow();
   });
@@ -70,6 +77,7 @@ describe("injectWorldMapLayer", () => {
       const out = patchTheme(theme);
       expect(out.split(layerMarker).length).toBe(2);
       expect(out.indexOf(layerMarker)).toBeLessThan(out.indexOf('x:Name="ShroudedRooms"'));
+      expect(out).toContain("ElementName=BG3A_Layer, FallbackValue=0.20}");
       for (const name of ["ShroudedRooms", "SemiShroudedRooms", "Shroud"]) {
         expect(out).toMatch(new RegExp(`x:Name="${name}" IsHitTestVisible="False"`));
       }

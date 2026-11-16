@@ -20,7 +20,8 @@ export function injectWorldMapLayer(xaml: string, snippet: string): string {
   const lineStart = xaml.lastIndexOf("\n", anchor) + 1;
   const eol = xaml.includes("\r\n") ? "\r\n" : "\n";
   const body = snippet.replace(/\r?\n/g, eol).replace(new RegExp(`(${eol})+$`), "");
-  const holderPart = xaml.slice(lineStart, holderClose).replace(/x:Name="(ShroudedRooms|SemiShroudedRooms|Shroud)"(?! IsHitTestVisible)/g, 'x:Name="$1" IsHitTestVisible="False"');
+  const holderPart = xaml.slice(lineStart, holderClose).replace(/x:Name="(ShroudedRooms|SemiShroudedRooms|Shroud)"(?! IsHitTestVisible)/g, 'x:Name="$1" IsHitTestVisible="False"')
+    .replace(/GridOpacity="([0-9.]+)"/g, 'GridOpacity="{Binding DataContext.GridOpacity, ElementName=BG3A_Layer, FallbackValue=$1}"');
   return xaml.slice(0, lineStart) + body + eol + holderPart + xaml.slice(holderClose);
 }
 
