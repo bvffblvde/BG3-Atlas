@@ -669,6 +669,9 @@ local function update()
     local groups = {}
     local order = {}
     local maps, panels = findMaps()
+    if #panels > 1 then
+        logOnce("panels" .. #panels, "panel widgets found: " .. #panels)
+    end
     if BG3Atlas.Panel then
         BG3Atlas.Panel.Reset()
         for _, p in ipairs(panels) do
