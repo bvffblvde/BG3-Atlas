@@ -150,3 +150,9 @@ Remaining:
 - Divine from LSLib v1.20.4 requires .NET 8, the machine has .NET 9: run with `DOTNET_ROLL_FORWARD=Major`.
 - Divine accepts only absolute paths in `-d`.
 - The `-x` mask during unpacking works as a glob over the path inside the pak, for example `-x "Mods/Gustav/Levels/WLD_Main_A/*"`.
+
+## Open bug: detached sublevels drawn on the surface (2026-11-16)
+
+- Lower City basements and other detached sublevels (`CTY_*_Basement_A`, `CTY_Catacombs_A`, `CTY_DockWarehouseBasement_A` and more) sit far outside the city in world space and have no WorldMap submap region, so the extractor leaves `submap = null` and the mod draws their points on the surface map, in the sea and fog around the city.
+- Tried rule: a sublevel is detached when no surface point of the main level lies within 30 m of its bounding box. It does not work: the main level `CTY_Main_A` itself places objects inside the basement areas, so only 6 sublevels across all maps qualify.
+- Next idea: give each detached sublevel a synthetic submap box from its LevelTemplate bounds (or the point bounding box), shown only when the player is inside. How the vanilla map behaves while the player is in such a basement is unverified.

@@ -234,9 +234,37 @@ function findEdge(): string {
   return found;
 }
 
-function render(name: string, html: string): void {
-  const htmlPath = path.join(outDir, `${name}.html`);
-  const pngPath = path.join(outDir, `${name}.png`);
+export function coverShotHtml(background: string, layout: "left" | "right" = "left"): string {
+  const right = layout === "right";
+  const fade = right
+    ? "linear-gradient(0deg, rgba(14,9,4,0.92) 0%, rgba(14,9,4,0.55) 26%, rgba(14,9,4,0) 46%), linear-gradient(270deg, rgba(14,9,4,0.75) 0%, rgba(14,9,4,0) 40%)"
+    : "linear-gradient(90deg, rgba(14,9,4,0.97) 0%, rgba(14,9,4,0.9) 30%, rgba(14,9,4,0.35) 52%, rgba(14,9,4,0) 70%)";
+  const place = right ? "right: 130px; bottom: 90px; text-align: right;" : "left: 150px; top: 330px;";
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${base}
+  .shot { position: absolute; inset: 0; background: url("${background}") center / cover no-repeat; }
+  .fade { position: absolute; inset: 0; background: ${fade}; }
+  .title { position: absolute; ${place} width: 760px; }
+  .title .rule { margin-left: ${right ? "auto" : "0"}; }
+  .title p { margin-left: ${right ? "auto" : "0"} !important; }
+  .title h1 { margin: 0; font-weight: normal; font-size: 168px; line-height: 0.92; letter-spacing: -2px; color: #f4e2ac; text-shadow: 0 4px 30px rgba(0,0,0,0.8); }
+  .title h1 span { display: block; font-size: 64px; letter-spacing: 1px; color: #c9a45c; margin-bottom: 18px; }
+  .rule { width: 120px; height: 2px; background: #c9a45c; margin: 40px 0 34px; }
+  .title p { margin: 0; font-size: 34px; line-height: 1.38; color: #dcc896; font-style: italic; max-width: 600px; }
+  </style></head><body>
+  <div class="shot"></div>
+  <div class="fade"></div>
+  <div class="vignette"></div>
+  <div class="title">
+    <h1><span>BG3</span>Atlas</h1>
+    <div class="rule"></div>
+    <p>Every chest, stash, trap and trader, marked on your in-game map.</p>
+  </div>
+  </body></html>`;
+}
+
+function render(name: string, html: string, dir = outDir): void {
+  const htmlPath = path.join(dir, `${name}.html`);
+  const pngPath = path.join(dir, `${name}.png`);
   writeFileSync(htmlPath, html);
   execFileSync(findEdge(), [
     "--headless=new",
@@ -251,6 +279,13 @@ function render(name: string, html: string): void {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
+  const shot = process.argv.indexOf("--shot");
+  if (shot > 0) {
+    const bg = path.resolve(process.argv[shot + 1]);
+    const layout = process.argv.includes("--right") ? "right" : "left";
+    render("cover-shot", coverShotHtml(pathToFileURL(bg).href, layout), path.dirname(bg));
+    process.exit(0);
+  }
   mkdirSync(outDir, { recursive: true });
   render("cover", coverHtml());
   render("legend", legendHtml());
