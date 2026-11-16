@@ -302,6 +302,43 @@ export function bannerHtml(background: string, focusY: number, languages: string
   </body></html>`;
 }
 
+export function thumbHtml(background: string, shot: string): string {
+  const ids = groups.flatMap((g) => g.ids);
+  const strip = ids.map((id) => iconSvg(id, 58)).join("");
+  const facts = ["Respects the fog of war", "Search, filters, found tracking", "Gamepad and split screen", "All three acts"].map((t) => `<li>${t}</li>`).join("");
+  const langs = ["EN", "RU", "PT-BR"].map((l) => `<span>${l}</span>`).join("");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1920px; height: 1080px; overflow: hidden; background: #120c06; ${fonts} color: #f2dda0; }
+  .bg { position: absolute; inset: -40px; background: url("${background}") center / cover; filter: blur(14px) brightness(0.35) saturate(0.8); }
+  .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 260px 80px rgba(0,0,0,0.85); }
+  .left { position: absolute; left: 110px; top: 150px; width: 640px; }
+  .left h1 { margin: 0; font-weight: normal; font-size: 150px; line-height: 0.9; color: #f4e2ac; letter-spacing: -2px; text-shadow: 0 4px 28px rgba(0,0,0,0.9); }
+  .left h1 span { display: block; font-size: 58px; color: #c9a45c; letter-spacing: 1px; margin-bottom: 14px; }
+  .rule { width: 110px; height: 2px; background: #c9a45c; margin: 36px 0 30px; }
+  .left p { margin: 0 0 30px; font-size: 34px; line-height: 1.35; font-style: italic; color: #dcc896; }
+  .left ul { margin: 0; padding: 0; list-style: none; }
+  .left li { font-size: 30px; line-height: 1.6; color: #f2dda0; padding-left: 34px; position: relative; }
+  .left li::before { content: ""; position: absolute; left: 4px; top: 19px; width: 12px; height: 12px; transform: rotate(45deg); background: #c9a45c; }
+  .langs { margin-top: 34px; display: flex; gap: 12px; }
+  .langs span { font-size: 22px; letter-spacing: 1px; border: 1px solid #c9a45c; background: rgba(26,18,8,0.85); padding: 6px 14px 5px; border-radius: 3px; }
+  .frame { position: absolute; right: 100px; top: 120px; width: 1000px; height: 562px; border: 3px solid #8c7346; box-shadow: 0 0 0 1px #2a1d10, 0 24px 70px rgba(0,0,0,0.8); background: url("${shot}") center / cover; }
+  .strip { position: absolute; left: 0; right: 0; bottom: 70px; display: flex; justify-content: center; gap: 22px; padding: 26px 0; background: linear-gradient(90deg, rgba(14,9,4,0) 0%, rgba(14,9,4,0.88) 15%, rgba(14,9,4,0.88) 85%, rgba(14,9,4,0) 100%); border-top: 1px solid rgba(201,164,92,0.35); border-bottom: 1px solid rgba(201,164,92,0.35); }
+  .strip svg { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); }
+  </style></head><body>
+  <div class="bg"></div><div class="vignette"></div>
+  <div class="frame"></div>
+  <div class="left">
+    <h1><span>BG3</span>Atlas</h1>
+    <div class="rule"></div>
+    <p>Every chest, stash, trap and trader on your <span style="white-space: nowrap">in-game map</span></p>
+    <ul>${facts}</ul>
+    <div class="langs">${langs}</div>
+  </div>
+  <div class="strip">${strip}</div>
+  </body></html>`;
+}
+
 function render(name: string, html: string, dir = outDir, size = "1920,1080", scale = 1): void {
   const htmlPath = path.join(dir, `${name}.html`);
   const pngPath = path.join(dir, `${name}.png`);
@@ -319,6 +356,13 @@ function render(name: string, html: string, dir = outDir, size = "1920,1080", sc
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
+  const thumb = process.argv.indexOf("--thumb");
+  if (thumb > 0) {
+    const bg = path.resolve(process.argv[thumb + 1]);
+    const shot = path.resolve(process.argv[thumb + 2]);
+    render("thumbnail", thumbHtml(pathToFileURL(bg).href, pathToFileURL(shot).href), path.dirname(shot));
+    process.exit(0);
+  }
   const banner = process.argv.indexOf("--banner");
   if (banner > 0) {
     const bg = path.resolve(process.argv[banner + 1]);
