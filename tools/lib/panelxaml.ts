@@ -82,7 +82,7 @@ export function padHintBar(): string {
 export function panelXaml(mode: PanelMode = "mouse"): string {
   const i = 16;
   const visibility = mode === "pad" ? ' Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"' : "";
-  const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Grid.Row="1" Margin="60,170,0,0"';
+  const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Margin="60,340,0,0"';
   const lines = [
     `${pad(i)}<Border x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14"${visibility}>`,
     `${pad(i + 4)}<StackPanel>`,
@@ -125,4 +125,46 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     "",
   ];
   return lines.join("\n");
+}
+
+export function panelWidget(mode: PanelMode): string {
+  const name = mode === "pad" ? "BG3A_PanelWidget_c" : "BG3A_PanelWidget";
+  const hints =
+    mode === "pad"
+      ? [`            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="60,160,0,0">`, padHintBar(), `            </StackPanel>`]
+      : [];
+  return [
+    `<ls:UIWidget x:Name="${name}"`,
+    `             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"`,
+    `             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"`,
+    `             xmlns:ls="clr-namespace:ls;assembly=Code">`,
+    `    <ls:UIWidget.Template>`,
+    `        <ControlTemplate>`,
+    `            <Grid x:Name="BG3A_Root">`,
+    panelXaml(mode),
+    ...hints,
+    `            </Grid>`,
+    `        </ControlTemplate>`,
+    `    </ls:UIWidget.Template>`,
+    `</ls:UIWidget>`,
+    "",
+  ].join("\n");
+}
+
+export function panelStateMachine(mode: PanelMode): string {
+  const file = mode === "pad" ? "BG3A_Panel_c.xaml" : "BG3A_Panel.xaml";
+  return [
+    `<ls:StateMachine xmlns:ls="clr-namespace:ls;assembly=Code"`,
+    `                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"`,
+    `                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">`,
+    `    <ls:StateMachine.States>`,
+    `        <ls:State Name="JournalMap" ModType="Extend">`,
+    `            <ls:State.Widgets>`,
+    `                <ls:StateWidget Filename="${file}" Layer="PopupPanels"/>`,
+    `            </ls:State.Widgets>`,
+    `        </ls:State>`,
+    `    </ls:StateMachine.States>`,
+    `</ls:StateMachine>`,
+    "",
+  ].join("\n");
 }

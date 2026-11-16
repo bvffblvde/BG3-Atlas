@@ -4,6 +4,13 @@ local Hotkey = {}
 BG3Atlas.Hotkey = Hotkey
 
 Hotkey.FoundKey = "F"
+Hotkey.DebounceMs = 300
+
+local lastFound = -100000
+
+function Hotkey.Accept(now, last)
+    return now - last >= Hotkey.DebounceMs
+end
 Hotkey.PadFoundButton = "RightShoulder"
 Hotkey.PadFogButton = "LeftShoulder"
 
@@ -19,9 +26,14 @@ function Hotkey.PadTarget(button, event, players)
 end
 
 Ext.Events.KeyInput:Subscribe(function(e)
-    if not e.Pressed or e.Repeat or P.Str(e.Key) ~= Hotkey.FoundKey then
+    if not e.Pressed or e.Repeat or P.Str(e.Event) ~= "KeyDown" or P.Str(e.Key) ~= Hotkey.FoundKey then
         return
     end
+    local now = Ext.Timer.MonotonicTime()
+    if not Hotkey.Accept(now, lastFound) then
+        return
+    end
+    lastFound = now
     local Layer = BG3Atlas.Layer
     if not Layer or not Layer.MouseMapVisible() then
         return

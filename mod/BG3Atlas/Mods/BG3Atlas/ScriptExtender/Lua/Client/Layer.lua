@@ -9,6 +9,7 @@ Layer.IconPixels = { JournalMap = 40, JournalMap_c = 40, Minimap = 32 }
 Layer.IconUnits = 24
 Layer.PeriodMs = 250
 Layer.Widgets = { JournalMap = true, JournalMap_c = true, Minimap = true }
+Layer.PanelWidgets = { BG3A_PanelWidget = true, BG3A_PanelWidget_c = true }
 
 local registered = false
 local models = {}
@@ -324,17 +325,20 @@ end
 
 local function findMaps()
     local out = {}
+    local panels = {}
     local ok, content = pcall(function()
         return Ext.UI.GetRoot():Find("ContentRoot")
     end)
     if not ok or not content then
-        return out
+        return out, panels
     end
     local function collect(node, depth)
         for _, child in ipairs(children(node)) do
             local wname = P.Get(child, "Name")
             local isWidget = P.Str(P.Get(child, "Type")) == "ls.UIWidget"
-            if isWidget and wname and Layer.Widgets[wname] then
+            if isWidget and wname and Layer.PanelWidgets[wname] then
+                panels[#panels + 1] = { node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
+            elseif isWidget and wname and Layer.Widgets[wname] then
                 local entry = { widget = wname, node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
                 findMap(child, 0, entry)
                 if entry.map then
@@ -346,7 +350,7 @@ local function findMaps()
         end
     end
     collect(content, 0)
-    return out
+    return out, panels
 end
 
 local function isOurs(dc)
@@ -538,7 +542,7 @@ local function updateCursor(entry)
         return
     end
     local text = best and pointLabel(best, BG3Atlas.Found.IsFound(best.id)) or ""
-    if text ~= lastCursorText and BG3Atlas.Panel.SetCursorInfo(entry.node, text) then
+    if text ~= lastCursorText and BG3Atlas.Panel.SetCursorInfo(entry.player, text) then
         lastCursorText = text
     end
 end
@@ -656,7 +660,14 @@ local function update()
     register()
     local groups = {}
     local order = {}
-    for _, entry in ipairs(findMaps()) do
+    local maps, panels = findMaps()
+    if BG3Atlas.Panel then
+        BG3Atlas.Panel.Reset()
+        for _, p in ipairs(panels) do
+            BG3Atlas.Panel.Update(p.node, p.player)
+        end
+    end
+    for _, entry in ipairs(maps) do
         local pid = entry.player or 1
         if not groups[pid] then
             groups[pid] = {}
@@ -724,9 +735,6 @@ function updatePlayer(found)
             updateCursor(entry)
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")
-        end
-        if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
-            BG3Atlas.Panel.Update(entry.node, entry.player)
         end
     end
 end

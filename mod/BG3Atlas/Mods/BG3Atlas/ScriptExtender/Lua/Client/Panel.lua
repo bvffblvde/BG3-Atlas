@@ -75,15 +75,16 @@ function Panel.SearchFocused()
     return searchFocused
 end
 
-local function newModel(player)
+local function fillModel(vm)
     local text = BG3Atlas.Locale.Text(Settings.Language())
-    local vm = Ext.UI.Instantiate("BG3A_Panel")
     P.Set(vm, "Title", text.title)
     P.Set(vm, "AllText", text.all)
     P.Set(vm, "NoneText", text.none)
     P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
     P.Set(vm, "FogText", Settings.FogOnly() and text.fogOn or text.fogOff)
-    P.Set(vm, "Query", BG3Atlas.Search.Query())
+    if P.Get(vm, "Query") ~= BG3Atlas.Search.Query() then
+        P.Set(vm, "Query", BG3Atlas.Search.Query())
+    end
     P.Set(vm, "SearchHint", BG3Atlas.Search.Hint())
     local map = BG3Atlas.Layer and BG3Atlas.Layer.CurrentMap()
     local counts = Points.Counts(map)
@@ -104,6 +105,11 @@ local function newModel(player)
     end
     P.Set(vm, "PadHint", text.padHint)
     P.Set(vm, "ToggleMarkText", text.toggleMark)
+end
+
+local function newModel(player)
+    local vm = Ext.UI.Instantiate("BG3A_Panel")
+    fillModel(vm)
     local n = #Points.Categories
     P.Handle(vm, "PadPrev", function()
         selected = (selected - 2) % n + 1
@@ -146,6 +152,7 @@ local function newModel(player)
         local cat = paramString(param)
         Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
         Settings.Save()
+        P.Log("panel toggle " .. P.Str(cat) .. " -> " .. tostring(Settings.IsEnabled(cat)))
         version = version + 1
     end)
     P.Handle(vm, "ShowAll", function()
@@ -208,8 +215,15 @@ local function findPanel(node, depth)
     return nil
 end
 
+local panelNodes = {}
+
+function Panel.Reset()
+    panelNodes = {}
+end
+
 function Panel.Update(widget, player)
     register()
+    panelNodes[player or 1] = widget
     local panel = findPanel(widget, 0)
     if not panel then
         return false
@@ -217,8 +231,11 @@ function Panel.Update(widget, player)
     local dc = P.Get(panel, "DataContext")
     local ours = dc and P.Str(P.Get(dc, "Type")):find("BG3A_Panel", 1, true)
     local key = player or 1
-    if applied[key] ~= version or not ours then
+    if not ours then
         panel.DataContext = newModel(key)
+        applied[key] = version
+    elseif applied[key] ~= version then
+        fillModel(dc)
         applied[key] = version
     end
     local box = findNamed(panel, "BG3A_SearchBox", 0)
@@ -231,8 +248,9 @@ function Panel.Update(widget, player)
     return true
 end
 
-function Panel.SetCursorInfo(widget, text)
-    local info = findNamed(widget, "BG3A_CursorInfo", 0)
+function Panel.SetCursorInfo(player, text)
+    local widget = panelNodes[player or 1]
+    local info = widget and findNamed(widget, "BG3A_CursorInfo", 0)
     if not info then
         return false
     end

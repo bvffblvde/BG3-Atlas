@@ -9,7 +9,8 @@ import type { Submap } from "./lib/submaps.ts";
 import { readLsxFile } from "./lib/lsx.ts";
 import { loadSubmaps } from "./lib/submaps.ts";
 import { TemplateIndex } from "./lib/templates.ts";
-import { ensureUnpacked, journalPages, patchJournal, patchTheme, worldMapThemes } from "./lib/themes.ts";
+import { panelStateMachine, panelWidget } from "./lib/panelxaml.ts";
+import { ensureUnpacked, patchTheme, worldMapThemes } from "./lib/themes.ts";
 
 const source = path.join(repoRoot, "mod", "BG3Atlas");
 const stage = path.join(repoRoot, "work", "build", "BG3Atlas");
@@ -43,11 +44,15 @@ for (const theme of withTheme ? worldMapThemes : []) {
   console.log(`${vanilla ? "copied vanilla" : "patched"} ${theme.file}`);
 }
 
-for (const page of withTheme && !process.argv.includes("--theme-vanilla") && !process.argv.includes("--no-panel") ? journalPages : []) {
-  const target = path.join(stage, ...page.file.split("/"));
-  mkdirSync(path.dirname(target), { recursive: true });
-  writeFileSync(target, patchJournal(page));
-  console.log(`patched ${page.file}`);
+if (!process.argv.includes("--no-panel")) {
+  const gui = path.join(stage, "Mods", "BG3Atlas", "GUI");
+  mkdirSync(path.join(gui, "Pages"), { recursive: true });
+  mkdirSync(path.join(gui, "StateMachines"), { recursive: true });
+  writeFileSync(path.join(gui, "Pages", "BG3A_Panel.xaml"), panelWidget("mouse"));
+  writeFileSync(path.join(gui, "Pages", "BG3A_Panel_c.xaml"), panelWidget("pad"));
+  writeFileSync(path.join(gui, "StateMachines", "Keyboard.xaml"), panelStateMachine("mouse"));
+  writeFileSync(path.join(gui, "StateMachines", "Controller.xaml"), panelStateMachine("pad"));
+  console.log("generated panel widgets");
 }
 
 mkdirSync(outDir, { recursive: true });

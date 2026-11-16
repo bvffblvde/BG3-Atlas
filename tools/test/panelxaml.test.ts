@@ -2,9 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { XMLValidator } from "fast-xml-parser";
 import { describe, expect, it } from "vitest";
 import { categoryRules } from "../categories.ts";
-import { padHintBar, panelXaml } from "../lib/panelxaml.ts";
+import { padHintBar, panelStateMachine, panelWidget, panelXaml } from "../lib/panelxaml.ts";
 import { injectBefore } from "../lib/xaml-patch.ts";
-import { journalPages, patchJournal, unpackedPath } from "../lib/themes.ts";
 
 const ids = categoryRules.map((r) => r.id);
 const xaml = panelXaml();
@@ -41,7 +40,7 @@ describe("panelXaml", () => {
     const showAll = xaml.indexOf("{Binding ShowAll}");
     expect(title).toBeLessThan(search);
     expect(search).toBeLessThan(showAll);
-    expect(xaml).toContain('Grid.Row="1" Margin="60,170,0,0"');
+    expect(xaml).toContain('Margin="60,340,0,0"');
   });
 
   it("avoids constructs that crashed the game", () => {
@@ -112,16 +111,30 @@ describe("injectBefore", () => {
   });
 });
 
-const unpackedPages = journalPages.filter((t) => existsSync(unpackedPath(t)));
+describe("panelWidget", () => {
+  it.each([["mouse", "BG3A_PanelWidget"], ["pad", "BG3A_PanelWidget_c"]] as const)("builds a well formed %s widget named %s", (mode, name) => {
+    const w = panelWidget(mode);
+    expect(XMLValidator.validate(w)).toBe(true);
+    expect(w).toContain(`<ls:UIWidget x:Name="${name}"`);
+    expect(w.split('x:Name="BG3A_Panel"').length).toBe(2);
+    expect(w).toContain('<Grid x:Name="BG3A_Root">');
+    expect(w).not.toMatch(/BG3A_Root"[^>]*Background/);
+  });
 
-describe.skipIf(unpackedPages.length === 0)("patchJournal", () => {
-  it.each(unpackedPages.map((t) => [t.file, t] as const))("patches %s once before the legend", (_, page) => {
-    const out = patchJournal(page);
-    expect(out.split('x:Name="BG3A_Panel"').length).toBe(2);
-    expect(out.indexOf('x:Name="BG3A_Panel"')).toBeLessThan(out.indexOf('x:Name="Legend"'));
-    expect(out.length).toBeGreaterThan(readFileSync(unpackedPath(page), "utf8").length);
-    const padButtons = out.split('x:Name="BG3A_PadBtn"').length - 1;
-    expect(padButtons).toBe(page.mode === "pad" ? 1 : 0);
-    if (page.mode === "pad") expect(out.indexOf('x:Name="BG3A_PadBtn"')).toBeLessThan(out.indexOf('x:Name="LegendBtn"'));
+  it("carries the gamepad toggle, navigation and hints only in the pad widget", () => {
+    expect(panelWidget("pad")).toContain('x:Name="BG3A_PadBtn"');
+    expect(panelWidget("pad")).toContain('BoundEvent="UIAccept"');
+    expect(panelWidget("mouse")).not.toContain("BG3A_PadBtn");
+    expect(panelWidget("mouse")).toContain("BG3A_SearchBox");
+  });
+});
+
+describe("panelStateMachine", () => {
+  it.each([["mouse", "BG3A_Panel.xaml"], ["pad", "BG3A_Panel_c.xaml"]] as const)("extends the journal map state with the %s widget", (mode, file) => {
+    const sm = panelStateMachine(mode);
+    expect(XMLValidator.validate(sm)).toBe(true);
+    expect(sm).toContain('<ls:State Name="JournalMap" ModType="Extend">');
+    expect(sm).toContain(`<ls:StateWidget Filename="${file}" Layer="PopupPanels"/>`);
+    expect(sm.split("<ls:State ").length).toBe(2);
   });
 });

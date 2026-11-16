@@ -132,6 +132,13 @@ BG3Atlas.Probe = { Str = tostring }
 Ext.Events = { KeyInput = { Subscribe = function() end }, ControllerButtonInput = { Subscribe = function() end } }
 `;
 
+describe("Hotkey.Accept", () => {
+  it("ignores a second F press within the debounce window", () => {
+    expect(run(["Hotkey.lua"], "tostring(BG3Atlas.Hotkey.Accept(1000, 900))", hotkeyStubs)).toBe("false");
+    expect(run(["Hotkey.lua"], "tostring(BG3Atlas.Hotkey.Accept(1300, 900))", hotkeyStubs)).toBe("true");
+  });
+});
+
 describe("Hotkey.PadFog", () => {
   const call = (button: string, ev: string, open: string) => run(["Hotkey.lua"], `tostring(BG3Atlas.Hotkey.PadFog("${button}", "${ev}", ${open}))`, hotkeyStubs);
 

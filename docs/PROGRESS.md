@@ -193,3 +193,10 @@ Remaining:
 - Its map icons and windows are IMGUI overlays (`Ext.IMGUI.NewWindow`, `AddImage`) positioned through its own world to screen transform, not Noesis elements, so they should coexist with our XAML layer. Risks: IMGUI windows taking mouse input over our tooltips and the F hotkey, and its map scale and subregion lock settings changing `LSWorldMap` properties we read.
 - Its fog of war toggle only changes `Opacity` of the template elements `ShroudedRooms`, `SemiShroudedRooms` and `Shroud`. It does not read which areas are explored, so it does not help our "Explored only" filter.
 - Idea for our own Better Maps and Clear Map compatibility: an overlay that does not live inside the `LSWorldMap` template survives template replacement. IMGUI would not look native and needs checking with a gamepad.
+
+## Panel as its own widget (2026-11-16)
+
+- The Atlas panel no longer patches `JournalMap.xaml` and `JournalMap_c.xaml`. The build generates `GUI/Pages/BG3A_Panel.xaml` (mouse) and `BG3A_Panel_c.xaml` (pad) plus `GUI/StateMachines/Keyboard.xaml` and `Controller.xaml` that add them to the `JournalMap` state with `ModType="Extend"` on the `PopupPanels` layer.
+- Verified in game: the widget shows on both map pages, the panel, search, category clicks, gamepad L3, D-pad, A, RB and LB work. With Better Map All-In-One the widget shows only when BG3 Atlas is loaded after Better Map (its `ModType="Override"` replaces the state, our `Extend` must come later).
+- Lua finds panel widgets by name (`BG3A_PanelWidget`, `BG3A_PanelWidget_c`) and player id and updates the existing view model in place instead of replacing it on every change.
+- F hotkey: one press sometimes arrived twice (on and off in consecutive ticks), now only `KeyDown` counts and repeats within 300 ms are ignored. Split screen with two panels: unverified.
