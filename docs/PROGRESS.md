@@ -143,6 +143,7 @@ Remaining:
 
 - `X`: `UIMapAddCustomMarker` (place marker). `Y`: `UIDelete` (waypoint list) and also `UITakeAll` and `UIMessageBoxY`, so those two must not be used. `A`: `UIAccept` (fast travel to the hovered waypoint, Atlas toggle while the panel is open). `B`: `UICancel`. Left stick click: `UIFilter` (Atlas). `UISort`: legend. Right stick click: `UIShowInfo` (center).
 - Script Extender exposes raw pad buttons through `Ext.Events.ControllerButtonInput` (`Button`, `Pressed`, `DeviceId`) and triggers through `Ext.Events.ControllerAxisInput`.
+- Found marking on the pad is RB through `ControllerButtonInput` with `PreventAction`, only while a pad map cursor hovers a point (unverified in game). In split screen with several pad players hovering, the lowest player number wins because `DeviceId` is not mapped to players yet.
 
 ## Environment notes
 
