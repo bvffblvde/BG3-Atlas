@@ -70,6 +70,16 @@ describe("Locale", () => {
   });
 });
 
+describe("Settings map style", () => {
+  it("cycles normal, no grid, clear and back", () => {
+    expect(run(["Settings.lua"], '(function() local out = {} for _ = 1, 4 do S.NextMapStyle() out[#out + 1] = S.MapStyle() end return table.concat(out, ",") end)()')).toBe("1,2,0,1");
+  });
+
+  it("maps each style to grid and fog opacity", () => {
+    expect(run(["Settings.lua"], '(function() local out = {} for st = 0, 2 do local g, f = S.StyleOpacity(st, 0.2) out[#out + 1] = g .. "/" .. f end return table.concat(out, " ") end)()')).toBe("0.2/1 0.0/1 0.0/0.8");
+  });
+});
+
 describe("Settings.Parse", () => {
   it("treats broken json as defaults", () => {
     expect(run(["Settings.lua"], 'tostring(next(S.Parse("{oops").disabled) == nil and S.Parse("{oops").hideFound == false)')).toBe("true");
@@ -97,9 +107,13 @@ describe("Settings.Parse", () => {
     const stubbedParse = 'Ext.Json.Parse = function() return { language = "pt-BR" } end\n';
     expect(run(["Settings.lua"], `(function() ${stubbedParse} return tostring(S.Parse("x").language) end)()`)).toBe("pt-BR");
     expect(run(["Settings.lua"], "tostring(S.Parse(nil).language)")).toBe("nil");
-    expect(run(["Settings.lua"], "tostring(S.Parse(nil).hideGrid)")).toBe("false");
-    const grid = 'Ext.Json.Parse = function() return { hideGrid = true } end\n';
-    expect(run(["Settings.lua"], `(function() ${grid} return tostring(S.Parse("x").hideGrid) end)()`)).toBe("true");
+    expect(run(["Settings.lua"], "tostring(S.Parse(nil).mapStyle)")).toBe("0");
+    const old = 'Ext.Json.Parse = function() return { hideGrid = true } end\n';
+    expect(run(["Settings.lua"], `(function() ${old} return tostring(S.Parse("x").mapStyle) end)()`)).toBe("1");
+    const clear = 'Ext.Json.Parse = function() return { mapStyle = 2 } end\n';
+    expect(run(["Settings.lua"], `(function() ${clear} return tostring(S.Parse("x").mapStyle) end)()`)).toBe("2");
+    const bad = 'Ext.Json.Parse = function() return { mapStyle = 7 } end\n';
+    expect(run(["Settings.lua"], `(function() ${bad} return tostring(S.Parse("x").mapStyle) end)()`)).toBe("0");
   });
 
   it("treats a missing file as defaults", () => {

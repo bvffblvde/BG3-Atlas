@@ -4,11 +4,11 @@ BG3Atlas.Settings = S
 S.File = "BG3Atlas/settings.json"
 S.DefaultOff = { container = true, remains = true }
 
-local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, hideGrid = false }
+local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0 }
 local lang = nil
 
 function S.Parse(text)
-    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, hideGrid = false }
+    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0 }
     if type(text) ~= "string" or text == "" then
         return out
     end
@@ -18,7 +18,12 @@ function S.Parse(text)
     end
     out.hideFound = data.hideFound == true
     out.fogOnly = data.fogOnly ~= false
-    out.hideGrid = data.hideGrid == true
+    local style = tonumber(data.mapStyle)
+    if style == 0 or style == 1 or style == 2 then
+        out.mapStyle = style
+    elseif data.hideGrid == true then
+        out.mapStyle = 1
+    end
     if type(data.language) == "string" and data.language ~= "" then
         out.language = data.language
     end
@@ -49,7 +54,7 @@ local function jsonSet(set)
 end
 
 function S.Save()
-    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. ',"hideGrid":' .. (state.hideGrid and "true" or "false") .. (state.language and (',"language":"' .. state.language .. '"') or "") .. "}"
+    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. ',"mapStyle":' .. tostring(state.mapStyle or 0) .. (state.language and (',"language":"' .. state.language .. '"') or "") .. "}"
     Ext.IO.SaveFile(S.File, text)
 end
 
@@ -82,12 +87,23 @@ function S.SetHideFound(on)
     state.hideFound = on == true
 end
 
-function S.HideGrid()
-    return state.hideGrid == true
+S.ClearFogOpacity = 0.8
+
+function S.MapStyle()
+    return state.mapStyle or 0
 end
 
-function S.SetHideGrid(on)
-    state.hideGrid = on == true
+function S.NextMapStyle()
+    state.mapStyle = ((state.mapStyle or 0) + 1) % 3
+end
+
+function S.StyleOpacity(style, grid)
+    if style == 1 then
+        return "0.0", "1"
+    elseif style == 2 then
+        return "0.0", tostring(S.ClearFogOpacity)
+    end
+    return tostring(grid), "1"
 end
 
 function S.FogOnly()

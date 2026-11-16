@@ -212,3 +212,8 @@ Remaining:
 - Verified in game: fog of war layer, LB and LT toggles, hide grid, panel widget on mouse and gamepad, split screen panels, tooltips next to the icon, compact panel rows, F with a working counter.
 - Package: `dist/release/v1.1/BG3Atlas-1.1.0.zip` (meta Version64 36169534507319296). Nexus description, banner and changelog are in `dist/release/v1.1/`.
 - Still open: F on mouse does not refresh the tooltip and dimmed style of the hovered icon until the cursor leaves it, Lower City vault and harbour points on the surface map, Auntie Ethel teahouse state variants, Blighted Village waypoint unverified in game, Brazilian Portuguese point names (needs the game's pt-BR localization pak).
+
+## Map styles (next version, unverified in game)
+
+- `LT` and the panel button cycle three map styles: default (vanilla grid and fog), no grid, clear (no grid, `Shroud` at 0.8 opacity like Clear Map No Grid Transparent Shroud). Settings store `mapStyle` 0..2, old `hideGrid: true` reads as 1.
+- With the clear style the Atlas icons under the fog are faintly visible too, so "Explored only" no longer hides them fully.

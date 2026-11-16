@@ -34,7 +34,7 @@ local function register()
         Id = { Type = "String" },
         Label = { Type = "String" },
     })
-    local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" }, GridOpacity = { Type = "Single" } }
+    local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" }, GridOpacity = { Type = "Single" }, ShroudOpacity = { Type = "Single" } }
     for _, cat in ipairs(Points.Categories) do
         props["Cat_" .. cat] = { Type = "Collection" }
         props["Found_" .. cat] = { Type = "Collection" }
@@ -736,7 +736,9 @@ function updatePlayer(found)
                 P.Log("layer attached to " .. entry.widget)
             end
             P.Set(shared, "LayerZ", Settings.FogOnly() and 0 or 1)
-            P.Set(shared, "GridOpacity", Settings.HideGrid() and 0.0 or Layer.GridOpacity)
+            local grid, fog = Settings.StyleOpacity(Settings.MapStyle(), Layer.GridOpacity)
+            P.Set(shared, "GridOpacity", tonumber(grid))
+            P.Set(shared, "ShroudOpacity", tonumber(fog))
             updateScale(entry, model)
             updateFilters(entry)
             updateCursor(entry)
@@ -752,7 +754,7 @@ local function loop(gen)
     end
     if gridToggleQueued then
         gridToggleQueued = false
-        Settings.SetHideGrid(not Settings.HideGrid())
+        Settings.NextMapStyle()
         Settings.Save()
         if BG3Atlas.Panel then
             BG3Atlas.Panel.MarkDirty()

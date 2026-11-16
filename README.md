@@ -96,7 +96,7 @@ Enable or disable the mod from the main menu, not while a save is loaded.
 | See a point's name | Hover the icon | Move the map cursor onto it, the name shows in the panel |
 | Mark or unmark as found | Hover the icon and press `F` | Move the map cursor onto it and press `RB` |
 | Explored only or everywhere | The button in the panel | `LB` |
-| Hide or show the map grid | The button in the panel | `LT` |
+| Map style: default, no grid, clear | The button in the panel | `LT` |
 | Search | Type in the search box | Not available |
 
 `F` does nothing while you type in the search box.
@@ -122,7 +122,7 @@ In the Script Extender console:
 
 - Automatic marking needs the object to be loaded near you. Items taken out of a container are not points of their own, the container is.
 - Found marks in online multiplayer are kept per client and may overwrite each other. Single player and split screen are fine.
-- Better Maps All-In-One by Caites: Better Map Icons works. With Better Map (scale versions) put BG3 Atlas **below** it in the load order, otherwise the Atlas panel does not show. Clear Map replaces the whole map template and hides the Atlas icons: remove it and use "Hide grid" in the Atlas panel (or `LT`) instead.
+- Better Maps All-In-One by Caites: Better Map Icons works. With Better Map (scale versions) put BG3 Atlas **below** it in the load order, otherwise the Atlas panel does not show. Clear Map replaces the whole map template and hides the Atlas icons: remove it and switch the map style in the Atlas panel (or `LT`): "no grid" or "clear" (no grid and see-through fog).
 - Mazzle's Maps Unleashed works alongside BG3 Atlas.
 
 ## 🛠️ Build from source
@@ -186,7 +186,7 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 - [ ] Lower City basement points drawn on the surface map
 - [ ] In-game testing of act 2, clean profile check
 - [x] "Explored only": icons stay under the fog of war until you explore the area
-- [x] Better Maps All-In-One and Maps Unleashed compatibility, built in "Hide grid"
+- [x] Better Maps All-In-One and Maps Unleashed compatibility, built in map styles (no grid, clear fog)
 
 Have an idea or found a misplaced icon? [Open an issue](https://github.com/bvffblvde/BG3-Atlas/issues).
 
