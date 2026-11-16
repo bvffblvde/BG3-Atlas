@@ -70,6 +70,7 @@ describe("layerXaml", () => {
   it("keeps the projection on the whole layer", () => {
     expect(xaml).toContain("ProjectionMatrix");
     expect(xaml.split("ProjectionMatrix").length).toBe(2);
+    expect(xaml).toContain('x:Name="BG3A_Layer" Panel.ZIndex="{Binding LayerZ}"');
   });
 
   it.each(worldMapThemes.filter((t) => existsSync(unpackedPath(t))).map((t) => [t.file, t] as const))("patches %s", (_, theme) => {

@@ -84,7 +84,7 @@ function searchControl(): string {
 
 export function layerXaml(): string {
   return [
-    `${pad(28)}<Grid x:Name="BG3A_Layer" Width="{Binding ElementName=MapImage,Path=ActualWidth}" Height="{Binding ElementName=MapImage,Path=ActualHeight}">`,
+    `${pad(28)}<Grid x:Name="BG3A_Layer" Panel.ZIndex="{Binding LayerZ}" Width="{Binding ElementName=MapImage,Path=ActualWidth}" Height="{Binding ElementName=MapImage,Path=ActualHeight}">`,
     `${pad(32)}<Grid.RenderTransform>`,
     `${pad(36)}<TransformGroup>`,
     `${pad(40)}<MatrixTransform Matrix="{Binding ProjectionMatrix,RelativeSource={RelativeSource AncestorType=ls:LSWorldMap}}" />`,

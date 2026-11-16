@@ -42,6 +42,13 @@ describe("injectWorldMapLayer", () => {
     expect(lines[i + 4]).toContain("PART_Area");
   });
 
+  it("inserts the layer below the fog layers when the template has them", () => {
+    const fogTheme = theme.replace('                            <Grid x:Name="Shroud">', '                            <ItemsControl x:Name="ShroudedRooms"/>\r\n                            <Grid x:Name="Shroud">');
+    const out = injectWorldMapLayer(fogTheme, snippet);
+    expect(out.indexOf(layerMarker)).toBeLessThan(out.indexOf('x:Name="ShroudedRooms"'));
+    expect(out.indexOf(layerMarker)).toBeGreaterThan(out.indexOf('x:Name="MapImage"'));
+  });
+
   it("refuses to inject twice", () => {
     expect(() => injectWorldMapLayer(injectWorldMapLayer(theme, snippet), snippet)).toThrow();
   });
@@ -55,6 +62,7 @@ describe("injectWorldMapLayer", () => {
     (_, theme) => {
       const out = patchTheme(theme);
       expect(out.split(layerMarker).length).toBe(2);
+      expect(out.indexOf(layerMarker)).toBeLessThan(out.indexOf('x:Name="ShroudedRooms"'));
     },
   );
 

@@ -15,7 +15,9 @@ export function injectWorldMapLayer(xaml: string, snippet: string): string {
   if (area < 0 || area > styleEnd) throw new Error("PART_Area not found in LSWorldMap style");
   const holderClose = xaml.lastIndexOf("</Grid>", area);
   if (holderClose < holder) throw new Error("MapHolder closing tag not found");
-  const lineStart = xaml.lastIndexOf("\n", holderClose) + 1;
+  const fog = xaml.indexOf('x:Name="ShroudedRooms"', holder);
+  const anchor = fog > holder && fog < holderClose ? xaml.lastIndexOf("<", fog) : holderClose;
+  const lineStart = xaml.lastIndexOf("\n", anchor) + 1;
   const eol = xaml.includes("\r\n") ? "\r\n" : "\n";
   const body = snippet.replace(/\r?\n/g, eol).replace(new RegExp(`(${eol})+$`), "");
   return xaml.slice(0, lineStart) + body + eol + xaml.slice(lineStart);

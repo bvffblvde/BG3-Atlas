@@ -33,7 +33,7 @@ local function register()
         Id = { Type = "String" },
         Label = { Type = "String" },
     })
-    local props = { Search = { Type = "Collection" } }
+    local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" } }
     for _, cat in ipairs(Points.Categories) do
         props["Cat_" .. cat] = { Type = "Collection" }
         props["Found_" .. cat] = { Type = "Collection" }
@@ -103,18 +103,6 @@ local revealed = nil
 local revealedSig = nil
 local lastRegionScan = -100000
 
-local function explored(pt)
-    if not revealed or pt.submap ~= nil or not Settings.FogOnly() then
-        return true
-    end
-    for _, r in ipairs(revealed) do
-        if pt.x >= r[1] and pt.x <= r[3] and pt.y >= r[2] and pt.y <= r[4] then
-            return true
-        end
-    end
-    return false
-end
-
 local subregion = nil
 
 local function insideSubregion(pt)
@@ -131,7 +119,7 @@ local function inView(pt)
         key = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
         pt._key = key
     end
-    return key == viewKey and insideSubregion(pt) and explored(pt)
+    return key == viewKey and insideSubregion(pt)
 end
 
 function Layer.ForceRebuild()
@@ -608,9 +596,6 @@ local function updateRegions(found)
     if list and sig ~= revealedSig then
         revealed = list
         revealedSig = sig
-        if Settings.FogOnly() then
-            rebuild = true
-        end
         logOnce("regions" .. #list, "explored regions: " .. #list)
     end
 end
@@ -717,14 +702,15 @@ function updatePlayer(found)
                 lastCursorText = nil
                 P.Log("layer attached to " .. entry.widget)
             end
+            P.Set(shared, "LayerZ", Settings.FogOnly() and 0 or 1)
             updateScale(entry, model)
             updateFilters(entry)
             updateCursor(entry)
-            if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
-                BG3Atlas.Panel.Update(entry.node, entry.player)
-            end
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")
+        end
+        if (entry.widget == "JournalMap" or entry.widget == "JournalMap_c") and BG3Atlas.Panel then
+            BG3Atlas.Panel.Update(entry.node, entry.player)
         end
     end
 end

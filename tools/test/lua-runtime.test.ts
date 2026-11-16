@@ -78,7 +78,9 @@ describe("Settings.Parse", () => {
   it("reads the explored-only flag", () => {
     const stubbedParse = 'Ext.Json.Parse = function() return { disabled = {}, fogOnly = true } end\n';
     expect(run(["Settings.lua"], `(function() ${stubbedParse} return tostring(S.Parse("x").fogOnly) end)()`)).toBe("true");
-    expect(run(["Settings.lua"], "tostring(S.Parse(nil).fogOnly)")).toBe("false");
+    expect(run(["Settings.lua"], "tostring(S.Parse(nil).fogOnly)")).toBe("true");
+    const off = 'Ext.Json.Parse = function() return { fogOnly = false } end\n';
+    expect(run(["Settings.lua"], `(function() ${off} return tostring(S.Parse("x").fogOnly) end)()`)).toBe("false");
   });
 
   it("keeps barrels and remains off until enabled", () => {

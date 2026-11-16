@@ -187,13 +187,23 @@ TypeScript · Node · tsx · Vitest · fast-xml-parser · LSLib (Divine) · Lua 
 
 Have an idea or found a misplaced icon? [Open an issue](https://github.com/bvffblvde/BG3-Atlas/issues).
 
+## 🌍 Translations
+
+| Language | Translator |
+|---|---|
+| English | bvffblvde |
+| Russian | bvffblvde |
+| Brazilian Portuguese | [ShadowAhjin](https://www.nexusmods.com/profile/ShadowAhjin) |
+
+Point names come from the game's own localization. Want to add your language? Copy `Client/Locale/en.lua`, translate the right side and open an issue or a pull request.
+
 ## 🤝 Contributing
 
 Contributions are welcome. Category rules, map transforms and parsers are covered by tests, so most fixes start with a failing test in `tools/test`.
 
 - 🐞 Misplaced or missing point: open an issue with the place, what you expected and a screenshot
 - 🧭 Wrong category: the rules live in [`tools/categories.ts`](./tools/categories.ts)
-- 🌍 Translation: panel labels live in `Client/Panel.lua`
+- 🌍 Translation: interface strings live in `Client/Locale/<language>.lua`, one file per language
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) first.
 

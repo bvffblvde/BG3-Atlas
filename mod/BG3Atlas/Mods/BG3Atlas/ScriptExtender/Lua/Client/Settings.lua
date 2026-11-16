@@ -4,11 +4,11 @@ BG3Atlas.Settings = S
 S.File = "BG3Atlas/settings.json"
 S.DefaultOff = { container = true, remains = true }
 
-local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = false }
+local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true }
 local lang = nil
 
 function S.Parse(text)
-    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = false }
+    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true }
     if type(text) ~= "string" or text == "" then
         return out
     end
@@ -17,7 +17,7 @@ function S.Parse(text)
         return out
     end
     out.hideFound = data.hideFound == true
-    out.fogOnly = data.fogOnly == true
+    out.fogOnly = data.fogOnly ~= false
     if type(data.language) == "string" and data.language ~= "" then
         out.language = data.language
     end
