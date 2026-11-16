@@ -337,7 +337,9 @@ local function findMaps()
             local wname = P.Get(child, "Name")
             local isWidget = P.Str(P.Get(child, "Type")) == "ls.UIWidget"
             if isWidget and wname and Layer.PanelWidgets[wname] then
-                panels[#panels + 1] = { node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
+                local pid = tonumber(P.Get(child, "PlayerId")) or 1
+                panels[#panels + 1] = { node = child, player = pid }
+                logOnce("panelpid" .. wname .. pid, "panel widget " .. wname .. " player " .. pid)
             elseif isWidget and wname and Layer.Widgets[wname] then
                 local entry = { widget = wname, node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
                 findMap(child, 0, entry)

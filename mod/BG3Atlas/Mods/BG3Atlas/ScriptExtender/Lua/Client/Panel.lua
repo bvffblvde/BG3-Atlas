@@ -8,7 +8,6 @@ BG3Atlas.Panel = Panel
 
 local registered = false
 local version = 1
-local applied = {}
 local selected = 1
 
 local function register()
@@ -17,6 +16,7 @@ local function register()
     end
     local props = {
         Title = { Type = "String" },
+        Ver = { Type = "Int32" },
         AllText = { Type = "String" },
         NoneText = { Type = "String" },
         FoundText = { Type = "String" },
@@ -240,11 +240,12 @@ function Panel.Update(widget, player)
     local ours = dc and P.Str(P.Get(dc, "Type")):find("BG3A_Panel", 1, true)
     local key = player or 1
     if not ours then
-        panel.DataContext = newModel(key)
-        applied[key] = version
-    elseif applied[key] ~= version then
+        local vm = newModel(key)
+        P.Set(vm, "Ver", version)
+        panel.DataContext = vm
+    elseif P.Get(dc, "Ver") ~= version then
         fillModel(dc)
-        applied[key] = version
+        P.Set(dc, "Ver", version)
     end
     local box = findNamed(panel, "BG3A_SearchBox", 0)
     searchFocused = box ~= nil and P.Get(box, "IsKeyboardFocused") == true
