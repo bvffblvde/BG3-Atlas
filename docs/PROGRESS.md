@@ -200,3 +200,9 @@ Remaining:
 - Verified in game: the widget shows on both map pages, the panel, search, category clicks, gamepad L3, D-pad, A, RB and LB work. With Better Map All-In-One the widget shows only when BG3 Atlas is loaded after Better Map (its `ModType="Override"` replaces the state, our `Extend` must come later).
 - Lua finds panel widgets by name (`BG3A_PanelWidget`, `BG3A_PanelWidget_c`) and player id and updates the existing view model in place instead of replacing it on every change.
 - F hotkey: one press sometimes arrived twice (on and off in consecutive ticks), now only `KeyDown` counts and repeats within 300 ms are ignored. Split screen with two panels: unverified.
+
+## Data fixes (2026-11-16)
+
+- Waypoints assigned to a building submap move back to the surface view when at least 5 surface points within 40 m lie within 4 m height (`surfaceWaypoints`). Moved: Blighted Village, Reithwin Town, Basilisk Gate, Lower City Central Wall, South Span of Wyrm's Crossing. Kept underground: Grymforge, Ancient Forge, Gauntlet of Shar, Verge of the Shadows, Cazador's Dungeon. Wyrm's Rock stays in `Fort` (only 1 surface neighbour). Unverified in game.
+- Exact duplicates (same map, name and position to 0.1 m) are dropped: 11710 -> 11648 points.
+- Auntie Ethel's teahouse: both `WLD_Hag_C_Happy` and `WLD_Hag_C_Evil` stay, which state is live is unverified.

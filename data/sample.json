@@ -133,25 +133,6 @@
     "flags": []
   },
   {
-    "id": "c4b0c94b-8560-ce57-67a8-37734febe7da",
-    "category": "lever",
-    "map": "WLD_Main_A",
-    "level": "WLD_RangerCamp_I",
-    "submap": "Gate",
-    "floor": 0,
-    "pos": {
-      "x": 206.2,
-      "y": 36.32,
-      "z": 441.14
-    },
-    "template": "0abc9467-0d88-45e4-a074-c0918622a8bd",
-    "name": "Object",
-    "nameRu": "Объект",
-    "description": "",
-    "descriptionRu": "",
-    "flags": []
-  },
-  {
     "id": "5564d21c-9033-4958-8cc8-cd3f497bb51b",
     "category": "lever",
     "map": "WLD_Main_A",
@@ -181,6 +162,25 @@
       "x": 220.54,
       "y": 34.56,
       "z": 440.01
+    },
+    "template": "72e3f454-5a68-4bb2-acef-7b8d595b5015",
+    "name": "Oil Barrel",
+    "nameRu": "Бочка с маслом",
+    "description": "Shiny black oil slowly seeps down the cracks in the wood.",
+    "descriptionRu": "Сквозь трещины медленно вытекают черные смолистые капли.",
+    "flags": []
+  },
+  {
+    "id": "51fd6be1-a7f8-43be-b6eb-5e2e735c520e",
+    "category": "container",
+    "map": "WLD_Main_A",
+    "level": "WLD_Main_A",
+    "submap": null,
+    "floor": null,
+    "pos": {
+      "x": 198.75,
+      "y": 35.05,
+      "z": 441.65
     },
     "template": "72e3f454-5a68-4bb2-acef-7b8d595b5015",
     "name": "Oil Barrel",

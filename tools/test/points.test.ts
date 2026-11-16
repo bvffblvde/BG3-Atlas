@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RawObject } from "../lib/level.ts";
 import { Loca } from "../lib/loca.ts";
 import { parseLsx } from "../lib/lsx.ts";
-import { buildPoint, buildReport, type ExtractContext } from "../lib/points.ts";
+import { buildPoint, buildReport, dedupePoints, surfaceWaypoints, type ExtractContext, type Point } from "../lib/points.ts";
 import { StatsIndex } from "../lib/stats.ts";
 import { TemplateIndex } from "../lib/templates.ts";
 import { WaypointIndex } from "../lib/waypoints.ts";
@@ -133,5 +133,42 @@ describe("buildReport", () => {
     expect(r.uncategorizedInteresting).toBe(2);
     expect(r.uncategorizedShare).toBeCloseTo(2 / 3);
     expect(r.topUncategorized[0]).toEqual({ name: "PUZ_Statue", count: 2 });
+  });
+});
+
+function pt(id: string, category: Point["category"], x: number, y: number, z: number, submap: string | null = null, floor: number | null = null): Point {
+  return { id, category, map: "WLD", level: "WLD", submap, floor, pos: { x, y, z }, template: "", name: id, nameRu: id, description: "", descriptionRu: "", flags: [] };
+}
+
+describe("surfaceWaypoints", () => {
+  const street = [pt("a", "chest", 5, 10, 5), pt("b", "trap", -6, 11, 2), pt("c", "key", 3, 9, -7), pt("d", "book", -4, 10, -3), pt("e", "lever", 8, 10, -1)];
+
+  it("moves a waypoint at street level out of a building submap", () => {
+    const out = surfaceWaypoints([...street, pt("w", "waypoint", 0, 10.5, 0, "Apothecary", 0)]);
+    const w = out.find((p) => p.id === "w")!;
+    expect(w.submap).toBeNull();
+    expect(w.floor).toBeNull();
+  });
+
+  it("keeps an underground waypoint in its submap", () => {
+    const out = surfaceWaypoints([...street, pt("w", "waypoint", 0, -30, 0, "Dungeon", 0)]);
+    expect(out.find((p) => p.id === "w")!.submap).toBe("Dungeon");
+  });
+
+  it("keeps a waypoint with too few surface neighbours in its submap", () => {
+    const out = surfaceWaypoints([pt("a", "chest", 5, 10, 5), pt("w", "waypoint", 0, 10, 0, "Tower", 2)]);
+    expect(out.find((p) => p.id === "w")!.submap).toBe("Tower");
+  });
+});
+
+describe("dedupePoints", () => {
+  it("drops a second point with the same name, map and position", () => {
+    const out = dedupePoints([pt("a", "chest", 1, 2, 3), { ...pt("b", "chest", 1.04, 2, 3), name: "a" }, { ...pt("c", "chest", 5, 2, 3), name: "a" }]);
+    expect(out.map((p) => p.id)).toEqual(["a", "c"]);
+  });
+
+  it("keeps points with different names at the same spot", () => {
+    const b = { ...pt("b", "book", 1, 2, 3), name: "Other" };
+    expect(dedupePoints([pt("a", "book", 1, 2, 3), b])).toHaveLength(2);
   });
 });

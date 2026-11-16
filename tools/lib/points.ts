@@ -149,3 +149,35 @@ export function buildReport(entries: ReportEntry[]): Report {
     topUncategorized,
   };
 }
+
+export const surfaceRadius = 40;
+export const surfaceHeight = 4;
+export const surfaceNeighbours = 5;
+
+export function surfaceWaypoints(points: Point[]): Point[] {
+  return points.map((p) => {
+    if (p.category !== "waypoint" || p.submap === null) return p;
+    const dys: number[] = [];
+    for (const q of points) {
+      if (q === p || q.map !== p.map || q.submap !== null) continue;
+      if (Math.hypot(q.pos.x - p.pos.x, q.pos.z - p.pos.z) > surfaceRadius) continue;
+      dys.push(Math.abs(q.pos.y - p.pos.y));
+    }
+    if (dys.length < surfaceNeighbours) return p;
+    dys.sort((a, b) => a - b);
+    if (dys[dys.length >> 1] > surfaceHeight) return p;
+    return { ...p, submap: null, floor: null };
+  });
+}
+
+export function dedupePoints(points: Point[]): Point[] {
+  const seen = new Set<string>();
+  const out: Point[] = [];
+  for (const p of points) {
+    const key = `${p.map}|${p.name}|${p.pos.x.toFixed(1)}|${p.pos.y.toFixed(1)}|${p.pos.z.toFixed(1)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(p);
+  }
+  return out;
+}

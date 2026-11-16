@@ -5,7 +5,7 @@ import { groupLevels, readGroup } from "./lib/level.ts";
 import { Loca, parseLoca } from "./lib/loca.ts";
 import { readLsxFile } from "./lib/lsx.ts";
 import { mapGroups } from "./lib/maps.ts";
-import { buildPoint, buildReport, type ExtractContext, type Point, type ReportEntry } from "./lib/points.ts";
+import { buildPoint, buildReport, dedupePoints, surfaceWaypoints, type ExtractContext, type Point, type ReportEntry } from "./lib/points.ts";
 import { parseStats, StatsIndex } from "./lib/stats.ts";
 import { loadSubmaps } from "./lib/submaps.ts";
 import { loadTagNames } from "./lib/tags.ts";
@@ -64,10 +64,8 @@ for (const group of mapGroups) {
   console.log(`${group.main}: ${levels.length} levels, ${submaps.length} submaps, ${objects.length} objects, ${mapPoints} points`);
 }
 
-const points = entries
-  .map((e) => e.point)
-  .filter((p): p is Point => p !== null)
-  .sort((a, b) => a.map.localeCompare(b.map) || a.category.localeCompare(b.category) || a.id.localeCompare(b.id));
+const points = dedupePoints(surfaceWaypoints(entries.map((e) => e.point).filter((p): p is Point => p !== null))
+  .sort((a, b) => a.map.localeCompare(b.map) || a.category.localeCompare(b.category) || a.id.localeCompare(b.id)));
 const report = buildReport(entries);
 
 mkdirSync(dataDir, { recursive: true });
