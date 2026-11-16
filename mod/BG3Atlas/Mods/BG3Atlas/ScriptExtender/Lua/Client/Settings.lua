@@ -18,6 +18,9 @@ function S.Parse(text)
     end
     out.hideFound = data.hideFound == true
     out.fogOnly = data.fogOnly == true
+    if type(data.language) == "string" and data.language ~= "" then
+        out.language = data.language
+    end
     for _, field in ipairs({ "disabled", "enabled" }) do
         if type(data[field]) == "table" then
             for k, v in pairs(data[field]) do
@@ -45,7 +48,7 @@ local function jsonSet(set)
 end
 
 function S.Save()
-    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. "}"
+    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. (state.language and (',"language":"' .. state.language .. '"') or "") .. "}"
     Ext.IO.SaveFile(S.File, text)
 end
 
@@ -93,6 +96,10 @@ function S.Language()
     local ok, text = pcall(function()
         return Ext.Loca.GetTranslatedString("h2020fdf6g224eg40cfg80ecg91fed5d32d11")
     end)
-    lang = (ok and type(text) == "string" and text:find("[\208\209]")) and "ru" or "en"
+    if state.language then
+        lang = state.language
+    else
+        lang = BG3Atlas.Locale.Detect(ok and text or nil)
+    end
     return lang
 end

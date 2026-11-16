@@ -5,70 +5,6 @@ local Points = BG3Atlas.Points
 local Panel = {}
 BG3Atlas.Panel = Panel
 
-local labels = {
-    ru = {
-        title = "Атлас",
-        all = "Все",
-        none = "Скрыть",
-        hideFound = "Скрыть найденное",
-        showFound = "Показать найденное",
-        fogOn = "Показать везде",
-        fogOff = "Только исследованное",
-        padHint = "Стрелки: выбор, A: показать или скрыть, RB: отметить найденным",
-        toggleMark = "Вкл/выкл",
-        chest = "Сундуки",
-        container = "Бочки и ящики",
-        remains = "Останки",
-        weapon_unique = "Оружие",
-        armor_unique = "Броня",
-        accessory = "Аксессуары",
-        scroll = "Свитки",
-        book = "Книги и записки",
-        key = "Ключи",
-        ingredient = "Ингредиенты",
-        valuable = "Ценности",
-        trap = "Ловушки",
-        hidden_stash = "Тайники",
-        lever = "Рычаги и кнопки",
-        locked_door = "Запертые двери",
-        waypoint = "Рунные круги",
-        trader = "Торговцы",
-        quest_npc = "Персонажи",
-        boss = "Боссы",
-        animal = "Животные",
-    },
-    en = {
-        title = "Atlas",
-        all = "All",
-        none = "Hide",
-        hideFound = "Hide found",
-        showFound = "Show found",
-        fogOn = "Show everywhere",
-        fogOff = "Explored only",
-        padHint = "D-pad: select, A: show or hide, RB: mark as found",
-        toggleMark = "On/off",
-        chest = "Chests",
-        container = "Barrels and crates",
-        remains = "Remains",
-        weapon_unique = "Weapons",
-        armor_unique = "Armour",
-        accessory = "Accessories",
-        scroll = "Scrolls",
-        book = "Books and notes",
-        key = "Keys",
-        ingredient = "Ingredients",
-        valuable = "Valuables",
-        trap = "Traps",
-        hidden_stash = "Hidden stashes",
-        lever = "Levers and buttons",
-        locked_door = "Locked doors",
-        waypoint = "Waypoints",
-        trader = "Traders",
-        quest_npc = "Characters",
-        boss = "Bosses",
-        animal = "Animals",
-    },
-}
 
 local registered = false
 local version = 1
@@ -140,7 +76,7 @@ function Panel.SearchFocused()
 end
 
 local function newModel(player)
-    local text = labels[Settings.Language()]
+    local text = BG3Atlas.Locale.Text(Settings.Language())
     local vm = Ext.UI.Instantiate("BG3A_Panel")
     P.Set(vm, "Title", text.title)
     P.Set(vm, "AllText", text.all)

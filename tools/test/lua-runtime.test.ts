@@ -33,6 +33,43 @@ describe("Search.Lower", () => {
   });
 });
 
+describe("Search.Fold", () => {
+  it("drops latin diacritics and folds yo for matching", () => {
+    expect(run(["Search.lua"], 'Search.Fold("Chá AÇÃO Élan ÜBER Ёлка")')).toBe("cha acao elan uber елка");
+  });
+});
+
+const localeFiles = ["Locale.lua", "Locale/en.lua", "Locale/ru.lua", "Locale/pt-BR.lua"];
+
+describe("Locale", () => {
+  it("detects the game language from the probe string", () => {
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect("Рунные круги")')).toBe("ru");
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect("Waypoint")')).toBe("en");
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect("Wegpunkt")')).toBe("en");
+    expect(run(localeFiles, "BG3Atlas.Locale.Detect(nil)")).toBe("en");
+  });
+
+  it("falls back to English for missing keys and unknown languages", () => {
+    expect(run(localeFiles, 'BG3Atlas.Locale.Text("ru").chest')).toBe("Сундуки");
+    expect(run(localeFiles, 'BG3Atlas.Locale.Text("xx").chest')).toBe("Chests");
+    expect(run(localeFiles, '(function() BG3Atlas.Locale.Add("zz", { title = "Z" }) local t = BG3Atlas.Locale.Text("zz") return t.title .. t.chest end)()')).toBe("ZChests");
+  });
+
+  it("gives every language exactly the English keys", () => {
+    const expr = `(function()
+      local L = BG3Atlas.Locale
+      local bad = {}
+      for code, t in pairs(L.Raw()) do
+        for k in pairs(L.Raw().en) do if t[k] == nil and code ~= "pt-BR" then bad[#bad + 1] = code .. " missing " .. k end end
+        for k in pairs(t) do if L.Raw().en[k] == nil then bad[#bad + 1] = code .. " extra " .. k end end
+      end
+      table.sort(bad)
+      return table.concat(bad, ",")
+    end)()`;
+    expect(run(localeFiles, expr)).toBe("");
+  });
+});
+
 describe("Settings.Parse", () => {
   it("treats broken json as defaults", () => {
     expect(run(["Settings.lua"], 'tostring(next(S.Parse("{oops").disabled) == nil and S.Parse("{oops").hideFound == false)')).toBe("true");
@@ -52,6 +89,12 @@ describe("Settings.Parse", () => {
   it("reads enabled default-off categories", () => {
     const stubbedParse = 'Ext.Json.Parse = function() return { disabled = { chest = true }, enabled = { remains = true } } end\n';
     expect(run(["Settings.lua"], `(function() ${stubbedParse} local st = S.Parse("x") return tostring(st.enabled.remains) .. tostring(st.disabled.chest) .. tostring(st.enabled.container) end)()`)).toBe("truetruenil");
+  });
+
+  it("reads a language override", () => {
+    const stubbedParse = 'Ext.Json.Parse = function() return { language = "pt-BR" } end\n';
+    expect(run(["Settings.lua"], `(function() ${stubbedParse} return tostring(S.Parse("x").language) end)()`)).toBe("pt-BR");
+    expect(run(["Settings.lua"], "tostring(S.Parse(nil).language)")).toBe("nil");
   });
 
   it("treats a missing file as defaults", () => {

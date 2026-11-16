@@ -172,3 +172,10 @@ Remaining:
 4. State variants loaded together: WLD_Hag_C_Evil and WLD_Hag_C_Happy (Auntie Ethel's teahouse) both contribute points, so one set is always stale.
 5. 52 exact duplicate spots (same name, same position, same level), they inflate counters.
 6. Vertical outliers (points 6+ m below their neighbours without a submap) are few: Jungle of Chult bones, Reithwin and battlefield bones, a few WLD caves (Underdark, around 0,500 and 250,500).
+
+## Localization (2026-11-16)
+
+- Interface strings moved to `Client/Locale/<code>.lua` (en, ru, pt-BR placeholder). `Locale.Text(code)` falls back to English for missing keys, a test checks that every language has exactly the English keys.
+- Game language is detected by matching the translated text of the waypoint legend handle `h2020fdf6g224eg40cfg80ecg91fed5d32d11` against a probe string registered by each locale. `settings.json` can force it with `"language": "pt-BR"`.
+- Search folds Latin diacritics and Russian yo, so "cha" finds "Chá".
+- Point names exist only in English and Russian. Brazilian Portuguese names need `Localization/BrazilianPortuguese` from the game (switch the game language in Steam to download it) and a third name column in the data. Not done yet.

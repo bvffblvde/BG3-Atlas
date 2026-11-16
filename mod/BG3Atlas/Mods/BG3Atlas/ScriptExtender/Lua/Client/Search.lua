@@ -24,13 +24,32 @@ function Search.Lower(s)
     return s
 end
 
+local folds = {
+    ["\195\160"] = "a", ["\195\161"] = "a", ["\195\162"] = "a", ["\195\163"] = "a", ["\195\164"] = "a", ["\195\165"] = "a",
+    ["\195\167"] = "c", ["\195\168"] = "e", ["\195\169"] = "e", ["\195\170"] = "e", ["\195\171"] = "e",
+    ["\195\172"] = "i", ["\195\173"] = "i", ["\195\174"] = "i", ["\195\175"] = "i", ["\195\177"] = "n",
+    ["\195\178"] = "o", ["\195\179"] = "o", ["\195\180"] = "o", ["\195\181"] = "o", ["\195\182"] = "o",
+    ["\195\185"] = "u", ["\195\186"] = "u", ["\195\187"] = "u", ["\195\188"] = "u", ["\195\189"] = "y", ["\195\191"] = "y",
+    ["\209\145"] = "\208\181",
+}
+
+function Search.Fold(s)
+    s = Search.Lower(s)
+    s = s:gsub("\195[\128-\158]", function(c)
+        return "\195" .. string.char(c:byte(2) + 32)
+    end)
+    return (s:gsub("[\195\209][\128-\191]", function(c)
+        return folds[c] or c
+    end))
+end
+
 local index = nil
 
 local function buildIndex()
     index = {}
     for _, list in pairs(Points.ByCategory()) do
         for _, pt in ipairs(list) do
-            index[#index + 1] = { pt = pt, text = Search.Lower((pt.name or "") .. "\n" .. (pt.nameRu or "")) }
+            index[#index + 1] = { pt = pt, text = Search.Fold((pt.name or "") .. "\n" .. (pt.nameRu or "")) }
         end
     end
 end
@@ -43,7 +62,7 @@ function Search.Set(text)
     query = text
     results = {}
     total = 0
-    local needle = Search.Lower(text):gsub("^%s+", ""):gsub("%s+$", "")
+    local needle = Search.Fold(text):gsub("^%s+", ""):gsub("%s+$", "")
     if #needle >= Search.MinLength then
         if not index then
             buildIndex()
@@ -73,12 +92,12 @@ function Search.Version()
 end
 
 function Search.Hint()
-    local ru = Settings.Language() == "ru"
+    local text = BG3Atlas.Locale.Text(Settings.Language())
     if #query < Search.MinLength then
-        return ru and "поиск" or "search"
+        return text.searchHint
     end
     if total == 0 then
-        return ru and "ничего" or "no matches"
+        return text.searchNone
     end
     if total > #results then
         return #results .. "/" .. total

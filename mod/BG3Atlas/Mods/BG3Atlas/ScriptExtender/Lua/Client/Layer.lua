@@ -42,23 +42,20 @@ local function register()
     registered = true
 end
 
-local flagText = {
-    ru = { [1] = "заперто", [2] = "ловушка", [4] = "спрятано", found = "найдено", click = "клик: отметить" },
-    en = { [1] = "locked", [2] = "trapped", [4] = "hidden", found = "found", click = "click to mark" },
-}
+local flagKeys = { [1] = "flagLocked", [2] = "flagTrapped", [4] = "flagHidden" }
 
 local function pointLabel(pt, found)
     local lang = Settings.Language()
-    local text = flagText[lang]
+    local text = BG3Atlas.Locale.Text(lang)
     local name = lang == "ru" and pt.nameRu or pt.name
     local extra = {}
     for _, bit in ipairs({ 1, 2, 4 }) do
         if pt.flags and (pt.flags & bit) ~= 0 then
-            extra[#extra + 1] = text[bit]
+            extra[#extra + 1] = text[flagKeys[bit]]
         end
     end
     if found then
-        extra[#extra + 1] = text.found
+        extra[#extra + 1] = text.flagFound
     end
     local label = name
     if #extra > 0 then
