@@ -1,28 +1,28 @@
-# Этап 4 (часть 1): «найдено», скрытие найденного, карточка, ручная отметка
+# Stage 4 (part 1): "found", hiding found, card, manual mark
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** точки, которые игрок уже залутал, подобрал или убил, автоматически помечаются найденными и рисуются приглушённо или скрываются; при наведении на иконку видно название, клик переключает «найдено»; панель показывает «найдено/всего» и переключатель «скрыть найденное». Поиск в следующей части.
+**Goal:** points that the player has already looted, picked up or killed are automatically marked as found and drawn dimmed or hidden; hovering an icon shows the name, a click toggles "found"; the panel shows "found/total" and a "hide found" toggle. Search comes in the next part.
 
-**Spec:** `docs/SPEC.md` (этап 4, «Состояние найдено»). Ограничения из `docs/superpowers/plans/2026-11-15-stage3-points-filters.md` (Global Constraints) действуют.
+**Spec:** `docs/SPEC.md` (stage 4, "Found state"). The constraints from `docs/superpowers/plans/2026-11-15-stage3-points-filters.md` (Global Constraints) apply.
 
-## Решения
+## Decisions
 
-- Хранение: переменная мода `Found` (таблица `id -> true`), `Ext.Vars.RegisterModVariable(uuid, "Found", { Server = true, Client = true, WriteableOnClient = true, SyncToServer = true, SyncToClient = true })` в общем коде. Пишет клиент (переприсваиванием всей таблицы, иначе SE не видит изменение).
-- Автоопределение на клиенте, пачками по 150 точек раз в 250 мс:
-  - предметы (`weapon_unique`, `armor_unique`, `accessory`, `scroll`, `book`, `key`, `ingredient`, `valuable`): найдено, если у сущности есть `InventoryMember` или сущности нет, при условии что раньше в этой сессии она была видна в мире (защита от не загруженных сущностей);
-  - `chest`: найдено, если в контейнере (`InventoryOwner.PrimaryInventory` -> `InventoryContainer.Items`) были предметы, а стало ноль;
-  - `boss`: найдено, если `Health.Hp <= 0`;
-  - остальные категории только вручную.
-- Отображение: в слое на каждую категорию два `ItemsControl`: `BG3A_Cat_<id>` (активные) и `BG3A_Found_<id>` (`Opacity="0.45"`). Перенос точки = удаление из одной коллекции (`coll[i] = nil`) и добавление в другую.
-- Карточка: у иконки `ToolTip="{Binding Label}"` (строка: название и флаги). Ручная отметка: иконка внутри `Button` с `Command="{Binding Mark}"` на ViewModel точки. Слой становится видимым для мыши (`IsHitTestVisible` снимается с корневого `Grid`), но сам `Grid` без фона, поэтому перетаскивание карты по пустому месту работает.
-- Панель: счётчики `найдено/всего`, кнопка «Скрыть найденное» / «Показать найденное».
+- Storage: the mod variable `Found` (a table `id -> true`), `Ext.Vars.RegisterModVariable(uuid, "Found", { Server = true, Client = true, WriteableOnClient = true, SyncToServer = true, SyncToClient = true })` in shared code. The client writes it (by reassigning the whole table, otherwise SE does not see the change).
+- Auto-detection on the client, in batches of 150 points every 250 ms:
+  - items (`weapon_unique`, `armor_unique`, `accessory`, `scroll`, `book`, `key`, `ingredient`, `valuable`): found if the entity has `InventoryMember` or the entity does not exist, provided it was visible in the world earlier in this session (protection against unloaded entities);
+  - `chest`: found if the container (`InventoryOwner.PrimaryInventory` -> `InventoryContainer.Items`) had items and now has none;
+  - `boss`: found if `Health.Hp <= 0`;
+  - the other categories are manual only.
+- Display: in the layer, two `ItemsControl` per category: `BG3A_Cat_<id>` (active) and `BG3A_Found_<id>` (`Opacity="0.45"`). Moving a point = removing it from one collection (`coll[i] = nil`) and adding it to the other.
+- Card: the icon has `ToolTip="{Binding Label}"` (a string: name and flags). Manual mark: the icon inside a `Button` with `Command="{Binding Mark}"` on the point ViewModel. The layer becomes visible to the mouse (`IsHitTestVisible` is removed from the root `Grid`), but the `Grid` itself has no background, so dragging the map over empty space works.
+- Panel: `found/total` counters, a "Hide found" / "Show found" button.
 
-## Задачи
+## Tasks
 
-- [ ] 1. `tools/lib/layerxaml.ts`: второй `ItemsControl` на категорию, иконка в `Button` с `Command="{Binding Mark}"` и `ToolTip="{Binding Label}"`, корневой `Grid` без `IsHitTestVisible="False"`. Тесты: по два именованных контрола на категорию, запрещённых конструкций нет, патч темы проходит.
-- [ ] 2. `Shared/Found.lua`: регистрация переменной, `IsFound(id)`, `SetFound(id, on)`, `All()`. Подключить в обоих bootstrap.
-- [ ] 3. `Client/Detect.lua`: пакетная проверка по правилам выше, вызывает `Found.SetFound`.
-- [ ] 4. `Client/Layer.lua`: ViewModel точки с `Id`, `Label`, `Mark`; распределение по `Cat_`/`Found_` при построении; каждый тик синхронизация изменившихся точек; `Visibility` слоёв `Found_` по настройке `hideFound`.
-- [ ] 5. `Client/Settings.lua`: `hideFound`. `Client/Panel.lua` и `tools/lib/panelxaml.ts`: счётчики `найдено/всего`, кнопка `ToggleFound`. Тесты генератора панели.
-- [ ] 6. Сборка, установка, запись в `docs/PROGRESS.md` (что не проверено в игре), коммит и пуш.
+- [ ] 1. `tools/lib/layerxaml.ts`: a second `ItemsControl` per category, the icon in a `Button` with `Command="{Binding Mark}"` and `ToolTip="{Binding Label}"`, the root `Grid` without `IsHitTestVisible="False"`. Tests: two named controls per category, no forbidden constructs, the theme patch passes.
+- [ ] 2. `Shared/Found.lua`: variable registration, `IsFound(id)`, `SetFound(id, on)`, `All()`. Hook into both bootstraps.
+- [ ] 3. `Client/Detect.lua`: batch check by the rules above, calls `Found.SetFound`.
+- [ ] 4. `Client/Layer.lua`: the point ViewModel with `Id`, `Label`, `Mark`; distribution into `Cat_`/`Found_` on build; every tick a sync of changed points; `Visibility` of the `Found_` layers by the `hideFound` setting.
+- [ ] 5. `Client/Settings.lua`: `hideFound`. `Client/Panel.lua` and `tools/lib/panelxaml.ts`: `found/total` counters, the `ToggleFound` button. Panel generator tests.
+- [ ] 6. Build, install, a note in `docs/PROGRESS.md` (what is unverified in game), commit and push.

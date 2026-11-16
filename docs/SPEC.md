@@ -1,138 +1,138 @@
-# BG3 Atlas: спецификация
+# BG3 Atlas: specification
 
-## Цель
+## Goal
 
-Внутриигровая интерактивная карта уровня Map Genie для Baldur's Gate 3. Игрок открывает карту (M) и видит на ней иконки всех интересных объектов, может включать и выключать категории, скрывать собранное, искать и смотреть подробности по точке. Всё без второго монитора и браузера.
+An in-game interactive map layer in the style of Map Genie for Baldur's Gate 3. The player opens the map (M) and sees icons for all points of interest, can toggle categories on and off, hide collected items, search, and view details for a point. All of it without a second monitor or a browser.
 
-## Референс
+## Reference
 
 UX: https://mapgenie.io/baldurs-gate-3/maps/wilderness
-- боковая панель с группами категорий, у каждой иконка, название и счётчик;
-- «показать все / скрыть все», поиск по названию;
-- клик или наведение на точку открывает карточку: название, категория, описание;
-- отметка «найдено», скрытие найденного, прогресс по категориям.
+- a side panel with category groups, each with an icon, a name and a counter;
+- "show all / hide all", search by name;
+- clicking or hovering a point opens a card: name, category, description;
+- a "found" mark, hiding found points, progress per category.
 
-Данные и графику Map Genie не используем. Иконки рисуем свои или берём из ассетов игры.
+We do not use Map Genie data or graphics. We draw our own icons or take them from game assets.
 
-## Не цели (на первую версию)
+## Non-goals (for the first version)
 
-- Поддержка консолей и Mac.
-- Мультиплеер с синхронизацией отметок (одиночная игра обязательна, мультиплеер не ломать).
-- Редактор точек внутри игры.
+- Console and Mac support.
+- Multiplayer with synchronized marks (single player is required, do not break multiplayer).
+- An in-game point editor.
 
-## Пользовательские сценарии
+## User scenarios
 
-1. Открыл карту Wilderness и увидел сундуки, ловушки, книги и торговцев своими иконками.
-2. Выключил «Ловушки», и они пропали с карты и миникарты. Настройка сохраняется между сессиями.
-3. Залутал сундук, и он автоматически отметился как найденный и скрылся (если включено «скрыть найденное»).
-4. Спустился в Подземье, и карта показывает точки именно этой подкарты, без мусора по краям.
-5. Навёл на точку и увидел название и подсказку, например «запертый, нужна Ловкость рук».
-6. Ввёл в поиск «Everburn», и карта подсветила точку.
+1. Opens the Wilderness map and sees chests, traps, books and merchants with the mod's icons.
+2. Turns off "Traps", and they disappear from the map and the minimap. The setting persists between sessions.
+3. Loots a chest, and it is automatically marked as found and hidden (if "hide found" is on).
+4. Descends into the Underdark, and the map shows the points of that submap only, with no stray points at the edges.
+5. Hovers over a point and sees a name and a hint, for example "locked, needs Sleight of Hand".
+6. Types "Everburn" into search, and the map highlights the point.
 
-## Категории (стартовый набор)
+## Categories (starting set)
 
-Лут: сундуки и контейнеры, уникальное оружие, уникальная броня, аксессуары, свитки, книги и записки, ключи, ингредиенты, золото и ценности.
-Мир: ловушки, скрытые тайники, рычаги и кнопки, запертые двери, телепорты/вейпоинты, точки отдыха.
-NPC: торговцы, квестовые персонажи, боссы, животные для разговора.
-Квесты: точки начала квестов (если удастся надёжно вытащить).
+Loot: chests and containers, unique weapons, unique armor, accessories, scrolls, books and notes, keys, ingredients, gold and valuables.
+World: traps, hidden caches, levers and buttons, locked doors, teleports/waypoints, rest points.
+NPC: merchants, quest characters, bosses, animals you can talk to.
+Quests: quest start points (if they can be extracted reliably).
 
-Категории определяются правилами в `tools/categories.ts` по шаблону объекта, тегам и названию. Правила покрыты тестами.
+Categories are determined by rules in `tools/categories.ts` based on the object template, tags and name. The rules are covered by tests.
 
-## Архитектура
+## Architecture
 
 ```
-файлы игры (.pak)
-  -> tools/unpack      распаковка нужных паков через Divine
-  -> tools/extract     парсинг уровней, шаблонов, локализации
-  -> data/points.json  точки: id, категория, уровень/подкарта, x y z, шаблон, название, описание
-  -> tools/build       упаковка данных в мод (JSON или Lua-таблица)
-мод в игре
-  -> Lua (Script Extender): загрузка точек, фильтры, состояние «найдено», сохранение настроек
-  -> XAML слой на карте: иконки, панель категорий, карточка, поиск
+game files (.pak)
+  -> tools/unpack      unpack the needed paks via Divine
+  -> tools/extract     parse levels, templates, localization
+  -> data/points.json  points: id, category, level/submap, x y z, template, name, description
+  -> tools/build       pack the data into the mod (JSON or a Lua table)
+mod in game
+  -> Lua (Script Extender): load points, filters, "found" state, save settings
+  -> XAML layer on the map: icons, category panel, card, search
 ```
 
-### Формат точки
+### Point format
 
 ```json
 {
-  "id": "uuid объекта в уровне",
+  "id": "uuid of the object in the level",
   "category": "chest",
   "level": "WLD_Main_A",
   "submap": "Underdark",
   "pos": { "x": 0, "y": 0, "z": 0 },
   "template": "uuid root template",
-  "name": "локализованное название",
-  "description": "локализованное описание или подсказка",
+  "name": "localized name",
+  "description": "localized description or hint",
   "flags": ["locked", "trapped", "hidden"]
 }
 ```
 
-### Состояние «найдено»
+### "Found" state
 
-Основной способ: Lua проверяет, существует ли объект и пуст ли контейнер, и подписывается на события лута, убийства и подбора. Запасной способ: ручная отметка кликом. Состояние хранится в данных сохранения через Script Extender (ModVars или PersistentVars, выбрать на этапе 0).
+Primary method: Lua checks whether the object exists and whether the container is empty, and subscribes to loot, kill and pickup events. Fallback: a manual mark by click. The state is stored in save data through Script Extender (ModVars or PersistentVars, to be chosen at stage 0).
 
-### Настройки
+### Settings
 
-Фильтры и опции хранятся отдельно от сохранения (глобально для игрока). Если панель на карте окажется слишком сложной, первая версия берёт настройки из MCM, а на карте показывает только иконки.
+Filters and options are stored separately from the save (global for the player). If the on-map panel turns out too complex, the first version takes its settings from MCM and shows only icons on the map.
 
-## Ключевые риски (проверить первыми)
+## Key risks (check first)
 
-1. Можно ли добавить свой слой и панель в XAML карты без поломки ванили и совместимо с Better Maps All-In-One. Варианты: переопределить XAML файл карты в моде или менять дерево Noesis из Lua через Script Extender во время работы. Выбрать по результатам этапа 0.
-2. Преобразование мировых координат в координаты карты, включая подкарты и интерьеры. Игра это уже делает для своих маркеров и персонажа, нужно найти где и как.
-3. Объём: тысячи точек на одной карте. Нужна виртуализация или кластеризация при отдалении.
-4. Патчи игры меняют UI. Держать изменения XAML минимальными и изолированными.
+1. Whether a custom layer and panel can be added to the map XAML without breaking vanilla and while staying compatible with Better Maps All-In-One. Options: override the map XAML file in the mod, or modify the Noesis tree from Lua through Script Extender at runtime. Choose based on the results of stage 0.
+2. Converting world coordinates to map coordinates, including submaps and interiors. The game already does this for its own markers and the player character, we need to find where and how.
+3. Volume: thousands of points on a single map. Virtualization or clustering when zoomed out is needed.
+4. Game patches change the UI. Keep XAML changes minimal and isolated.
 
-## Этапы
+## Stages
 
-### Этап 0. Разведка
+### Stage 0. Reconnaissance
 
-- Найти установку игры, перечислить паки, распаковать `Game.pak` и паки с уровнями в `work/unpacked`.
-- Найти XAML и ресурсы карты журнала и миникарты, описать структуру слоёв и откуда берутся маркеры.
-- Найти, как задаются границы карт уровней и подкарт.
-- Посчитать объекты в `WLD_Main_A` по типам шаблонов.
-- Изучить, как Better Maps All-In-One и Move With World Map вмешиваются в карту (если пользователь положит их паки в `work/refs`).
-- Выяснить в доках и исходниках Script Extender, что доступно для UI (Noesis) и для хранения данных.
+- Find the game install, list the paks, unpack `Game.pak` and the level paks into `work/unpacked`.
+- Find the XAML and resources of the journal map and minimap, describe the layer structure and where markers come from.
+- Find how the bounds of level maps and submaps are defined.
+- Count objects in `WLD_Main_A` by template type.
+- Study how Better Maps All-In-One and Move With World Map interfere with the map (if the user puts their paks into `work/refs`).
+- Find out from the Script Extender docs and sources what is available for the UI (Noesis) and for data storage.
 
-Результат: `docs/GAME_FILES.md` с реальными путями и `docs/RECON.md` с выводами и выбранным подходом к UI. Приёмка: пользователь согласовал подход.
+Result: `docs/GAME_FILES.md` with real paths and `docs/RECON.md` with findings and the chosen UI approach. Acceptance: the user approved the approach.
 
-### Этап 1. Прототип на карте
+### Stage 1. Prototype on the map
 
-- Минимальный мод: `meta.lsx`, конфиг Script Extender, загрузка в игру без ошибок.
-- 10 захардкоженных точек в Wilderness рисуются на карте журнала в правильных местах.
+- A minimal mod: `meta.lsx`, Script Extender config, loads into the game without errors.
+- 10 hardcoded points in Wilderness are drawn on the journal map in the right places.
 
-Приёмка: пользователь открыл карту в игре и подтвердил, что точки стоят там, где надо (скриншот).
+Acceptance: the user opened the map in game and confirmed that the points are where they should be (screenshot).
 
-### Этап 2. Экстрактор данных
+### Stage 2. Data extractor
 
-- `tools/extract` собирает `data/points.json` по `WLD_Main_A` со всеми категориями из стартового набора.
-- Названия из локализации, флаги locked/trapped/hidden где возможно.
-- Отчёт: сколько точек по категориям, сколько осталось без категории.
+- `tools/extract` builds `data/points.json` for `WLD_Main_A` with all categories from the starting set.
+- Names from localization, locked/trapped/hidden flags where possible.
+- Report: how many points per category, how many were left without a category.
 
-Приёмка: тесты зелёные, неразмеченных объектов меньше 10% от интересных типов.
+Acceptance: tests are green, fewer than 10% of interesting types are unclassified.
 
-### Этап 3. Все точки и фильтры
+### Stage 3. All points and filters
 
-- Мод загружает весь набор точек Wilderness, рисует их своими иконками.
-- Фильтры по категориям, «показать все / скрыть все», настройки сохраняются.
-- Производительность: открытие карты без заметной задержки.
+- The mod loads the full set of Wilderness points and draws them with its own icons.
+- Category filters, "show all / hide all", settings are saved.
+- Performance: the map opens without a noticeable delay.
 
-Приёмка: пользователь проверил в игре, выключение «Ловушки» скрывает их на карте и миникарте.
+Acceptance: the user verified in game that turning off "Traps" hides them on the map and the minimap.
 
-### Этап 4. Найдено и карточка
+### Stage 4. Found and card
 
-- Автоматическое «найдено», ручная отметка, «скрыть найденное», счётчики.
-- Карточка при наведении/клике, поиск.
+- Automatic "found", manual mark, "hide found", counters.
+- Card on hover/click, search.
 
-### Этап 5. Подкарты и все акты
+### Stage 5. Submaps and all acts
 
-- Подземье, Гримфорж, Лунные башни, акты 2 и 3, интерьеры.
+- Underdark, Grymforge, Moonrise Towers, acts 2 and 3, interiors.
 
-### Этап 6. Релиз
+### Stage 6. Release
 
-- Сборка пака, README для Nexus, скриншоты, проверка с Better Maps All-In-One, проверка на чистом профиле.
+- Build the pak, README for Nexus, screenshots, check with Better Maps All-In-One, check on a clean profile.
 
-## Вопросы к пользователю (задать, когда дойдём)
+## Questions for the user (ask when we get there)
 
-- Название мода для Nexus.
-- Стиль иконок: в духе игры или в духе Map Genie.
-- Нужна ли совместимость с конкретными модами, кроме Better Maps.
+- Mod name for Nexus.
+- Icon style: in the spirit of the game or of Map Genie.
+- Whether compatibility with specific mods other than Better Maps is needed.

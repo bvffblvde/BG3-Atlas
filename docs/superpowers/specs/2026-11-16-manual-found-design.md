@@ -1,31 +1,31 @@
-# Ручная отметка «найдено»
+# Manual "found" mark
 
-## Зачем
+## Why
 
-Автоотметка видит только подобранные предметы, опустевшие контейнеры и убитых боссов. Рычаги, ловушки, двери, персонажей, тайники и вейпоинты отметить нельзя. Игрок хочет сам отмечать и снимать отметку с точки под курсором, на геймпаде и на мыши.
+Auto-marking only sees picked-up items, emptied containers and killed bosses. Levers, traps, doors, characters, stashes and waypoints cannot be marked. The player wants to mark and unmark the point under the cursor themselves, on gamepad and on mouse.
 
-## Цели и границы
+## Goals and boundaries
 
-- Переключать «найдено» у одной точки под курсором.
-- Ручное решение главнее автоматики: снятая вручную отметка не возвращается автоотметкой.
-- Не ломать ванильные действия карты и ввод в строке поиска.
-- Не цель: отметка кликом по иконке (команда в ViewModel точки ломает свойства в SE v33), массовая отметка.
+- Toggle "found" on a single point under the cursor.
+- The manual decision overrides automation: a mark removed manually is not restored by auto-marking.
+- Do not break vanilla map actions and typing in the search field.
+- Non-goals: marking by clicking an icon (a command in the point ViewModel breaks properties in SE v33), bulk marking.
 
-## Подходы
+## Approaches
 
-1. Кнопка на геймпаде и клавиша на мыши, точка под курсором ищется в Lua (выбрано). Использует уже готовый поиск ближайшей точки для строки под курсором.
-2. Клик по иконке через команду точки. Отброшено: в SE v33 свойство Command у точки ломает соседние свойства.
-3. Отметка из списка в панели. Отброшено: неудобно при тысячах точек.
+1. A gamepad button and a mouse key, the point under the cursor is looked up in Lua (chosen). It reuses the existing nearest-point search for the row under the cursor.
+2. A click on the icon through a point command. Rejected: in SE v33 a Command property on the point breaks neighboring properties.
+3. Marking from a list in the panel. Rejected: inconvenient with thousands of points.
 
-## Решения
+## Decisions
 
-- Хранение: переменная мода `Found` хранит `true` (найдено) и `false` (вручную снято). `IsFound` верно только для `true`. Автоотметка не трогает точки со значением `false` и с уже стоящим `true`.
-- Переключение: найдено → `false`, иначе → `true`.
-- Геймпад: в строке подсказок панели (видна при открытой панели) кнопка «Найдено» на событии `UIMessageBoxY`, `EatInput=True`, значок рисует игра. Цель: ближайшая к центру экрана точка, та же, что показана в строке `BG3A_CursorInfo`. Выбор события не проверен: если кнопка совпадёт с ванильной меткой карты, сменить событие.
-- Мышь: клавиша F (скан-код, без повторов) через `Ext.Events.KeyInput`, только пока на экране журнальная карта (виджет JournalMap) и строка поиска не в фокусе. Цель: ближайшая точка к `LSWorldMap.MouseWorldCoordinates` в радиусе 30 пикселей экрана. Что это поле на мыши показывает точку под курсором, не проверено.
-- Расчёт точки под курсором идёт в UI-потоке при обновлении слоя и сохраняется как простая Lua-таблица на игрока; клавиша и команда только читают её и вызывают `Found.Toggle` (без обращения к сущностям).
-- После переключения слой и счётчики панели перерисовываются по версии `Found`.
+- Storage: the mod variable `Found` stores `true` (found) and `false` (cleared manually). `IsFound` is true only for `true`. Auto-marking does not touch points with the value `false` or with `true` already set.
+- Toggling: found → `false`, otherwise → `true`.
+- Gamepad: in the panel's hints row (visible while the panel is open) a "Found" button on the `UIMessageBoxY` event, `EatInput=True`, the game draws the glyph. Target: the point nearest to the screen center, the same one shown in the `BG3A_CursorInfo` row. The choice of event is unverified: if the button collides with the vanilla map mark, change the event.
+- Mouse: the F key (scancode, no repeats) through `Ext.Events.KeyInput`, only while the journal map (the JournalMap widget) is on screen and the search field is not focused. Target: the point nearest to `LSWorldMap.MouseWorldCoordinates` within a radius of 30 screen pixels. Whether this field on the mouse shows the point under the cursor is unverified.
+- The point under the cursor is computed on the UI thread when the layer updates and stored as a plain Lua table per player; the key and the command only read it and call `Found.Toggle` (with no access to entities).
+- After toggling, the layer and the panel counters are redrawn by the `Found` version.
 
-## Оставлено исполнителю
+## Left to the implementer
 
-Имена функций, лог одной строкой при переключении (`manual found <id> on/off`), тесты на логику хранения через fengari.
+Function names, a one-line log on toggling (`manual found <id> on/off`), tests of the storage logic through fengari.

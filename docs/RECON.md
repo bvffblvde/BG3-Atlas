@@ -1,124 +1,124 @@
-# Этап 0. Разведка: выводы
+# Stage 0. Reconnaissance: findings
 
-Дата: 2026-11-15. Игра: Patch 8 HotFix 10 (buildid 25605617). Script Extender: v33 (исходники в `work/refs/bg3se`).
+Date: 2026-11-15. Game: Patch 8 HotFix 10 (buildid 25605617). Script Extender: v33 (sources in `work/refs/bg3se`).
 
-## 1. Как устроена карта в игре
+## 1. How the map works in the game
 
-- Журнальная карта: `Mods/MainUI/GUI/Pages/JournalMap.xaml` (387 строк), миникарта: `Minimap.xaml` (557), обзорная: `OverviewMap.xaml`. У каждой есть версия `_c` для геймпада.
-- Обе карты рисует нативный контрол `ls:LSWorldMap` (`x:Name="WorldMap"`), данные: `WorldMapData="{Binding CurrentPlayer.WorldMap}"`. Масштаб, панорамирование и проекция маркеров живут внутри движка, в XAML их нет.
-- Маркер: контрол `ls:LSWorldMapMarker`, его ViewModel `ls:MapMarker` с полями `Type`, `Name`, `GameObject`, `MapMarkerStyle`, `QuestViews`, `CombinedMapMarkers`. Шаблоны: `Map.MarkerDataTemplate` и `Map.MiniMarkerDataTemplateInAndOutViewport` в `Public/Game/GUI/Theme/DefaultTheme.Styles.xaml`.
-- Иконка маркера выбирается стилем `MapMarkerIconStyle` (`Public/Game/GUI/Theme/DefaultShared.Styles.xaml`, строка 2013) по `Type` и `MapMarkerStyle` через DataTrigger.
-- Типы маркеров, найденные в шаблонах: `Waypoint`, `Portal`, `CampChest`, `Trader`, `Custom`, `SpecialItem`, `QuestMarker`, `LocationMarker`, `CharacterParty`.
-- Маркер `SpecialItem` игра создаёт для предмета, у которого задан `MapMarkerStyle`. В ванили так помечены только два шаблона: `FUR_GEN_Wardrobe_Player_A` (`WithersWardrobe`) и магическое зеркало (`MagicMirror`), оба в `Public/Shared/RootTemplates/_merged.lsf`. В рантайме это компонент `eoc::item::MapMarkerStyleComponent { FixedString Style }` (SE: `MapMarkerStyle`).
-- Пользовательские метки (`AddCustomMarker`, `RemoveCustomMarker`) уже есть в ванили, команды висят на DataContext виджета.
+- Journal map: `Mods/MainUI/GUI/Pages/JournalMap.xaml` (387 lines), minimap: `Minimap.xaml` (557), overview map: `OverviewMap.xaml`. Each has a `_c` version for gamepad.
+- Both maps are drawn by the native control `ls:LSWorldMap` (`x:Name="WorldMap"`), data: `WorldMapData="{Binding CurrentPlayer.WorldMap}"`. Scale, panning and marker projection live inside the engine, they are not in the XAML.
+- Marker: the control `ls:LSWorldMapMarker`, its ViewModel `ls:MapMarker` with the fields `Type`, `Name`, `GameObject`, `MapMarkerStyle`, `QuestViews`, `CombinedMapMarkers`. Templates: `Map.MarkerDataTemplate` and `Map.MiniMarkerDataTemplateInAndOutViewport` in `Public/Game/GUI/Theme/DefaultTheme.Styles.xaml`.
+- The marker icon is chosen by the `MapMarkerIconStyle` style (`Public/Game/GUI/Theme/DefaultShared.Styles.xaml`, line 2013) by `Type` and `MapMarkerStyle` through a DataTrigger.
+- Marker types found in the templates: `Waypoint`, `Portal`, `CampChest`, `Trader`, `Custom`, `SpecialItem`, `QuestMarker`, `LocationMarker`, `CharacterParty`.
+- The game creates a `SpecialItem` marker for an item that has `MapMarkerStyle` set. In vanilla only two templates are marked this way: `FUR_GEN_Wardrobe_Player_A` (`WithersWardrobe`) and the magic mirror (`MagicMirror`), both in `Public/Shared/RootTemplates/_merged.lsf`. At runtime this is the component `eoc::item::MapMarkerStyleComponent { FixedString Style }` (SE: `MapMarkerStyle`).
+- Custom markers (`AddCustomMarker`, `RemoveCustomMarker`) already exist in vanilla, the commands hang on the widget's DataContext.
 
-## 2. Привязка мира к карте (риск 2): решён на уровне данных
+## 2. World to map binding (risk 2): solved at the data level
 
-В каждом уровне есть папка `Mods/GustavDev/Levels/<Level>/WorldMap/` с файлами `WorldMapMetaData`:
+Each level has a folder `Mods/GustavDev/Levels/<Level>/WorldMap/` with `WorldMapMetaData` files:
 
-| Поле | Пример (общая карта WLD_Main_A, `MiniMap.lsf`) |
+| Field | Example (shared map WLD_Main_A, `MiniMap.lsf`) |
 |---|---|
-| Width, Height | 33500 x 33500 пикселей |
-| WorldWidth, WorldHeight | 1675 x 1675 мировых единиц |
+| Width, Height | 33500 x 33500 pixels |
+| WorldWidth, WorldHeight | 1675 x 1675 world units |
 | WorldX, WorldZ | -362.5, 80 |
-| BuildingUUID | пусто для поверхности, иначе имя подкарты |
-| Floor | этаж |
-| TriggerId | uuid триггера, внутри которого действует подкарта |
-| TextureFilePath | uuid текстуры карты |
+| BuildingUUID | empty for the surface, otherwise the submap name |
+| Floor | floor |
+| TriggerId | uuid of the trigger inside which the submap applies |
+| TextureFilePath | uuid of the map texture |
 
-- Масштаб везде 20 пикселей на мировую единицу.
-- В WLD_Main_A 96 таких записей: 35 без здания (регионы поверхности) и подкарты `Underdark` (этажи 0..5), `GoblinCamp` (0..2), `KethericCity` (0..2), `HagSecretLair`, `OwlbearCave`, `Mill`, `Tollhouse` и десятки интерьеров.
-- Выбор подкарты для точки: проверить, внутри какого `TriggerId` она лежит (триггеры в `Triggers/_merged.lsf`), взять его `BuildingUUID` и `Floor`.
-- Не проверено: `WorldX/WorldZ` это центр области или угол, и направление оси Z на карте. Проверим на 10 точках этапа 1.
+- The scale is 20 pixels per world unit everywhere.
+- WLD_Main_A has 96 such records: 35 without a building (surface regions) and the submaps `Underdark` (floors 0..5), `GoblinCamp` (0..2), `KethericCity` (0..2), `HagSecretLair`, `OwlbearCave`, `Mill`, `Tollhouse` and dozens of interiors.
+- Choosing a submap for a point: check which `TriggerId` it lies inside (triggers in `Triggers/_merged.lsf`), take its `BuildingUUID` and `Floor`.
+- Unverified: whether `WorldX/WorldZ` is the center of the area or a corner, and the direction of the Z axis on the map. We will check on the 10 points of stage 1.
 
-## 3. Объекты уровня WLD_Main_A
+## 3. WLD_Main_A level objects
 
-Объекты лежат в двух модулях, их нужно объединять: `Mods/Gustav/Levels/WLD_Main_A` (основной) и `Mods/GustavDev/Levels/WLD_Main_A` (дополнения), плюс `Mods/Honour/...` для режима Honour.
+Objects live in two modules and need to be merged: `Mods/Gustav/Levels/WLD_Main_A` (main) and `Mods/GustavDev/Levels/WLD_Main_A` (additions), plus `Mods/Honour/...` for Honour mode.
 
-| Файл | Gustav | GustavDev |
+| File | Gustav | GustavDev |
 |---|---|---|
 | Items/_merged | 3333 | 170 |
 | Characters/_merged | 621 | 24 |
 | Triggers/_merged | 4394 | 488 |
 
-У объекта есть `MapKey` (uuid экземпляра), `Name`, `TemplateName` (uuid root template), `Transform/Position`, `ItemList` (содержимое контейнера), `LayerList`.
+An object has `MapKey` (instance uuid), `Name`, `TemplateName` (root template uuid), `Transform/Position`, `ItemList` (container contents), `LayerList`.
 
-Префиксы имён предметов (верх списка): `S_` 1275 (уникальные сюжетные экземпляры), `CONT_` 281 (контейнеры), `CONS_` 238 (расходники), `LOOT_` 199, `PUZ_` 172 (рычаги, головоломки), `DEC_` 124, `LTS_` 89, `WPN_` 59, `TOOL_` 51, `DOOR_` 10, `BOOK_` 8. Имя экземпляра часто неинформативно (`S_...`), категорию надёжнее брать по цепочке root template (`ParentTemplateId`), его тегам и статам.
+Item name prefixes (top of the list): `S_` 1275 (unique story instances), `CONT_` 281 (containers), `CONS_` 238 (consumables), `LOOT_` 199, `PUZ_` 172 (levers, puzzles), `DEC_` 124, `LTS_` 89, `WPN_` 59, `TOOL_` 51, `DOOR_` 10, `BOOK_` 8. The instance name is often uninformative (`S_...`), so it is more reliable to derive the category from the root template chain (`ParentTemplateId`), its tags and stats.
 
-## 4. Что даёт Script Extender v33 для UI
+## 4. What Script Extender v33 offers for the UI
 
-Из `Docs/API.md` и `BG3Extender/Lua/Libs/ClientUI`, `GameDefinitions/PropertyMaps/UI.inl`:
+From `Docs/API.md` and `BG3Extender/Lua/Libs/ClientUI`, `GameDefinitions/PropertyMaps/UI.inl`:
 
-- `Ext.UI.GetRoot()`, `Find(name)`, `Child`, `VisualChild`, `TreeParent`, `Resource(key)`: навигация по дереву Noesis.
-- `GetProperty`, `SetProperty`, `GetAllProperties`, `DependencyProperties`: чтение и запись любых свойств нативных объектов, включая ViewModel игры.
-- `Subscribe`/`Unsubscribe` на события элементов, `PointToScreen`/`PointFromScreen`, `HitTest`.
-- `Ext.UI.RegisterType` и `Ext.UI.Instantiate`: свои ViewModel со свойствами, коллекциями и командами, в том числе обёртки над существующим DataContext виджета (`wrappedTypeName`).
-- С v33 работа с Noesis только внутри `Ext.UI.Defer(callback)`.
-- Создать новый элемент UI из Lua нельзя (нет загрузки XAML из строки). Новая разметка появляется только через XAML-файлы в паке мода.
-- Хранение: `Ext.Vars` (User variables, Mod variables) и PersistentVars, синхронизация между клиентом и сервером есть. Для «найдено» подходят Mod variables или User variables на сущности игрока, для глобальных настроек: файл через `Ext.IO`.
+- `Ext.UI.GetRoot()`, `Find(name)`, `Child`, `VisualChild`, `TreeParent`, `Resource(key)`: navigation of the Noesis tree.
+- `GetProperty`, `SetProperty`, `GetAllProperties`, `DependencyProperties`: reading and writing any properties of native objects, including the game's ViewModels.
+- `Subscribe`/`Unsubscribe` for element events, `PointToScreen`/`PointFromScreen`, `HitTest`.
+- `Ext.UI.RegisterType` and `Ext.UI.Instantiate`: custom ViewModels with properties, collections and commands, including wrappers around an existing widget DataContext (`wrappedTypeName`).
+- Since v33, Noesis work is only allowed inside `Ext.UI.Defer(callback)`.
+- A new UI element cannot be created from Lua (there is no loading of XAML from a string). New markup appears only through XAML files in the mod pak.
+- Storage: `Ext.Vars` (User variables, Mod variables) and PersistentVars, with synchronization between client and server. For "found", Mod variables or User variables on the player entity fit, for global settings: a file through `Ext.IO`.
 
-## 5. Совместимость
+## 5. Compatibility
 
-- Установленный у пользователя ImpUI (ImprovedUI) не трогает файлы карты: он переопределяет создание персонажа, левелап, уведомления и добавляет свой GUI-модуль (`GUI/metadata.lsf`, `GUI/StateMachines`). Ни один из 75 установленных модов не переопределяет `JournalMap`, `Minimap`, `DefaultShared.Styles` и `DefaultTheme.Styles`.
-- Better Maps All-In-One и Move With World Map не установлены, их паков в `work/refs` нет. Почти наверняка они переопределяют `JournalMap.xaml`/`Minimap.xaml` целиком, а это прямой конфликт с любым нашим переопределением тех же файлов.
+- UI overhaul mods such as ImprovedUI (ImpUI) do not touch the map files: they override character creation, level-up and notifications and add their own GUI module (`GUI/metadata.lsf`, `GUI/StateMachines`). None of the mods checked during recon overrides `JournalMap`, `Minimap`, `DefaultShared.Styles` or `DefaultTheme.Styles`.
+- Better Maps All-In-One and Move With World Map were not available during recon, their paks are not in `work/refs`. They almost certainly override `JournalMap.xaml`/`Minimap.xaml` entirely, which is a direct conflict with any override of the same files in our mod.
 
-## 6. Варианты подхода к UI
+## 6. UI approach options
 
-### A. Нативные маркеры (рекомендую проверить первым)
+### A. Native markers (recommended to try first)
 
-Lua вешает компонент `MapMarkerStyle` со своими стилями (`BG3A_Chest`, `BG3A_Trap`...) на сущности интересных предметов. Игра сама рисует их на карте и миникарте, в нужной подкарте, с масштабом и тултипом. Иконки подключаются переопределением `MapMarkerIconStyle`.
+Lua attaches the `MapMarkerStyle` component with our own styles (`BG3A_Chest`, `BG3A_Trap`...) to the entities of interesting items. The game draws them itself on the map and minimap, in the right submap, with scaling and a tooltip. Icons are hooked in by overriding `MapMarkerIconStyle`.
 
-- Плюсы: не нужно считать проекцию, подкарты и миникарта бесплатно, минимум XAML, совместимость с Better Maps выше (они трогают страницы, а не тему).
-- Минусы: работает только для загруженных сущностей-предметов (NPC, ловушки-триггеры, вероятно, нет); переопределение `DefaultShared.Styles.xaml` (2259 строк) хрупкое при патчах; не проверено, создаёт ли игра маркер, если компонент добавлен в рантайме, и синхронизируется ли он с клиентом.
+- Pros: no need to compute the projection, submaps and the minimap come for free, minimal XAML, higher compatibility with Better Maps (they touch pages, not the theme).
+- Cons: works only for loaded item entities (NPCs and trap triggers probably do not work); overriding `DefaultShared.Styles.xaml` (2259 lines) is fragile across patches; unverified whether the game creates a marker if the component is added at runtime and whether it is synchronized to the client.
 
-### B. Свой слой поверх карты
+### B. Own layer on top of the map
 
-Переопределяем `JournalMap.xaml` и `Minimap.xaml`: добавляем поверх `LSWorldMap` свой `ItemsControl` на `Canvas`, привязанный к нашей ViewModel. Lua читает текущий масштаб и смещение карты через `GetProperty` и пересчитывает экранные позиции точек из `points.json` по `WorldMapMetaData`.
+Override `JournalMap.xaml` and `Minimap.xaml`: add our own `ItemsControl` on a `Canvas` on top of `LSWorldMap`, bound to our ViewModel. Lua reads the current map scale and offset through `GetProperty` and recomputes the on-screen positions of points from `points.json` using `WorldMapMetaData`.
 
-- Плюсы: полный контроль (любые точки, включая NPC, ловушки и незагруженные объекты, кластеризация, свои иконки, поиск с подсветкой).
-- Минусы: нужно найти внутренние свойства `LSWorldMap` с трансформацией (не проверено, что они вообще доступны); пересчёт тысяч точек из Lua при каждом сдвиге карты; прямой конфликт с Better Maps.
+- Pros: full control (any points, including NPCs, traps and unloaded objects, clustering, own icons, search with highlighting).
+- Cons: we need to find the internal `LSWorldMap` properties holding the transform (unverified that they are available at all); recomputing thousands of points from Lua on every map shift; a direct conflict with Better Maps.
 
-### C. Гибрид (итоговая рекомендация)
+### C. Hybrid (final recommendation)
 
-- Иконки точек: вариант A, если пробы в игре подтвердят, что рантайм-компонент создаёт маркер. Иначе B.
-- Панель фильтров, поиск и карточка: свой небольшой виджет в собственном GUI-модуле мода (как у ImpUI), поверх журнальной карты, без переопределения `JournalMap.xaml`. Если не получится, минимальная вставка в `JournalMap.xaml` или настройки через MCM, как разрешает спека.
+- Point icons: option A, if in-game probes confirm that the runtime component creates a marker. Otherwise B.
+- Filter panel, search and card: a small widget of our own in the mod's own GUI module (like ImpUI), on top of the journal map, without overriding `JournalMap.xaml`. If that fails, a minimal insertion into `JournalMap.xaml` or settings through MCM, as the spec allows.
 
-## 7a. Результаты пробы в игре (2026-11-15)
+## 7a. In-game probe results (2026-11-15)
 
-- Вариант A не работает: `MapMarkerStyle`, добавленный в рантайме на сервере, реплицируется на клиент (компонент виден в клиентском контексте), но маркер на карте и миникарте не появляется. Маркеры `SpecialItem`, видимо, создаются при загрузке сущности или другой системой. Вариант A отброшен.
-- Координаты в файлах уровня совпадают с рантаймом: бочка `S_DEN_SmokepowderTrap_002` в `Items/_merged` (212.35, 24.92, 425.93), в игре там же.
-- У `ls.LSWorldMap` через SE читаются `MapPos`, `MapScale`, `MapRotation`, `Scale`, `ActualCameraLookatPos`, `MouseWorldCoordinates`, `LowerHeightLimit`, `UpperHeightLimit`. `ProjectionMatrix` (тип `Transform2`) SE прочитать не умеет. `WorldMapData` и `DataContext` у самого контрола пустые.
-- ViewModel маркера `ls.MapMarker`: `Type`, `Name`, `WorldPos`, `Height`, `AzimuthDegrees`, `GameObject`, `MapMarkerStyle`, `QuestViews`, `CombinedMapMarkers`.
-- Нативные маркеры лежат в `Canvas PART_MarkerHolder` шаблона `LSWorldMap`, их ставит движок.
+- Option A does not work: `MapMarkerStyle` added at runtime on the server is replicated to the client (the component is visible in the client context), but no marker appears on the map or minimap. `SpecialItem` markers are apparently created when the entity loads or by another system. Option A is dropped.
+- Coordinates in the level files match the runtime: the barrel `S_DEN_SmokepowderTrap_002` in `Items/_merged` is at (212.35, 24.92, 425.93), and in game it is in the same place.
+- Through SE, `ls.LSWorldMap` exposes `MapPos`, `MapScale`, `MapRotation`, `Scale`, `ActualCameraLookatPos`, `MouseWorldCoordinates`, `LowerHeightLimit`, `UpperHeightLimit`. SE cannot read `ProjectionMatrix` (type `Transform2`). `WorldMapData` and `DataContext` on the control itself are empty.
+- The marker ViewModel `ls.MapMarker`: `Type`, `Name`, `WorldPos`, `Height`, `AzimuthDegrees`, `GameObject`, `MapMarkerStyle`, `QuestViews`, `CombinedMapMarkers`.
+- Native markers live in the `Canvas PART_MarkerHolder` of the `LSWorldMap` template, the engine places them.
 
-### Выбранный механизм для иконок: слой в шаблоне LSWorldMap
+### Chosen icon mechanism: a layer in the LSWorldMap template
 
-В шаблоне `LSWorldMap` (`DefaultShared.Styles.xaml`, стиль без ключа) регионы карты нарисованы `ItemsControl` внутри `MapHolder`, у которого есть `MatrixTransform Matrix="{Binding ProjectionMatrix, ...LSWorldMap}"`, а элементы ставятся на `Canvas` через `TranslateTransform X=WorldPos.X Y=WorldPos.Y`. `MapHolder` сам сдвигается, поворачивается и масштабируется по `MapPos`, `MapRotation`, `MapScale`.
+In the `LSWorldMap` template (`DefaultShared.Styles.xaml`, the style without a key) the map regions are drawn by an `ItemsControl` inside `MapHolder`, which has `MatrixTransform Matrix="{Binding ProjectionMatrix, ...LSWorldMap}"`, and elements are placed on a `Canvas` through `TranslateTransform X=WorldPos.X Y=WorldPos.Y`. `MapHolder` itself shifts, rotates and scales by `MapPos`, `MapRotation`, `MapScale`.
 
-Мы добавляем свой `ItemsControl x:Name="BG3A_Layer"` последним ребёнком `MapHolder` с той же проекцией. Lua находит слой и ставит ему DataContext со своей ViewModel (`BG3A_Layer { Points, IconScale }`). Движок сам проецирует точки, панорамирование, зум и поворот бесплатны, карта и миникарта используют один стиль. Иконки компенсируют масштаб через `IconScale` (Lua пересчитывает по `MapScale`).
+We add our own `ItemsControl x:Name="BG3A_Layer"` as the last child of `MapHolder` with the same projection. Lua finds the layer and sets its DataContext to our ViewModel (`BG3A_Layer { Points, IconScale }`). The engine projects the points itself, panning, zoom and rotation come for free, and the map and minimap use the same style. Icons compensate for scale through `IconScale` (Lua recomputes it from `MapScale`).
 
-- Файл темы Larian в git не кладём: `tools/build.ts` берёт ванильный файл из `work/unpacked`, вставляет фрагмент `mod/xaml/WorldMapLayer.xaml` и проверяет XML. Патчатся две версии: `Public/Game/GUI/Theme/` (Game.pak) и `Public/Game/GUI/Override/Clairmont/Theme/` (Patch8_HotFix9). Какая из них активна, не проверено, поэтому патчим обе.
-- Если патч игры изменит шаблон, сборка упадёт с понятной ошибкой, а не соберёт битый пак.
-- Не проверено: что `WorldPos.Y` в проекции это мировой `z` без смены знака (проверяем двумя отладочными точками), и коэффициент масштаба иконок.
+- We do not put Larian's theme file in git: `tools/build.ts` takes the vanilla file from `work/unpacked`, inserts the fragment `mod/xaml/WorldMapLayer.xaml` and validates the XML. Two versions are patched: `Public/Game/GUI/Theme/` (Game.pak) and `Public/Game/GUI/Override/Clairmont/Theme/` (Patch8_HotFix9). Which of them is active is unverified, so both are patched.
+- If a game patch changes the template, the build fails with a clear error instead of producing a broken pak.
+- Unverified: that `WorldPos.Y` in the projection is the world `z` without a sign change (we check with two debug points), and the icon scale coefficient.
 
-### Система координат проекции (проверено в игре 2026-11-15)
+### Projection coordinate system (verified in game 2026-11-15)
 
-`ProjectionMatrix` работает в локальных координатах карты уровня, а не в мировых. `WorldMapData` (DataContext `MapHolder`) имеет `WorldSize = 1675×1675` для WLD_Main_A, а ванильные регионы (`VMRegion.WorldPos/WorldSize`) лежат в диапазоне 0..1675. Сверка четырёх регионов с метаданными `WorldMap` дала точную формулу:
+`ProjectionMatrix` works in the level map's local coordinates, not in world coordinates. `WorldMapData` (the DataContext of `MapHolder`) has `WorldSize = 1675×1675` for WLD_Main_A, and the vanilla regions (`VMRegion.WorldPos/WorldSize`) lie in the range 0..1675. Cross-checking four regions against the `WorldMap` metadata gave an exact formula:
 
-- `localX = worldX - (WorldX - WorldWidth / 2)`, для WLD_Main_A это `worldX + 1200`;
-- `localY = (WorldZ + WorldHeight / 2) - worldZ`, для WLD_Main_A это `917.5 - worldZ`.
+- `localX = worldX - (WorldX - WorldWidth / 2)`, for WLD_Main_A this is `worldX + 1200`;
+- `localY = (WorldZ + WorldHeight / 2) - worldZ`, for WLD_Main_A this is `917.5 - worldZ`.
 
-Где `WorldX/WorldZ/WorldWidth/WorldHeight` берутся из `WorldMap/MiniMap.lsf` уровня. Ось Z перевёрнута, начало в левом верхнем углу.
+Here `WorldX/WorldZ/WorldWidth/WorldHeight` come from the level's `WorldMap/MiniMap.lsf`. The Z axis is flipped, the origin is at the top left corner.
 
-Другие находки в игре:
-- Свойства ViewModel SE с `Notify = true` не записываются из Lua в SE v33, без `Notify` работают.
-- Lua-прокси объектов Noesis живут только внутри одного `Ext.UI.Defer`, кешировать их нельзя.
-- Полный фрагмент слоя ронял игру при запуске; минимальный (без `DataContext="{x:Null}"`, без `ScaleTransform` с `RelativeSource AncestorType=ItemsControl`, без `DataTrigger`) работает. Какая из трёх конструкций виновата, не выяснено.
+Other findings in game:
+- SE ViewModel properties with `Notify = true` cannot be written from Lua in SE v33, those without `Notify` work.
+- Lua proxies of Noesis objects live only inside one `Ext.UI.Defer`, they cannot be cached.
+- The full layer fragment crashed the game on startup; the minimal one (without `DataContext="{x:Null}"`, without a `ScaleTransform` with `RelativeSource AncestorType=ItemsControl`, without a `DataTrigger`) works. Which of the three constructs is to blame was not determined.
 
-## 7. Что проверить в игре до выбора (проба этапа 0.5)
+## 7. What to check in game before choosing (stage 0.5 probe)
 
-Нужен установленный SE и маленький отладочный мод. Проверить в консоли SE:
+This needs SE installed and a small debug mod. Check in the SE console:
 
-1. `GetAllProperties()` у `LSWorldMap` журнальной карты и у `CurrentPlayer.WorldMap`: есть ли масштаб, центр, коллекция маркеров.
-2. Добавить `MapMarkerStyle = "WithersWardrobe"` на сундук рядом с игроком (сервер, затем клиент) и посмотреть, появится ли маркер на карте и миникарте.
-3. Взять позицию игрока и проверить формулу мир-карта на одной точке.
+1. `GetAllProperties()` on the journal map's `LSWorldMap` and on `CurrentPlayer.WorldMap`: whether there is a scale, a center, a collection of markers.
+2. Add `MapMarkerStyle = "WithersWardrobe"` to a chest near the player (server, then client) and see whether a marker appears on the map and minimap.
+3. Take the player's position and check the world-to-map formula on a single point.

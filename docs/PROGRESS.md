@@ -1,12 +1,12 @@
-# Прогресс
+# Progress
 
-## Этап 2. Экстрактор данных (код готов, ждёт финального ревью)
+## Stage 2. Data extractor (code ready, awaiting final review)
 
-План: `docs/superpowers/plans/2026-11-15-stage2-extractor.md`. Запуск: `npm run unpack` (один раз), затем `npm run extract`.
+Plan: `docs/superpowers/plans/2026-11-15-stage2-extractor.md`. Run: `npm run unpack` (once), then `npm run extract`.
 
-Результат по Wilderness (WLD_Main_A и 26 подуровней `WLD_*`): 10 838 объектов, 3148 точек, неразмеченных среди интересных 3.0% (критерий < 10% выполнен).
+Result for Wilderness (WLD_Main_A and 26 `WLD_*` sublevels): 10,838 objects, 3148 points, 3.0% unclassified among interesting ones (the criterion < 10% is met).
 
-| Категория | Точек | Категория | Точек |
+| Category | Points | Category | Points |
 |---|---|---|---|
 | chest | 1906 | quest_npc | 33 |
 | trap | 313 | accessory | 26 |
@@ -18,127 +18,127 @@
 | key | 51 | boss | 6 |
 | locked_door | 48 | animal | 4 |
 
-Подкарты: 1097 точек внутри зданий (KethericCity 277, GoblinCamp 121, Underdark 105, ...), остальные на поверхности.
+Submaps: 1097 points inside buildings (KethericCity 277, GoblinCamp 121, Underdark 105, ...), the rest on the surface.
 
-Что важно знать:
-- Подуровни подключаются через `LevelTemplate` и лежат в локальных координатах, экстрактор переводит их в мир (с поворотом).
-- Сундук = контейнер с лутом (таблица `InventoryList` или содержимое `ItemList`), пустые бочки и ящики не попадают.
-- Торговец = тег `TRADER` или таблица `TradeTreasures` с `Trade`/`Vendor` в имени. Обычный `TradeTreasures` есть почти у всех NPC, это карманный лут.
-- Вейпоинт = сценерия `*_WaypointShrine_geo`. Двери-переходы (`IsPortal`) больше не считаются вейпоинтами.
-- Уникальное оружие и броня считаются только как лежащие в мире предметы. Содержимое сундуков и снаряжение NPC в отдельные точки не выносится.
+Good to know:
+- Sublevels are attached through `LevelTemplate` and use local coordinates, the extractor converts them to world coordinates (with rotation).
+- Chest = a container with loot (an `InventoryList` table or `ItemList` contents), empty barrels and crates are excluded.
+- Trader = the `TRADER` tag or a `TradeTreasures` table with `Trade`/`Vendor` in its name. A plain `TradeTreasures` exists on almost every NPC, it is pocket loot.
+- Waypoint = scenery `*_WaypointShrine_geo`. Transition doors (`IsPortal`) no longer count as waypoints.
+- Unique weapons and armor count only as items lying in the world. Chest contents and NPC equipment are not turned into separate points.
 
-Не проверено:
-- Флаг `hidden` и категория `hidden_stash` определяются по именам (`Hidden`, `Secret`, `Buried`, `Stash`), прямого поля в данных нет.
-- `animal` = зверь (`BASE_Quadruped_Beast`) с диалогом. Таких нашлось 4, возможно, часть говорящих животных описана иначе.
-- Опасные грибы Подземья (`Bibberbang`, `Exploding`, `ToxicWall`) отнесены к ловушкам.
-- Вейпоинты получают общее имя из легенды карты («Рунные круги»). Конкретные названия (`WAYP_*` в `Mods/Gustav/Localization/Waypointshrines.lsf`) к камням в данных уровня не привязаны, вероятно, связь в Osiris.
-- Подуровни `WLD_Chapel_H`, `WLD_SharTemple_E`, `WLD_Vista`, `WLD_CAMP_CineTriggers` не подключены через `LevelTemplate`, и извлекать их не нужно (проверено 2026-11-16). `WLD_Chapel_H` это неиспользуемая копия `WLD_Chapel_Push`: те же границы в meta.lsx, атмосфера и освещение, все 277 его предметов есть в Push с теми же именами (271 в той же позиции), но с другими UUID. Живой склеп под руинами это `WLD_Chapel_Push` (LevelTemplate `WLD_Chapel` в `WLD_Main_A`), его 36 точек лежат в круге подрегиона склепа. В остальных трёх нет предметов, персонажей и вейпоинтов (только триггеры, слои, декорации).
-- Записки иногда попадают в `scroll` (например, «Письмо с отказом»), а не в `book`.
+Unverified:
+- The `hidden` flag and the `hidden_stash` category are determined by names (`Hidden`, `Secret`, `Buried`, `Stash`), there is no direct field in the data.
+- `animal` = a beast (`BASE_Quadruped_Beast`) with dialogue. Only 4 were found, perhaps some talking animals are described differently.
+- Dangerous Underdark mushrooms (`Bibberbang`, `Exploding`, `ToxicWall`) are classified as traps.
+- Waypoints get a generic name from the map legend ("Waypoints"). The specific names (`WAYP_*` in `Mods/Gustav/Localization/Waypointshrines.lsf`) are not linked to the stones in the level data, the link is probably in Osiris.
+- The sublevels `WLD_Chapel_H`, `WLD_SharTemple_E`, `WLD_Vista`, `WLD_CAMP_CineTriggers` are not attached through `LevelTemplate` and do not need to be extracted (checked 2026-11-16). `WLD_Chapel_H` is an unused copy of `WLD_Chapel_Push`: the same bounds in meta.lsx, atmosphere and lighting, all 277 of its items exist in Push with the same names (271 in the same position), but with different UUIDs. The live crypt under the ruins is `WLD_Chapel_Push` (LevelTemplate `WLD_Chapel` in `WLD_Main_A`), its 36 points lie inside the circle of the crypt subregion. The other three have no items, characters or waypoints (only triggers, layers, decorations).
+- Notes sometimes land in `scroll` (for example, "Letter of Refusal") instead of `book`.
 
-## Правки по тесту пользователя (2026-11-15)
+## Fixes after user testing (2026-11-15)
 
-- Подтверждено в игре: иконки, панель, счётчики найдено/всего, автоотметка (свитки 5/120, ингредиенты 3/275, сундуки 2/1906), миникарта, панель на геймпаде (кнопка Atlas на L).
-- Пропадание иконок: игрок зашёл в маленький триггер-здание Bridge без точек, вид переключился на пустой. Теперь пустой вид здания откатывается на поверхность.
-- Склеп под заросшими руинами (WLD_Chapel_H, не извлекается) показывал точки поверхности. Нужно брать текущее здание и этаж из WorldMapData игры: в !atlas_layerdump добавлен дамп WorldMapData и CurrentBuilding, ждём дамп из склепа и с поверхности.
-- Иконки: у каждой категории свой цвет ободка, у оружия, брони, ценностей, сундуков, аксессуаров и боссов цветной диск.
-- Подсказка при наведении теперь ls:LSTooltip (как у ванильных маркеров) вместо строкового ToolTip: была слишком крупной; возможно, заработает и под курсором геймпада (не проверено).
-- Геймпад: добавлены UIUp/UIDown для перемещения по строкам панели (не проверено, ваниль их съедает на этой странице).
-- Второй тест: LSTooltip со строкой рисуется пустым, заменён на ToolTip с явным TextBlock (шрифт 22). Курсор геймпада подсказки не показывает: внизу панели геймпада строка с названием ближайшей к курсору точки (по LSWorldMap.MouseWorldCoordinates, формат не проверен, первое значение пишется в лог).
-- Здание и этаж теперь берутся из данных карты игры: WorldMapData.CurrentBuilding.UuidStr и WorldMapData.Floor (проверено дампом на поверхности: UuidStr пустой, Floor 0). Неизвестное моду здание (например, склеп WLD_Chapel_H) показывает пустой вид, известное здание без точек показывает поверхность. Запасной путь: триггеры, если карты на экране нет.
-- Дампы !atlas_layerdump нумеруются (layer_dump_N.txt).
-- Дамп из склепа (WLD_Chapel_H): CurrentBuilding.UuidStr пустой, зато SubregionCenter = (-173.6, -317.5) в мировых (x, z) рядом с игроком и SubregionRadius = 63.3; на поверхности радиус 421. Игра закрашивает чёрным всё вне круга подрегиона. Мод теперь показывает только точки внутри круга SubregionCenter/SubregionRadius (везде).
-- Курсор геймпада: ActualCameraLookatPos равна позиции игрока и не меняется при панорамировании. Точка под курсором считается по MapPos: local = (holder/2 - MapPos - (holder - image)/2) * WorldWidth/imageWidth; проверено на дампе (209.9, 427.1 при игроке 209.45, 427.08).
-- Из мода убраны команды пробы, меняющие мир (!atlas_mark, !atlas_unmark, !atlas_cmark), перед игрой на основном сохранении.
-- Подтверждено пользователем 2026-11-16: подсказка под курсором на геймпаде работает, разделённый экран работает.
-- Подтверждено пользователем 2026-11-16: кнопка «Вкл/выкл» на геймпаде переключает категорию на всех картах.
-- Краш SE в `GetAllEntitiesWithComponent` во время катсцены сна в лагере. Причина по исходникам SE: колбэк `Ext.UI.Defer` выполняется в потоке Noesis (`OnUiPredicatesManagerUpdate`, `ContextGuardAnyThread`), а слой из него опрашивал ECS, это гонка с основным потоком. Теперь позиция и уровень игрока читаются в колбэке таймера (основной поток) и передаются в UI-поток копией чисел; в UI-потоке к сущностям больше не обращаемся. Дополнительно `Client/World.lua`: сущности читаются только в состоянии `Running` и через 2 с после входа в него, смены состояния пишутся в лог. Подтверждено пользователем 2026-11-16: сон в лагере с катсценой больше не роняет игру.
-- Подтверждено пользователем 2026-11-16: карта в разрушенном святилище (под лагерем гоблинов) правильная.
-- Категория «Сундуки» разделена на три (2026-11-16, по просьбе пользователя: бочки, мешки и кости мешали). `chest`: в имени шаблона (без `BASE_*`, имена экземпляров не учитываются, они ненадёжны) есть Chest, Safe, Strongbox, Lockbox или Vault, либо контейнер заперт; 620 точек. `remains`: Skeleton, BonePile, Bones, Ribcage, Skull, Corpse, Body, Viscera, Cocoon, Coffin, Casket, Sarcophagus, Tomb, Urn, Grave, Remains; 910 точек. `container`: остальные контейнеры с лутом (бочки, мешки, ящики, корзины, мебель, ульи, гнёзда); 5051 точка. `container` и `remains` по умолчанию выключены (`Settings.DefaultOff`, включённые хранятся в поле `enabled` файла настроек), автоотметка работает для всех трёх как для сундуков (не проверено в игре).
-- Ручная отметка «найдено» (2026-11-16, план `docs/superpowers/plans/2026-11-16-manual-found.md`). Переменная мода `Found` хранит `true` (найдено) и `false` (вручную снято), автоотметка не трогает снятые вручную. Геймпад: при открытой панели кнопка «Найдено» на событии `UIMessageBoxY` переключает точку из строки под курсором (переключение ставится в очередь и выполняется в основном потоке). Мышь: клавиша F переключает ближайшую точку к `LSWorldMap.MouseWorldCoordinates` в радиусе 30 пикселей, только при видимой JournalMap и без фокуса в строке поиска. Лог: `manual found <id> on|off`, первая координата мыши пишется строкой `mouse coords`. Не проверено: свободна ли кнопка `UIMessageBoxY` на карте, указывает ли `MouseWorldCoordinates` на точку под мышью, имя скан-кода `F` в `e.Key`, свойство `IsKeyboardFocused` у строки поиска.
-- Рунные круги во всех актах (2026-11-16): экстрактор читает `Globals/<уровень>/{Items,Characters}`, вейпоинт определяется по фактам `DB_WaypointInfo`, название берётся по ключу `WAYP_*`. 40 кругов: WLD 16, SCL 8, CTY 10, BGO 3, CRE 3, все с собственными названиями на английском и русском. Декорации из Scenery больше не читаются. Заодно из Globals добавились глобальные объекты: торговцы (+10 в акте 1), боссы, уникальное снаряжение. Не проверено в игре: часть кругов попала в подкарты зданий по триггерам (Blighted Village в Apothercary, Basilisk Gate в BarracksSideShed, Lower City Central Wall в BellTower, Reithwin Town в Tax, Wyrm's Rock в Fort, South Span в Bridge), на поверхности они тогда не видны.
-- Баг 2026-11-16: иконка найденного иногда не тускнеет. Найдено: очередь автоотметки шла по всем актам (8947 точек, 150 за 250 мс), одна точка проверялась раз в ~15 с. Теперь очередь только текущей карты, плюс каждый шаг проверяются все точки в радиусе 40 м от игрока. Диагностика: строка `auto found <категория> <имя> (<причина>)` на каждую автоотметку и раз в минуту `detect <карта>: ... containers full/empty/unreadable ...`. Гипотеза для контейнеров (не проверено): если клиент не видит содержимое неоткрытого контейнера (unreadable или empty до открытия), отметка «опустел» никогда не сработает.
-- Ревью кода 2026-11-16 (агент-ревьюер). Исправлено: (1) `Layer.ForceRebuild` затирался в `loadState`, поэтому переключатель «Только исследованное» не перестраивал слой; теперь счётчик поколений `rebuildGen`. (2) Detect брал карту из UI-потока и после смены уровня мог массово отметить предметы «исчезнувшими»; теперь карта из снимка игрока (основной поток), при смене карты наблюдения сбрасываются, «исчез из мира» засчитывается только в радиусе 40 м от игрока. (3) Первое чтение переменной мода `Found` было в UI-потоке; теперь кэш прогревается в основном потоке (`Found.Prime`). (4) Ошибка не останавливает Detect навсегда и не блокирует второго игрока. (5) Повторный старт слоя больше не запускает второй цикл. (6) Поиск точки под курсором и синхронизация найденного идут по списку точек текущего вида, а не по всем картам. Отложено: в разделённом экране позиция для запасного определения здания и курсора берётся у первого игрока; панель пересоздаётся при каждой автоотметке; полный обход дерева UI каждый тик; в сетевой игре записи найденного разными клиентами перезаписывают друг друга.
-- Разделённый экран: Ext.UI.GetRoot отдаёт один MainCanvas на обоих игроков, виджеты различаются UIWidget.PlayerId. Слой ищет виджеты карты глубже (до 4 уровней под ContentRoot) и держит состояние отдельно на каждого игрока: свою ViewModel, вид (здание, этаж, подрегион), кеш масштаба. Панель перерисовывается по версии отдельно для каждого игрока. Общими остаются фильтры, найденное и поиск.
-- Не работает: «подтвердить» на геймпаде на общей карте (перехватывается игрой), фильтр «Только исследованное» (пользователь разрешил отложить).
-- Геймпад: «подтвердить» на общей карте не переключало категорию (в склепе работало): вероятно, нажатие перехватывает курсор карты над регионами и маркерами. Добавлена вторая кнопка переключения UITakeAll (LSButton с подсказкой «Вкл/выкл» и значком кнопки, видна при открытой панели). Не проверено.
-- Настройка «Только исследованное» (по предложению пользователя): на поверхности показываются только точки внутри открытых регионов карты (WorldMapData.RegionsContainer.Regions, у региона Hidden и WorldPos/WorldSize в координатах карты). Регионы опрашиваются раз в 2 секунды, при изменении слой перестраивается. Точность: регион, не попиксельный туман. В зданиях фильтр не действует. Кнопка в панели мыши, сохраняется в settings.json.
+- Confirmed in game: icons, panel, found/total counters, auto-marking (scrolls 5/120, ingredients 3/275, chests 2/1906), minimap, panel on gamepad (the Atlas button on L).
+- Icons disappearing: the player entered a small Bridge building trigger with no points, and the view switched to an empty one. Now an empty building view falls back to the surface.
+- The crypt under the overgrown ruins (WLD_Chapel_H, not extracted) showed surface points. The current building and floor must be taken from the game's WorldMapData: `!atlas_layerdump` now dumps WorldMapData and CurrentBuilding, waiting for a dump from the crypt and from the surface.
+- Icons: each category has its own rim color, and weapons, armor, valuables, chests, accessories and bosses have a colored disc.
+- The hover tooltip is now ls:LSTooltip (like vanilla markers) instead of a string ToolTip: it was too large; it may also work under the gamepad cursor (unverified).
+- Gamepad: added UIUp/UIDown to move between panel rows (unverified, vanilla consumes them on this page).
+- Second test: LSTooltip with a string renders empty, replaced with a ToolTip with an explicit TextBlock (font 22). The gamepad cursor does not show the tooltip: at the bottom of the gamepad panel there is a line with the name of the point nearest to the cursor (by LSWorldMap.MouseWorldCoordinates, format unverified, the first value is written to the log).
+- The building and floor are now taken from the game's map data: WorldMapData.CurrentBuilding.UuidStr and WorldMapData.Floor (verified by a dump on the surface: UuidStr empty, Floor 0). A building unknown to the mod (for example the crypt WLD_Chapel_H) shows an empty view, a known building without points shows the surface. Fallback path: triggers, if there is no map on screen.
+- `!atlas_layerdump` dumps are numbered (layer_dump_N.txt).
+- Dump from the crypt (WLD_Chapel_H): CurrentBuilding.UuidStr is empty, but SubregionCenter = (-173.6, -317.5) in world (x, z) near the player and SubregionRadius = 63.3; on the surface the radius is 421. The game paints everything outside the subregion circle black. The mod now shows only points inside the SubregionCenter/SubregionRadius circle (everywhere).
+- Gamepad cursor: ActualCameraLookatPos equals the player's position and does not change when panning. The point under the cursor is computed from MapPos: local = (holder/2 - MapPos - (holder - image)/2) * WorldWidth/imageWidth; verified on a dump (209.9, 427.1 with the player at 209.45, 427.08).
+- Removed from the mod the probe commands that change the world (!atlas_mark, !atlas_unmark, !atlas_cmark), before playing on the main save.
+- Confirmed by the user 2026-11-16: the tooltip under the gamepad cursor works, split screen works.
+- Confirmed by the user 2026-11-16: the "On/off" button on gamepad toggles a category on all maps.
+- SE crash in `GetAllEntitiesWithComponent` during the camp sleep cutscene. Cause per the SE sources: the `Ext.UI.Defer` callback runs on the Noesis thread (`OnUiPredicatesManagerUpdate`, `ContextGuardAnyThread`), and the layer queried ECS from it, which is a race with the main thread. Now the player's position and level are read in the timer callback (main thread) and passed to the UI thread as a copy of the numbers; the UI thread no longer touches entities. Additionally `Client/World.lua`: entities are read only in the `Running` state and 2 s after entering it, state changes are written to the log. Confirmed by the user 2026-11-16: sleeping in camp with the cutscene no longer crashes the game.
+- Confirmed by the user 2026-11-16: the map in the ruined sanctum (under the goblin camp) is correct.
+- The "Chests" category was split into three (2026-11-16, at the user's request: barrels, sacks and bones got in the way). `chest`: the template name (without `BASE_*`, instance names are not considered, they are unreliable) contains Chest, Safe, Strongbox, Lockbox or Vault, or the container is locked; 620 points. `remains`: Skeleton, BonePile, Bones, Ribcage, Skull, Corpse, Body, Viscera, Cocoon, Coffin, Casket, Sarcophagus, Tomb, Urn, Grave, Remains; 910 points. `container`: the other containers with loot (barrels, sacks, crates, baskets, furniture, beehives, nests); 5051 points. `container` and `remains` are off by default (`Settings.DefaultOff`, the enabled ones are stored in the `enabled` field of the settings file), auto-marking works for all three as for chests (unverified in game).
+- Manual "found" mark (2026-11-16, plan `docs/superpowers/plans/2026-11-16-manual-found.md`). The mod variable `Found` stores `true` (found) and `false` (cleared manually), auto-marking does not touch points cleared manually. Gamepad: with the panel open, the "Found" button on the `UIMessageBoxY` event toggles the point in the row under the cursor (the toggle is queued and runs on the main thread). Mouse: the F key toggles the point nearest to `LSWorldMap.MouseWorldCoordinates` within a 30 pixel radius, only when JournalMap is visible and the search field is not focused. Log: `manual found <id> on|off`, the first mouse coordinate is written as a `mouse coords` line. Unverified: whether the `UIMessageBoxY` button is free on the map, whether `MouseWorldCoordinates` points to the point under the mouse, the scancode name `F` in `e.Key`, the `IsKeyboardFocused` property of the search field.
+- Waypoints in all acts (2026-11-16): the extractor reads `Globals/<level>/{Items,Characters}`, a waypoint is determined by the `DB_WaypointInfo` facts, the name is taken by the `WAYP_*` key. 40 waypoints: WLD 16, SCL 8, CTY 10, BGO 3, CRE 3, all with their own names in English and Russian. Decorations from Scenery are no longer read. Global objects from Globals were added along the way: traders (+10 in act 1), bosses, unique gear. Unverified in game: some waypoints landed in building submaps by triggers (Blighted Village in Apothercary, Basilisk Gate in BarracksSideShed, Lower City Central Wall in BellTower, Reithwin Town in Tax, Wyrm's Rock in Fort, South Span in Bridge), so they are not visible on the surface then.
+- Bug 2026-11-16: the found icon sometimes does not fade. Found: the auto-marking queue went over all acts (8947 points, 150 per 250 ms), one point was checked about every 15 s. Now the queue covers only the current map, plus every step checks all points within 40 m of the player. Diagnostics: a line `auto found <category> <name> (<reason>)` for every auto-mark and once a minute `detect <map>: ... containers full/empty/unreadable ...`. Hypothesis for containers (unverified): if the client cannot see the contents of an unopened container (unreadable or empty before opening), the "emptied" mark never triggers.
+- Code review 2026-11-16 (reviewer agent). Fixed: (1) `Layer.ForceRebuild` was overwritten in `loadState`, so the "Explored only" toggle did not rebuild the layer; now there is a generation counter `rebuildGen`. (2) Detect took the map from the UI thread and after a level change could mass-mark items as "vanished"; now the map comes from the player snapshot (main thread), observations are reset on a map change, and "vanished from the world" counts only within 40 m of the player. (3) The first read of the mod variable `Found` happened on the UI thread; now the cache is warmed on the main thread (`Found.Prime`). (4) An error no longer stops Detect forever and does not block the second player. (5) A repeated layer start no longer starts a second loop. (6) The search for the point under the cursor and the found sync go over the points of the current view, not over all maps. Deferred: in split screen the position for the building fallback and the cursor is taken from the first player; the panel is recreated on every auto-mark; a full UI tree walk every tick; in network play, found records written by different clients overwrite each other.
+- Split screen: Ext.UI.GetRoot returns one MainCanvas for both players, widgets differ by UIWidget.PlayerId. The layer looks for map widgets deeper (up to 4 levels under ContentRoot) and keeps state separately per player: its own ViewModel, view (building, floor, subregion), scale cache. The panel is redrawn by version separately for each player. Filters, found and search remain shared.
+- Not working: "accept" on gamepad on the shared map (intercepted by the game), the "Explored only" filter (the user allowed deferring it).
+- Gamepad: "accept" on the shared map did not toggle the category (it worked in the crypt): probably the press is intercepted by the map cursor over regions and markers. Added a second toggle button UITakeAll (an LSButton with the "On/off" hint and a button glyph, visible when the panel is open). Unverified.
+- The "Explored only" setting (suggested by the user): on the surface only points inside the opened map regions are shown (WorldMapData.RegionsContainer.Regions, a region has Hidden and WorldPos/WorldSize in map coordinates). Regions are polled every 2 seconds, and the layer is rebuilt on change. Accuracy: per region, not per-pixel fog. In buildings the filter does not apply. A button in the mouse panel, saved to settings.json.
 
-## Этап 5. Подкарты (Wilderness собран, не проверен в игре)
+## Stage 5. Submaps (Wilderness built, not verified in game)
 
-- В мод идут все 3148 точек Wilderness с подкартой и этажом и 95 боксов подкарт (Client/Data/Submaps.lua). Lua каждый тик определяет подкарту и этаж игрока тем же алгоритмом, что экстрактор (порт проверен в fengari против TypeScript на сетке точек), и показывает только точки текущего вида: поверхность, Подземье по этажам, интерьеры.
-- Не проверено: что Подземье и интерьеры рисуются в той же системе координат карты (по шаблону LSWorldMap этажи зданий идут под той же ProjectionMatrix, так что должно совпасть); что игрок между этажными триггерами Подземья не выпадает на «поверхность».
-- Все акты (не проверено в игре): экстрактор работает по группам уровней (tools/lib/maps.ts): WLD_Main_A 3148, SCL_Main_A 2128 (акт 2), CTY_Main_A 3145 и BGO_Main_A 1955 (акт 3), CRE_Main_A 266, END_Main 182, EPI_Main_A 116, IRN_Main_A 83, TUT_Avernus_C 23, INT_Main_A 5. Всего 11051 точка, неразмеченных интересных 4.3%. В точке новое поле map. Мод выбирает данные по Level.LevelName персонажа (не проверено, что имя уровня совпадает с именем главного уровня).
-- Названия вейпоинтов есть только для WLD (Рунные круги, общая подпись); вейпоинты других актов не размечены (12 штук всего), нужно найти, как они устроены в SCL/CTY/BGO.
+- The mod gets all 3148 Wilderness points with submap and floor and 95 submap boxes (Client/Data/Submaps.lua). Every tick Lua determines the player's submap and floor with the same algorithm as the extractor (the port was checked in fengari against TypeScript on a grid of points), and shows only the points of the current view: surface, Underdark by floors, interiors.
+- Unverified: that the Underdark and interiors are drawn in the same map coordinate system (per the LSWorldMap template, building floors go under the same ProjectionMatrix, so it should match); that the player between Underdark floor triggers does not fall back to "surface".
+- All acts (unverified in game): the extractor works by level groups (tools/lib/maps.ts): WLD_Main_A 3148, SCL_Main_A 2128 (act 2), CTY_Main_A 3145 and BGO_Main_A 1955 (act 3), CRE_Main_A 266, END_Main 182, EPI_Main_A 116, IRN_Main_A 83, TUT_Avernus_C 23, INT_Main_A 5. 11,051 points in total, 4.3% unclassified among interesting ones. The point has a new field map. The mod picks data by the character's Level.LevelName (unverified that the level name matches the name of the main level).
+- Waypoint names exist only for WLD (waypoints, a generic label); waypoints of other acts are not marked (12 in total), we need to find how they are arranged in SCL/CTY/BGO.
 
-## Этап 4. Найдено и карточка (часть 1 собрана, не проверена в игре)
+## Stage 4. Found and card (part 1 built, not verified in game)
 
-- План: docs/superpowers/plans/2026-11-15-stage4-found-card.md.
-- Хранение найденного: переменная мода Found (в сохранении, синхронизация клиент-сервер).
-- Автоопределение (не проверено): предметы по InventoryMember или исчезновению из мира после того, как были видны; сундуки, если контейнер был непустым и опустел (сундуки, залутанные до установки мода, сами не отметятся); боссы по Health.Hp <= 0. Ловушки, рычаги, двери, тайники только вручную.
-- Найденные точки переносятся в отдельный слой с прозрачностью 0.45; кнопка «Скрыть найденное» на панели; счётчики найдено/всего.
-- Ручная отметка кликом убрана: в установленной сборке SE (v33 от 24.10.2026) свойство типа Command во ViewModel точки ломает запись соседних свойств (Cannot set property Id). Подсказка при наведении осталась. Все записи свойств из Lua идут через P.Set/P.Handle, которые логируют сбойное свойство один раз и не роняют обновление.
-- Поиск (не проверен в игре): поле в панели (стиль DefaultInputBox, привязка TwoWay с UpdateSourceTrigger=PropertyChanged, в ванили такого нет), совпадения по русскому и английскому названию подсвечиваются кольцом поверх иконок, до 80 штук, счётчик пишется прямо в TextBlock. Неизвестно, перехватывает ли игра клавиши при вводе в поле (горячие клавиши журнала).
-- Lua-логика проверяется в тестах через fengari (Lua 5.3 на JS): Search.Lower, Settings.Parse.
+- Plan: docs/superpowers/plans/2026-11-15-stage4-found-card.md.
+- Storage of found: the mod variable Found (in the save, client-server sync).
+- Auto-detection (unverified): items by InventoryMember or by vanishing from the world after having been visible; chests if the container was non-empty and became empty (chests looted before the mod was installed will not mark themselves); bosses by Health.Hp <= 0. Traps, levers, doors, stashes are manual only.
+- Found points are moved to a separate layer with opacity 0.45; a "Hide found" button on the panel; found/total counters.
+- Manual marking by click was removed: in the installed SE build (v33 of 24.10.2026) a Command-type property in the point ViewModel breaks writing of neighboring properties (Cannot set property Id). The hover tooltip remained. All property writes from Lua go through P.Set/P.Handle, which log the failing property once and do not break the update.
+- Search (not verified in game): a field in the panel (style DefaultInputBox, a TwoWay binding with UpdateSourceTrigger=PropertyChanged, vanilla has none), matches by Russian and English name are highlighted with a ring on top of the icons, up to 80, the counter is written directly into a TextBlock. It is unknown whether the game intercepts keys while typing in the field (journal hotkeys).
+- Lua logic is tested through fengari (Lua 5.3 on JS): Search.Lower, Settings.Parse.
 
-## Этап 3. Все точки и фильтры (в проверке)
+## Stage 3. All points and filters (in verification)
 
-- Сделано по плану docs/superpowers/plans/2026-11-15-stage3-points-filters.md: 2051 точка поверхности Wilderness, 18 векторных иконок по категориям, постоянный экранный размер (масштаб через LSWorldMap.MinWidth, потому что Ext.UI.Box в установленной сборке SE нет), панель фильтров в JournalMap.xaml, настройки в Script Extender/BG3Atlas/settings.json.
-- Пользователь подтвердил: иконки и панель работают (2026-11-15). Ждём проверки фильтров на карте и миникарте и сохранения между сессиями.
-- Геймпад (не проверено в игре): слой на миникарте и журнальной карте (виджет JournalMap_c). Панель в JournalMap_c.xaml: показывается кнопкой-переключателем на событии UIFilter (в строке подсказок рядом с «Легендой», значок кнопки рисует игра), UILeft/UIRight двигают выделение, UIAccept включает и выключает категорию. Поиска в режиме геймпада нет (нет клавиатуры). Риск: UIAccept при открытой панели может конфликтовать с ванильными действиями.
+- Done per the plan docs/superpowers/plans/2026-11-15-stage3-points-filters.md: 2051 Wilderness surface points, 18 vector icons by category, constant on-screen size (scale through LSWorldMap.MinWidth, because the installed SE build has no Ext.UI.Box), a filter panel in JournalMap.xaml, settings in Script Extender/BG3Atlas/settings.json.
+- The user confirmed: icons and panel work (2026-11-15). Waiting for verification of filters on the map and minimap and of persistence between sessions.
+- Gamepad (unverified in game): the layer on the minimap and journal map (the JournalMap_c widget). The panel in JournalMap_c.xaml: shown by a toggle button on the UIFilter event (in the hints row next to "Legend", the game draws the button glyph), UILeft/UIRight move the selection, UIAccept toggles a category. There is no search in gamepad mode (no keyboard). Risk: UIAccept with the panel open may conflict with vanilla actions.
 
-## Этап 1. Прототип на карте (точки видны, 2026-11-15)
+## Stage 1. Prototype on the map (points visible, 2026-11-15)
 
-- Пользователь подтвердил скриншотом: круг игрока стоит на значке персонажа и движется с ним, 10 точек у ворот Рощи (Emerald Grove) видны к северу от персонажа. Формула перевода в координаты карты в RECON.md.
-- Осталось до полного прототипа: размер иконок не зависит от зума (сейчас круги 6 м, при сильном приближении огромные), автозапуск слоя, проверка миникарты, экономный поиск карты вместо обхода всего дерева UI.
+- The user confirmed with a screenshot: the player circle sits on the character icon and moves with it, 10 points at the Emerald Grove gates are visible north of the character. The conversion formula to map coordinates is in RECON.md.
+- Left for a full prototype: icon size independent of zoom (now the circles are 6 m, huge when zoomed in), layer autostart, checking the minimap, an economical map lookup instead of walking the whole UI tree.
 
-- 2026-11-15: игра с паком, где пропатчена тема `DefaultShared.Styles.xaml`, дважды упала при запуске, до создания лога SE (минидамп без текста ошибки). Гипотеза: переопределение темы ломает загрузку UI. Установлен пак без темы (`npm run build -- --no-theme`), чтобы подтвердить. Если без темы игра запускается, разбирать XAML-слой; если падает и без темы, причина в другом (SE или Lua).
-- 2026-11-15, 18:16: включение мода во внутриигровом менеджере посреди сессии привело к крашу при перезагрузке модулей; Lua мода к этому моменту не запускался (в логе SE нет строк BG3 Atlas). Автостарт слоя по SessionLoaded убран, слой запускается вручную командой `!atlas_layer_start` в клиентской консоли. Ждём чистого запуска игры с уже включённым модом.
-- 2026-11-15, 20:00: чистый запуск с включённым модом без темы: сейв грузится, слой запускается, крашей нет. Значит, краши при старте связаны с переопределением темы. Следующий шаг: пак с ванильной копией темы (`npm run build -- --theme-vanilla`). Если падает и с ней, проблема в самой подмене файла темы; если нет, в нашем XAML-фрагменте.
-- 2026-11-15: с ванильной копией темы игра запускается, значит ломает наш фрагмент. WPF XamlReader фрагмент принимает, все конструкции встречаются в ванильном XAML, патч вставляет ровно наш блок. Бисекция: установлен минимальный слой (проекция, Canvas, круги 4x4 единицы, без DataContext x:Null, без масштаба через RelativeSource на трансформе, без триггеров цвета).
-- Минимальный слой в теме: игра НЕ падает, слой найден. Значит, краш вызывала одна из убранных конструкций: DataContext x:Null, ScaleTransform с RelativeSource AncestorType=ItemsControl или DataTrigger. Возвращать по одной.
-- SE v33: свойства с Notify = true не записываются из Lua (Cannot set property X - property does not exist), без Notify работают. Свойства переименованы в PosX/PosY без Notify, точки игрока обновляются заменой элемента коллекции (не проверено в игре).
-- В игре: DataContext слоя ставится на карте и миникарте, но точки не видны. Lua-прокси объектов Noesis живут только внутри одного вызова Defer: кешировать ViewModel между тиками нельзя (lifetime has expired). Исправлено: ViewModel берётся из DataContext слоя каждый тик. Добавлена команда !atlas_layerdump для диагностики отрисовки.
+- 2026-11-15: the game with a pak that patches the `DefaultShared.Styles.xaml` theme crashed twice on startup, before the SE log was created (a minidump with no error text). Hypothesis: overriding the theme breaks UI loading. A pak without the theme was installed (`npm run build -- --no-theme`) to confirm. If the game starts without the theme, investigate the XAML layer; if it crashes even without the theme, the cause is elsewhere (SE or Lua).
+- 2026-11-15, 18:16: enabling the mod in the in-game manager mid-session led to a crash on module reload; the mod's Lua had not run by then (no BG3 Atlas lines in the SE log). The layer autostart on SessionLoaded was removed, the layer is started manually with the `!atlas_layer_start` command in the client console. Waiting for a clean game start with the mod already enabled.
+- 2026-11-15, 20:00: a clean start with the mod enabled without the theme: the save loads, the layer starts, no crashes. So the startup crashes are tied to the theme override. Next step: a pak with a vanilla copy of the theme (`npm run build -- --theme-vanilla`). If it crashes even with it, the problem is in the theme file substitution itself; if not, in our XAML fragment.
+- 2026-11-15: with a vanilla copy of the theme the game starts, so our fragment breaks it. The WPF XamlReader accepts the fragment, all constructs occur in vanilla XAML, the patch inserts exactly our block. Bisection: a minimal layer was installed (projection, Canvas, circles of 4x4 units, no DataContext x:Null, no scale through RelativeSource on the transform, no color triggers).
+- Minimal layer in the theme: the game does NOT crash, the layer is found. So the crash was caused by one of the removed constructs: DataContext x:Null, ScaleTransform with RelativeSource AncestorType=ItemsControl, or DataTrigger. Bring them back one at a time.
+- SE v33: properties with Notify = true cannot be written from Lua (Cannot set property X - property does not exist), those without Notify work. Properties were renamed to PosX/PosY without Notify, the player's points are updated by replacing a collection item (unverified in game).
+- In game: the layer's DataContext is set on the map and minimap, but the points are not visible. Lua proxies of Noesis objects live only inside one Defer call: the ViewModel cannot be cached between ticks (lifetime has expired). Fixed: the ViewModel is taken from the layer's DataContext every tick. Added the `!atlas_layerdump` command for render diagnostics.
 
-- Этап 0 принят: гибридный подход согласован, проба в игре проведена (RECON.md, раздел 7a).
-- Сделано: слой `BG3A_Layer` в шаблоне `LSWorldMap`, патч темы при сборке, Lua `Client/Layer.lua` с 10 точками у ворот Рощи (Emerald Grove) и двумя отладочными точками игрока: зелёная (x, z), красная (x, -z).
-- Ждём проверки в игре: видны ли точки, какая отладочная точка совпала с персонажем, размер иконок.
+- Stage 0 accepted: the hybrid approach was agreed, the in-game probe was done (RECON.md, section 7a).
+- Done: the `BG3A_Layer` layer in the `LSWorldMap` template, the theme patch at build time, Lua `Client/Layer.lua` with 10 points at the Emerald Grove gates and two player debug points: green (x, z), red (x, -z).
+- Waiting for in-game verification: whether the points are visible, which debug point matched the character, icon size.
 
-## Этап 0. Разведка (завершён)
+## Stage 0. Reconnaissance (done)
 
-Сделано:
-- Найдена установка игры, перечислены паки, листинги в `work/lists/`.
-- Скачаны LSLib v1.20.4 (`tools/bin/lslib`, вне git) и SE v33 (`work/refs/bg3se-dl/DWrite.dll`, исходники `work/refs/bg3se`).
-- Распакованы `Game.pak`, `Shared.pak`, `GustavX.pak`, хотфиксы Patch 8, `English.pak` и выборочно из `Gustav.pak`: уровень `WLD_Main_A`, `RootTemplates`, `Localization`.
-- Найдены XAML карты, схема маркеров, данные привязки мира к карте (`WorldMap/*.lsf`). Выводы в `docs/RECON.md`.
+Done:
+- Found the game install, listed the paks, listings in `work/lists/`.
+- Downloaded LSLib v1.20.4 (`tools/bin/lslib`, outside git) and SE v33 (`work/refs/bg3se-dl/DWrite.dll`, sources in `work/refs/bg3se`).
+- Unpacked `Game.pak`, `Shared.pak`, `GustavX.pak`, the Patch 8 hotfixes, `English.pak` and selectively from `Gustav.pak`: the `WLD_Main_A` level, `RootTemplates`, `Localization`.
+- Found the map XAML, the marker scheme, the world-to-map binding data (`WorldMap/*.lsf`). Findings in `docs/RECON.md`.
 
-- Пользователь согласовал гибридный подход (RECON.md, раздел 6C). Better Maps не ставим, работаем с ванильной картой.
-- SE установлен, собран и установлен пробный мод (`mod/BG3Atlas`, консольные команды `!atlas_*`).
+- The user agreed to the hybrid approach (RECON.md, section 6C). We do not install Better Maps, we work with the vanilla map.
+- SE installed, a probe mod built and installed (`mod/BG3Atlas`, console commands `!atlas_*`).
 
-Осталось:
-- Проба в игре (раздел 7 в `RECON.md`), разбор `probe_ui.txt` и логов.
+Remaining:
+- The in-game probe (section 7 in `RECON.md`), analysis of `probe_ui.txt` and logs.
 
-## Что установлено в игру и как откатить
+## What is installed in the game and how to roll back
 
-- `E:\steam  games\steamapps\common\Baldurs Gate 3\bin\DWrite.dll`: Script Extender v33 (updater). Удалить файл, чтобы отключить SE.
-- `...\bin\ScriptExtenderSettings.json`: консоль, логи в `work/selogs`, DeveloperMode. Удалить вместе с DWrite.dll.
-- `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods\BG3Atlas.pak`: наш мод.
-- `modsettings.lsx`: добавлен один узел `BG3Atlas`, бэкап до изменения в `work/backup/`.
+- `<game>\bin\DWrite.dll`: Script Extender v33 (updater). Delete the file to disable SE.
+- `...\bin\ScriptExtenderSettings.json`: console, logs in `work/selogs`, DeveloperMode. Delete together with DWrite.dll.
+- `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Mods\BG3Atlas.pak`: our mod.
+- `modsettings.lsx`: one `BG3Atlas` node was added, backup before the change in `work/backup/`.
 
-## Сборка и установка
+## Build and install
 
-- `npm run build`: собрать `dist/BG3Atlas.pak`.
-- `npm run install-mod`: скопировать пак в `Mods` и зарегистрировать в `modsettings.lsx` (с бэкапом, повторно не добавляет).
-- `npm test`: юнит-тесты и проверка синтаксиса Lua.
+- `npm run build`: build `dist/BG3Atlas.pak`.
+- `npm run install-mod`: copy the pak to `Mods` and register it in `modsettings.lsx` (with a backup, does not add twice).
+- `npm test`: unit tests and Lua syntax check.
 
-## Не проверено
+## Unverified
 
-- `WorldX/WorldZ` в `WorldMapMetaData`: центр области или угол, направление оси Z.
-- Создаёт ли игра маркер на карте, если `MapMarkerStyle` добавлен предмету в рантайме.
-- Доступны ли из Lua масштаб и смещение `LSWorldMap`.
-- Как Better Maps All-In-One меняет карту (паков нет).
+- `WorldX/WorldZ` in `WorldMapMetaData`: center of the area or a corner, direction of the Z axis.
+- Whether the game creates a map marker if `MapMarkerStyle` is added to an item at runtime.
+- Whether the scale and offset of `LSWorldMap` are accessible from Lua.
+- How Better Maps All-In-One changes the map (no paks).
 
-## Заметки по окружению
+## Environment notes
 
-- Divine из LSLib v1.20.4 требует .NET 8, на машине есть .NET 9: запускать с `DOTNET_ROLL_FORWARD=Major`.
-- Divine принимает только абсолютные пути в `-d`.
-- Маска `-x` при распаковке работает как glob по пути внутри пака, например `-x "Mods/Gustav/Levels/WLD_Main_A/*"`.
+- Divine from LSLib v1.20.4 requires .NET 8, the machine has .NET 9: run with `DOTNET_ROLL_FORWARD=Major`.
+- Divine accepts only absolute paths in `-d`.
+- The `-x` mask during unpacking works as a glob over the path inside the pak, for example `-x "Mods/Gustav/Levels/WLD_Main_A/*"`.
