@@ -185,6 +185,7 @@ Remaining:
 - Better Map (all scale variants) does not override vanilla files. It adds its own pages (`BetterJournalMap.xaml`, `BetterJournalMap_c.xaml`, `BetterMinimap*.xaml`) and switches the `JournalMap` and `IUI_Minimap` states to them through `StateMachines/*.xaml` with `ModType="Override"`. Its `LSWorldMap` elements use the implicit style, so our layer in `DefaultShared.Styles.xaml` should still draw icons. Our panel and gamepad hint buttons live in the vanilla journal pages, so they will not appear. Lua widget lookups by name may also miss the new pages.
 - Better Map Icons only replaces character marker textures under `Public/Game/GUI/Assets/Map`: no conflict.
 - Clear Map (No Grid, Transparent Shroud, No Shroud) defines an implicit `Style TargetType="ls:LSWorldMap"` with a full `ControlTemplate` in `GUI/Library/Lib_Keyboard.xaml` and `Lib_Controller.xaml`. If it wins over the vanilla theme style, our layer disappears from the map and minimap while the panel stays.
+- Field report (ShadowAhjin, after 1.1.2): with "some files" of Better Maps All-In-One enabled, Atlas icons do not show even when Atlas loads after it; panel works, icons come back once All-In-One is removed. Which variant he uses is not known yet (likely a Clear Map style template replacement).
 - Robust fix idea: move the panel into our own overlay state instead of patching the journal pages, and find a way to inject the layer that survives a replaced `LSWorldMap` template.
 
 ## Compatibility with Mazzle's Maps Unleashed (2026-11-16, from pak contents, unverified in game)
