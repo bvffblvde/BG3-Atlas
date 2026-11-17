@@ -49,6 +49,12 @@ describe("Locale", () => {
     expect(run(localeFiles, "BG3Atlas.Locale.Detect(nil)")).toBe("en");
   });
 
+  it("ignores letter case and surrounding spaces in the probe string", () => {
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect("Pontos de rota")')).toBe("pt-BR");
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect("Pontos de Rota")')).toBe("pt-BR");
+    expect(run(localeFiles, 'BG3Atlas.Locale.Detect(" PONTOS DE ROTA ")')).toBe("pt-BR");
+  });
+
   it("falls back to English for missing keys and unknown languages", () => {
     expect(run(localeFiles, 'BG3Atlas.Locale.Text("ru").chest')).toBe("Сундуки");
     expect(run(localeFiles, 'BG3Atlas.Locale.Text("xx").chest')).toBe("Chests");

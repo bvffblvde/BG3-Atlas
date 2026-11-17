@@ -4,10 +4,14 @@ BG3Atlas.Locale = Locale
 local tables = {}
 local probes = {}
 
+function Locale.Norm(text)
+    return (text:gsub("^%s+", ""):gsub("%s+$", "")):lower()
+end
+
 function Locale.Add(code, text, probe)
     tables[code] = text
     if probe then
-        probes[probe] = code
+        probes[Locale.Norm(probe)] = code
     end
 end
 
@@ -16,8 +20,8 @@ function Locale.Raw()
 end
 
 function Locale.Detect(probeText)
-    if type(probeText) == "string" and probes[probeText] then
-        return probes[probeText]
+    if type(probeText) == "string" and probes[Locale.Norm(probeText)] then
+        return probes[Locale.Norm(probeText)]
     end
     return "en"
 end
