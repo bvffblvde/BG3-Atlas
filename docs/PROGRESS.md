@@ -227,3 +227,10 @@ Remaining:
 - Map open state for the gamepad is tracked per player, so the other player's buttons are no longer swallowed while only one of them has the map open.
 - Per player view (requested): map style, "Explored only" and the panel selection are stored per player in `settings.json` under `view` (player 1 also mirrors to the top level for older versions). Categories, "Hide found" and found marks stay shared.
 - Panel commands are accepted only from the player whose gamepad pressed last (`Hotkey.NotePress` / `AllowFor`, 300 ms window). Gamepad owner comes from `InputManager.PerDeviceData` (`DeviceId` 3 and 4 are controllers, `InputPlayerIndex` is 0 based; `DeviceLists` only lists player 1). Verified in game: SDL controller 0 -> device 3 -> player 2, controller 1 -> device 4 -> player 1, so the `3 + index` mapping holds. When the owner cannot be read, every panel accepts the press as before.
+
+## Backlog ideas (2026-11-17)
+
+- Option to hide the vanilla map legend and put the Atlas panel in its place. Many players remove the legend with other mods.
+- Unique items: show rarity tiers, and items inside containers, on bosses and at traders (today only rare gear lying in the world is shown, about 300 points).
+- Camps, fights and important story places on the map (source in game files not found yet).
+- Icon layer that survives map template replacement (Better Maps All-In-One look variants, Clear Map).
