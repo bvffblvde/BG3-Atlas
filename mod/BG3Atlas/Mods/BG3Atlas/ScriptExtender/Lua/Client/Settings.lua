@@ -163,5 +163,6 @@ function S.Language()
     else
         lang = BG3Atlas.Locale.Detect(ok and text or nil)
     end
+    BG3Atlas.Probe.Log("language " .. lang .. " (probe text: " .. tostring(ok and text or nil) .. ", forced: " .. tostring(state.language) .. ")")
     return lang
 end
