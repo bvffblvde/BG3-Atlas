@@ -234,3 +234,10 @@ Remaining:
 - Unique items: show rarity tiers, and items inside containers, on bosses and at traders (today only rare gear lying in the world is shown, about 300 points).
 - Camps, fights and important story places on the map (source in game files not found yet).
 - Icon layer that survives map template replacement (Better Maps All-In-One look variants, Clear Map).
+- Modded content (Nexus question, 2026-11-17): today only vanilla points are shown, from the prebuilt list. Showing modded items, vendors and NPCs needs a runtime scan through Script Extender. Mods to test against, found by web search (unverified, check each page):
+  - Mudcrab Merchant (nexusmods 148): camp merchant with no own stock, other mods fill it.
+  - Curios Vendor (2688): new vendor in the Act 1 camp and at Last Light Inn.
+  - Pocket Traders (23912): traders summoned on demand, stocked from modded items found during play (no fixed spot).
+  - Evil playthrough items (12119): adds items to Roah Moonglow, Quartermaster Talli and the Devil's Fee trader.
+  - Bags Bags Bags: containers sold by vendors in all three acts.
+  - Many gear mods only add stock to vanilla traders or the tutorial chest, so a "this trader sells modded items" mark may be more useful than new points.
