@@ -31,7 +31,7 @@ local function register()
     Ext.UI.RegisterType("BG3A_Point", {
         PosX = { Type = "Single" },
         PosY = { Type = "Single" },
-        Id = { Type = "String" },
+        PointId = { Type = "String" },
         Label = { Type = "String" },
     })
     local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" }, GridOpacity = { Type = "Single" }, ShroudOpacity = { Type = "Single" } }
@@ -69,7 +69,7 @@ local function newPoint(pt, found)
     local p = Ext.UI.Instantiate("BG3A_Point")
     P.Set(p, "PosX", pt.x)
     P.Set(p, "PosY", pt.y)
-    P.Set(p, "Id", pt.id)
+    P.Set(p, "PointId", pt.id)
     P.Set(p, "Label", pointLabel(pt, found))
     return p
 end
@@ -234,7 +234,7 @@ end
 local function removeById(coll, id)
     for i = #coll, 1, -1 do
         local item = coll[i]
-        if item and P.Get(item, "Id") == id then
+        if item and P.Get(item, "PointId") == id then
             coll[i] = nil
             return true
         end
@@ -274,7 +274,9 @@ local function syncFound(vm)
         if placed[pt.id] ~= isFound then
             local from = vm[(isFound and "Cat_" or "Found_") .. cat]
             local to = vm[(isFound and "Found_" or "Cat_") .. cat]
-            removeById(from, pt.id)
+            if not removeById(from, pt.id) then
+                logOnce("remove", "found sync could not remove point " .. P.Str(pt.id))
+            end
             to[#to + 1] = newPoint(pt, isFound)
             placed[pt.id] = isFound
             moved = moved + 1

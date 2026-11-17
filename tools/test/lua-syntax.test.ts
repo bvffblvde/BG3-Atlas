@@ -20,11 +20,33 @@ describe("mod Lua files", () => {
   it.each(files)("%s has no function with a repeated parameter name", (file) => {
     const src = readFileSync(path.join(luaRoot, file), "utf8");
     const dupes: string[] = [];
-    for (const m of src.matchAll(/functions*[w.:]*s*(([^)]*))/g)) {
+    for (const m of src.matchAll(/\bfunction\b\s*[\w.:]*\s*\(([^)]*)\)/g)) {
       const params = m[1].split(",").map((p) => p.trim()).filter(Boolean);
       if (new Set(params).size !== params.length) dupes.push(m[0]);
     }
     expect(dupes).toEqual([]);
+  });
+
+  it("repeated parameter check sees a real duplicate", () => {
+    const src = "local function f(a, b, a) end";
+    const hits = [...src.matchAll(/\bfunction\b\s*[\w.:]*\s*\(([^)]*)\)/g)].filter((m) => {
+      const params = m[1].split(",").map((p) => p.trim()).filter(Boolean);
+      return new Set(params).size !== params.length;
+    });
+    expect(hits.length).toBe(1);
+  });
+
+  it("map point view model avoids the reserved Id property and reads back what it writes", () => {
+    const src = readFileSync(path.join(luaRoot, "Client", "Layer.lua"), "utf8");
+    const type = src.match(/RegisterType\("BG3A_Point", \{([\s\S]*?)\n\s*\}\)/);
+    expect(type).not.toBeNull();
+    const props = [...type![1].matchAll(/(\w+)\s*=\s*\{/g)].map((m) => m[1]);
+    expect(props).not.toContain("Id");
+    const written = src.match(/P\.Set\(p, "(\w+)", pt\.id\)/);
+    const read = src.match(/P\.Get\(item, "(\w+)"\) == id/);
+    expect(written?.[1]).toBeDefined();
+    expect(read?.[1]).toBe(written![1]);
+    expect(props).toContain(written![1]);
   });
 
   it.each(files)("%s has no comments", (file) => {

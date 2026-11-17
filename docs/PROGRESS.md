@@ -211,7 +211,8 @@ Remaining:
 
 - Verified in game: fog of war layer, LB and LT toggles, hide grid, panel widget on mouse and gamepad, split screen panels, tooltips next to the icon, compact panel rows, F with a working counter.
 - Package: `dist/release/v1.1/BG3Atlas-1.1.0.zip` (meta Version64 36169534507319296). Nexus description, banner and changelog are in `dist/release/v1.1/`.
-- Still open: found points keep the bright icon style in almost every scenario (found state and counter are correct, the dimmed look is not applied; seen in 1.1.2), F on mouse does not refresh the tooltip of the hovered icon until the cursor leaves it, Lower City vault and harbour points on the surface map, Auntie Ethel teahouse state variants, Blighted Village waypoint unverified in game, Brazilian Portuguese point names (needs the game's pt-BR localization pak).
+- Found points kept the bright icon: SE v33 refuses a view model property named `Id` ("Cannot set property Noesis::BaseComponent::Id"), so the bright copy was never removed from `Cat_` and covered the dimmed copy in `Found_`. Renamed to `PointId` (unverified in game; a failed removal now logs "found sync could not remove point").
+- Still open: F on mouse does not refresh the tooltip of the hovered icon until the cursor leaves it, Lower City vault and harbour points on the surface map, Auntie Ethel teahouse state variants, Blighted Village waypoint unverified in game, Brazilian Portuguese point names (needs the game's pt-BR localization pak).
 
 ## Map styles (next version, unverified in game)
 
