@@ -176,7 +176,7 @@ Remaining:
 ## Localization (2026-11-16)
 
 - Interface strings moved to `Client/Locale/<code>.lua` (en, ru, pt-BR placeholder). `Locale.Text(code)` falls back to English for missing keys, a test checks that every language has exactly the English keys.
-- Game language is detected by matching the translated text of the waypoint legend handle `h2020fdf6g224eg40cfg80ecg91fed5d32d11` against a probe string registered by each locale. `settings.json` can force it with `"language": "pt-BR"`. The pt-BR probe "Ponto de Rota" was a guess and does not match the real game text (ShadowAhjin reported English UI on a pt-BR game in 1.1.2). The log now prints the probe text; waiting for the real pt-BR string.
+- Game language is detected by matching the translated text of the waypoint legend handle `h2020fdf6g224eg40cfg80ecg91fed5d32d11` against a probe string registered by each locale. `settings.json` can force it with `"language": "pt-BR"`. The pt-BR probe "Ponto de Rota" was a guess and does not match the real game text (ShadowAhjin reported English UI on a pt-BR game in 1.1.2). The log now prints the probe text. His screenshot shows the waypoint legend header as "Pontos de rota", now used as the pt-BR probe (unverified that it is the same handle).
 - Search folds Latin diacritics and Russian yo, so "cha" finds "Chá".
 - Point names exist only in English and Russian. Brazilian Portuguese names need `Localization/BrazilianPortuguese` from the game (switch the game language in Steam to download it) and a third name column in the data. Not done yet.
 

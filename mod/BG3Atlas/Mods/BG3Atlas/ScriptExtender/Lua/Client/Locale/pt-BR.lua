@@ -37,4 +37,4 @@ BG3Atlas.Locale.Add("pt-BR", {
     quest_npc = "Personagens",
     boss = "Chefes",
     animal = "Animais",
-}, "Ponto de Rota")
+}, "Pontos de rota")
