@@ -140,9 +140,16 @@ describe("Settings.Parse", () => {
 });
 
 const foundStubs = `
-local store = {}
-Ext.Vars = { RegisterModVariable = function() end, GetModVariables = function() return store end }
+local saved = {}
+local sent = {}
+local listeners = {}
+local side = "client"
+Ext.Vars = { RegisterModVariable = function() end, GetModVariables = function() return saved end }
 Ext.Events = { SessionLoaded = { Subscribe = function() end } }
+Ext.IsClient = function() return side == "client" end
+Ext.IsServer = function() return side == "server" end
+Ext.ClientNet = { PostMessageToServer = function(channel, payload) sent[#sent + 1] = channel .. "|" .. payload end }
+Ext.RegisterNetListener = function(channel, fn) listeners[channel] = fn end
 `;
 
 
@@ -158,7 +165,32 @@ describe("Found", () => {
   });
 
   it("reads old saves that only hold found points", () => {
-    expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found return tostring(F.IsFound('a')) .. tostring(F.IsBlocked('a')) end)()", pre("store.Found = { a = true }"))).toBe("truefalse");
+    expect(run(["../Shared/Found.lua"], "(function() local F = BG3Atlas.Found return tostring(F.IsFound('a')) .. tostring(F.IsBlocked('a')) end)()", pre("saved.Found = { a = true }"))).toBe("truefalse");
+  });
+
+  it("sends every client change to the server instead of writing the variable", () => {
+    const expr = "(function() local F = BG3Atlas.Found F.Toggle('a') F.Toggle('a') F.Toggle('b') F.Toggle('b') F.Toggle('b') return table.concat(sent, ' ') .. ' ' .. tostring(saved.Found) end)()";
+    expect(run(["../Shared/Found.lua"], expr, pre(""))).toBe("BG3Atlas_Found|on:a BG3Atlas_Found|off:a BG3Atlas_Found|on:b BG3Atlas_Found|off:b BG3Atlas_Found|on:b nil");
+  });
+
+  it("sends a clear when auto detection unmarks a point", () => {
+    const expr = "(function() local F = BG3Atlas.Found F.SetFound('a', true) F.SetFound('a', false) return table.concat(sent, ' ') end)()";
+    expect(run(["../Shared/Found.lua"], expr, pre(""))).toBe("BG3Atlas_Found|on:a BG3Atlas_Found|clear:a");
+  });
+
+  it("decodes only well formed messages", () => {
+    const expr = "(function() local F = BG3Atlas.Found local out = {} for _, m in ipairs({ 'on:a-1', 'off:b', 'clear:c', 'bad', 'on:', 'maybe:x' }) do local id, v = F.Decode(m) out[#out + 1] = tostring(id) .. '=' .. tostring(v) end return table.concat(out, ' ') end)()";
+    expect(run(["../Shared/Found.lua"], expr, pre(""))).toBe("a-1=true b=false c=nil nil=nil nil=nil nil=nil");
+  });
+
+  it("stores client messages in the saved variable on the server", () => {
+    const expr = "(function() local fn = listeners.BG3Atlas_Found fn('BG3Atlas_Found', 'on:a') fn('BG3Atlas_Found', 'off:b') fn('BG3Atlas_Found', 'on:c') fn('BG3Atlas_Found', 'clear:c') fn('BG3Atlas_Found', 'junk') return tostring(saved.Found.a) .. tostring(saved.Found.b) .. tostring(saved.Found.c) end)()";
+    expect(run(["../Shared/Found.lua"], expr, pre('side = "server"'))).toBe("truefalsenil");
+  });
+
+  it("keeps marks made before the saved variable reached the client", () => {
+    const expr = "(function() local F = BG3Atlas.Found F.Toggle('a') saved.Found = { b = true } return tostring(F.IsFound('a')) .. tostring(F.IsFound('b')) end)()";
+    expect(run(["../Shared/Found.lua"], expr, pre(""))).toBe("truetrue");
   });
 });
 

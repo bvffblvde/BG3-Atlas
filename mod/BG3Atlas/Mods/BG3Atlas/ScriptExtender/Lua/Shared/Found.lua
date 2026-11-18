@@ -3,6 +3,7 @@ BG3Atlas.Found = Found
 
 Found.ModUuid = "09fefa51-cb5f-4d58-802e-fd6fb192e748"
 Found.Var = "Found"
+Found.Channel = "BG3Atlas_Found"
 
 Ext.Vars.RegisterModVariable(Found.ModUuid, Found.Var, {
     Server = true,
@@ -14,6 +15,7 @@ Ext.Vars.RegisterModVariable(Found.ModUuid, Found.Var, {
 })
 
 local cache = nil
+local synced = false
 local version = 0
 
 local function vars()
@@ -25,20 +27,68 @@ local function vars()
 end
 
 local function load()
-    if cache then
+    if cache and synced then
         return cache
     end
     local v = vars()
     local stored = v and v[Found.Var]
-    cache = {}
     if type(stored) == "table" then
+        local fresh = {}
         for id, on in pairs(stored) do
             if type(on) == "boolean" then
-                cache[id] = on
+                fresh[id] = on
             end
         end
+        if cache then
+            for id, on in pairs(cache) do
+                fresh[id] = on
+            end
+            version = version + 1
+        end
+        cache = fresh
+        synced = true
+    elseif not cache then
+        cache = {}
     end
     return cache
+end
+
+local codes = { on = true, off = false, clear = "clear" }
+
+function Found.Encode(id, value)
+    local code = "clear"
+    if value == true then
+        code = "on"
+    elseif value == false then
+        code = "off"
+    end
+    return code .. ":" .. id
+end
+
+function Found.Decode(payload)
+    if type(payload) ~= "string" then
+        return nil
+    end
+    local code, id = payload:match("^(%a+):(.+)$")
+    local value = codes[code]
+    if not id or value == nil then
+        return nil
+    end
+    if value == "clear" then
+        return id, nil
+    end
+    return id, value
+end
+
+function Found.Apply(stored, id, value)
+    local copy = {}
+    if type(stored) == "table" then
+        for k, on in pairs(stored) do
+            copy[k] = on
+        end
+    end
+    copy[id] = value
+    return copy
 end
 
 function Found.Prime()
@@ -60,13 +110,16 @@ local function store(id, value)
     end
     set[id] = value
     version = version + 1
-    local copy = {}
-    for k, on in pairs(set) do
-        copy[k] = on
+    if Ext.IsClient() then
+        local ok, err = pcall(Ext.ClientNet.PostMessageToServer, Found.Channel, Found.Encode(id, value))
+        if not ok and BG3Atlas.Probe then
+            BG3Atlas.Probe.Log("found message failed: " .. tostring(err))
+        end
+        return
     end
     local v = vars()
     if v then
-        v[Found.Var] = copy
+        v[Found.Var] = Found.Apply(v[Found.Var], id, value)
     end
 end
 
@@ -93,7 +146,24 @@ end
 
 function Found.Reset()
     cache = nil
+    synced = false
     version = version + 1
+end
+
+if Ext.IsServer() then
+    Ext.RegisterNetListener(Found.Channel, function(_, payload)
+        local id, value = Found.Decode(payload)
+        if not id then
+            return
+        end
+        local v = vars()
+        if v then
+            v[Found.Var] = Found.Apply(v[Found.Var], id, value)
+            if BG3Atlas.Probe then
+                BG3Atlas.Probe.Log("found saved on server " .. id .. " " .. tostring(value))
+            end
+        end
+    end)
 end
 
 Ext.Events.SessionLoaded:Subscribe(function()

@@ -232,7 +232,7 @@ Remaining:
 
 Done on main, needs in-game check:
 - Found points dim right away (view model property `Id` renamed to `PointId`). Clicks checked by the maintainer, look still to confirm.
-- Bug (maintainer, 2026-11-18): found marks made with RB are partly lost after leaving the Underdark and coming back, or after some time. Hypothesis (unverified): the level change fires SessionLoaded, `Found.Reset` drops the client cache and reloads the mod variable, which does not yet hold the marks written on the client (client writes to a server synced mod variable may not reach the server or the save). Check with log lines on write and on reload.
+- Lost found marks (maintainer, 2026-11-18): the log of 2026-11-17 showed 13 points marked before a load came back as not found, although the game saved several times in between. Client writes to the mod variable did not reach the server or the save. Fix: the client sends each change to the server (`Ext.ClientNet.PostMessageToServer`, channel `BG3Atlas_Found`, payload `on|off|clear:<id>`), the server writes the variable and logs "found saved on server". The client also merges marks made before the variable arrives. Unverified in game (API name taken from SE docs, not yet seen working).
 - pt-BR language detection: real probe text "Pontos de rota", matched ignoring case (confirmed by ShadowAhjin with a forced language).
 
 To build:
