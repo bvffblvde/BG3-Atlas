@@ -14,6 +14,34 @@ local function sel(player)
     return selectedBy[player or 1] or 1
 end
 
+Panel.BaseWidth = 680
+
+function Panel.Nav(cur, dir, n)
+    local total = n + 2
+    if dir == "prev" then
+        return (cur - 2) % total + 1
+    elseif dir == "next" then
+        return cur % total + 1
+    end
+    local rows = math.ceil(n / 2)
+    local row, col
+    if cur <= n then
+        row, col = (cur - 1) // 2, (cur - 1) % 2
+    else
+        row, col = rows, cur - n - 1
+    end
+    local step = dir == "down" and 1 or -1
+    local nextRow = (row + step) % (rows + 1)
+    if nextRow == rows then
+        return n + 1 + col
+    end
+    local k = nextRow * 2 + col
+    if k >= n then
+        k = k - 1
+    end
+    return k + 1
+end
+
 local function register()
     if registered then
         return
@@ -51,6 +79,13 @@ local function register()
         ToggleMarkText = { Type = "String" },
         PadUp = { Type = "Command" },
         PadDown = { Type = "Command" },
+        PanelWidth = { Type = "Single" },
+        SizeText = { Type = "String" },
+        LegendText = { Type = "String" },
+        CycleSize = { Type = "Command" },
+        ToggleLegend = { Type = "Command" },
+        Sel_size = { Type = "Single" },
+        Sel_legend = { Type = "Single" },
     }
     for _, cat in ipairs(Points.Categories) do
         props["Label_" .. cat] = { Type = "String" }
@@ -89,6 +124,9 @@ local function fillModel(vm, player)
     P.Set(vm, "FoundText", Settings.HideFound() and text.showFound or text.hideFound)
     P.Set(vm, "FogText", Settings.FogOnly(player) and text.fogOn or text.fogOff)
     P.Set(vm, "GridText", text["mapStyle" .. Settings.MapStyle(player)])
+    P.Set(vm, "SizeText", text["panelSize" .. Settings.PanelSize(player)])
+    P.Set(vm, "LegendText", Settings.HideLegend(player) and text.legendHidden or text.legendShown)
+    P.Set(vm, "PanelWidth", Panel.BaseWidth * Settings.PanelScale(Settings.PanelSize(player)))
     if P.Get(vm, "Query") ~= BG3Atlas.Search.Query() then
         P.Set(vm, "Query", BG3Atlas.Search.Query())
     end
@@ -110,6 +148,9 @@ local function fillModel(vm, player)
     for i, cat in ipairs(Points.Categories) do
         P.Set(vm, "Sel_" .. cat, (i == sel(player)) and 1.0 or 0.0)
     end
+    local n = #Points.Categories
+    P.Set(vm, "Sel_size", (sel(player) == n + 1) and 1.0 or 0.0)
+    P.Set(vm, "Sel_legend", (sel(player) == n + 2) and 1.0 or 0.0)
     P.Set(vm, "PadHint", text.padHint)
     P.Set(vm, "ToggleMarkText", text.toggleMark)
 end
@@ -134,29 +175,48 @@ local function guarded(vm, player, name, fn)
     end)
 end
 
+function Panel.CycleSize(player)
+    Settings.NextPanelSize(player)
+    Settings.Save()
+    if BG3Atlas.Layer then
+        BG3Atlas.Layer.ForceRebuild()
+    end
+    version = version + 1
+end
+
+function Panel.ToggleLegend(player)
+    Settings.SetHideLegend(not Settings.HideLegend(player), player)
+    Settings.Save()
+    version = version + 1
+end
+
 local function newModel(player)
     local vm = Ext.UI.Instantiate("BG3A_Panel")
     fillModel(vm, player)
     local n = #Points.Categories
     guarded(vm, player, "PadPrev", function()
-        selectedBy[player or 1] = (sel(player) - 2) % n + 1
+        selectedBy[player or 1] = Panel.Nav(sel(player), "prev", n)
         version = version + 1
     end)
     guarded(vm, player, "PadNext", function()
-        selectedBy[player or 1] = sel(player) % n + 1
+        selectedBy[player or 1] = Panel.Nav(sel(player), "next", n)
         version = version + 1
     end)
     guarded(vm, player, "PadUp", function()
-        selectedBy[player or 1] = (sel(player) - 3) % n + 1
+        selectedBy[player or 1] = Panel.Nav(sel(player), "up", n)
         version = version + 1
     end)
     guarded(vm, player, "PadDown", function()
-        selectedBy[player or 1] = (sel(player) + 1) % n + 1
+        selectedBy[player or 1] = Panel.Nav(sel(player), "down", n)
         version = version + 1
     end)
     guarded(vm, player, "PadToggle", function()
         local cat = Points.Categories[sel(player)]
-        if cat then
+        if sel(player) == n + 1 then
+            Panel.CycleSize(player)
+        elseif sel(player) == n + 2 then
+            Panel.ToggleLegend(player)
+        elseif cat then
             Settings.SetEnabled(cat, not Settings.IsEnabled(cat))
             Settings.Save()
             version = version + 1
@@ -174,6 +234,12 @@ local function newModel(player)
         Settings.NextMapStyle(player)
         Settings.Save()
         version = version + 1
+    end)
+    guarded(vm, player, "CycleSize", function()
+        Panel.CycleSize(player)
+    end)
+    guarded(vm, player, "ToggleLegend", function()
+        Panel.ToggleLegend(player)
     end)
     guarded(vm, player, "ToggleFound", function()
         Settings.SetHideFound(not Settings.HideFound())

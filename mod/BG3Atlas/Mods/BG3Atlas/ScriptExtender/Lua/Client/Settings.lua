@@ -4,7 +4,7 @@ BG3Atlas.Settings = S
 S.File = "BG3Atlas/settings.json"
 S.DefaultOff = { container = true, remains = true }
 
-local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0, view = {} }
+local state = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0, panelSize = 0, hideLegend = false, view = {} }
 
 local function validStyle(v)
     local n = tonumber(v)
@@ -13,10 +13,20 @@ local function validStyle(v)
     end
     return nil
 end
+local function validSize(v)
+    local n = tonumber(v)
+    if n == 0 or n == 1 or n == 2 then
+        return n
+    end
+    return 0
+end
+
+S.PanelScales = { [0] = 1, [1] = 1.3, [2] = 1.6 }
+
 local lang = nil
 
 function S.Parse(text)
-    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0, view = {} }
+    local out = { disabled = {}, enabled = {}, hideFound = false, fogOnly = true, mapStyle = 0, panelSize = 0, hideLegend = false, view = {} }
     if type(text) ~= "string" or text == "" then
         return out
     end
@@ -32,12 +42,14 @@ function S.Parse(text)
     elseif data.hideGrid == true then
         out.mapStyle = 1
     end
-    out.view["1"] = { fogOnly = out.fogOnly, mapStyle = out.mapStyle }
+    out.panelSize = validSize(data.panelSize)
+    out.hideLegend = data.hideLegend == true
+    out.view["1"] = { fogOnly = out.fogOnly, mapStyle = out.mapStyle, panelSize = out.panelSize, hideLegend = out.hideLegend }
     if type(data.view) == "table" then
         for k, v in pairs(data.view) do
             local key = tostring(k)
             if type(v) == "table" and key ~= "1" then
-                out.view[key] = { fogOnly = v.fogOnly ~= false, mapStyle = validStyle(v.mapStyle) or 0 }
+                out.view[key] = { fogOnly = v.fogOnly ~= false, mapStyle = validStyle(v.mapStyle) or 0, panelSize = validSize(v.panelSize), hideLegend = v.hideLegend == true }
             end
         end
     end
@@ -73,13 +85,15 @@ end
 function S.Save()
     local views = {}
     for k, v in pairs(state.view or {}) do
-        views[#views + 1] = '"' .. k .. '":{"fogOnly":' .. (v.fogOnly and "true" or "false") .. ',"mapStyle":' .. tostring(v.mapStyle or 0) .. "}"
+        views[#views + 1] = '"' .. k .. '":{"fogOnly":' .. (v.fogOnly and "true" or "false") .. ',"mapStyle":' .. tostring(v.mapStyle or 0) .. ',"panelSize":' .. tostring(validSize(v.panelSize)) .. ',"hideLegend":' .. (v.hideLegend and "true" or "false") .. "}"
     end
     table.sort(views)
     local first = S.View(1)
     state.fogOnly = first.fogOnly
     state.mapStyle = first.mapStyle
-    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. ',"mapStyle":' .. tostring(state.mapStyle or 0) .. ',"view":{' .. table.concat(views, ",") .. "}" .. (state.language and (',"language":"' .. state.language .. '"') or "") .. "}"
+    state.panelSize = validSize(first.panelSize)
+    state.hideLegend = first.hideLegend == true
+    local text = '{"disabled":' .. jsonSet(state.disabled) .. ',"enabled":' .. jsonSet(state.enabled) .. ',"hideFound":' .. (state.hideFound and "true" or "false") .. ',"fogOnly":' .. (state.fogOnly and "true" or "false") .. ',"mapStyle":' .. tostring(state.mapStyle or 0) .. ',"panelSize":' .. tostring(state.panelSize) .. ',"hideLegend":' .. (state.hideLegend and "true" or "false") .. ',"view":{' .. table.concat(views, ",") .. "}" .. (state.language and (',"language":"' .. state.language .. '"') or "") .. "}"
     Ext.IO.SaveFile(S.File, text)
 end
 
@@ -119,7 +133,7 @@ function S.View(player)
     local key = tostring(player or 1)
     local v = state.view[key]
     if not v then
-        v = { fogOnly = state.fogOnly ~= false, mapStyle = validStyle(state.mapStyle) or 0 }
+        v = { fogOnly = state.fogOnly ~= false, mapStyle = validStyle(state.mapStyle) or 0, panelSize = validSize(state.panelSize), hideLegend = state.hideLegend == true }
         state.view[key] = v
     end
     return v
@@ -132,6 +146,27 @@ end
 function S.NextMapStyle(player)
     local v = S.View(player)
     v.mapStyle = ((v.mapStyle or 0) + 1) % 3
+end
+
+function S.PanelSize(player)
+    return validSize(S.View(player).panelSize)
+end
+
+function S.NextPanelSize(player)
+    local v = S.View(player)
+    v.panelSize = (validSize(v.panelSize) + 1) % 3
+end
+
+function S.PanelScale(size)
+    return S.PanelScales[size] or 1
+end
+
+function S.HideLegend(player)
+    return S.View(player).hideLegend == true
+end
+
+function S.SetHideLegend(on, player)
+    S.View(player).hideLegend = on == true
 end
 
 function S.StyleOpacity(style, grid)

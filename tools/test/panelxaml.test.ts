@@ -45,6 +45,17 @@ describe("panelXaml", () => {
     expect(xaml).toContain('Margin="60,444,0,0"');
   });
 
+  it("scales the whole panel through a named viewbox bound to the panel width", () => {
+    expect(xaml).toMatch(/<Viewbox x:Name="BG3A_Panel" Margin="60,444,0,0"[^>]*Width="\{Binding PanelWidth\}"[^>]*Stretch="Uniform"/);
+    expect(xaml).toMatch(/<Border x:Name="BG3A_PanelBox"[^>]*Width="680"/);
+    expect(xaml.indexOf('x:Name="BG3A_Panel"')).toBeLessThan(xaml.indexOf('x:Name="BG3A_PanelBox"'));
+  });
+
+  it("has size and legend buttons below the categories", () => {
+    for (const b of ["{Binding CycleSize}", "{Binding SizeText}", "{Binding ToggleLegend}", "{Binding LegendText}"]) expect(xaml).toContain(b);
+    expect(xaml.indexOf("{Binding CycleSize}")).toBeGreaterThan(xaml.indexOf(`{Binding Label_${ids[ids.length - 1]}}`));
+  });
+
   it("avoids constructs that crashed the game", () => {
     expect(xaml).not.toContain("DataTrigger");
     expect(xaml).not.toContain("{x:Null}");
@@ -67,6 +78,9 @@ describe("panelXaml pad mode", () => {
     expect(padXaml).toContain("{Binding PadHint}");
     expect(padXaml).toContain('x:Name="BG3A_CursorInfo"');
     for (const id of ids) expect(padXaml).toContain(`{Binding Sel_${id}}`);
+    expect(padXaml).toContain("{Binding Sel_size}");
+    expect(padXaml).toContain("{Binding Sel_legend}");
+    expect(padXaml).toMatch(/<Viewbox x:Name="BG3A_Panel"[^>]*Visibility="\{Binding IsChecked, ElementName=BG3A_PadBtn/);
   });
 
   it("binds the toggle to UIFilter and moves the selection with left, right and accept", () => {

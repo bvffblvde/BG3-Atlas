@@ -10,6 +10,10 @@ Layer.IconUnits = 24
 Layer.PeriodMs = 250
 Layer.Widgets = { JournalMap = true, JournalMap_c = true, Minimap = true }
 Layer.PanelWidgets = { BG3A_PanelWidget = true, BG3A_PanelWidget_c = true }
+Layer.LegendWidgets = { JournalMap = true, JournalMap_c = true }
+Layer.LabelSize = 26
+
+local labelPid = 1
 
 local registered = false
 local models = {}
@@ -33,6 +37,7 @@ local function register()
         PosY = { Type = "Single" },
         PointId = { Type = "String" },
         Label = { Type = "String" },
+        LabelSize = { Type = "Single" },
     })
     local props = { Search = { Type = "Collection" }, LayerZ = { Type = "Int32" }, GridOpacity = { Type = "Single" }, ShroudOpacity = { Type = "Single" } }
     for _, cat in ipairs(Points.Categories) do
@@ -71,6 +76,7 @@ local function newPoint(pt, found)
     P.Set(p, "PosY", pt.y)
     P.Set(p, "PointId", pt.id)
     P.Set(p, "Label", pointLabel(pt, found))
+    P.Set(p, "LabelSize", Layer.LabelSize * Settings.PanelScale(Settings.PanelSize(labelPid)))
     return p
 end
 
@@ -408,6 +414,45 @@ local function setVisible(node, on)
     end
 end
 
+local function findLegend(node, depth)
+    if not node or depth > 14 then
+        return nil
+    end
+    if P.Get(node, "Name") == "Legend" then
+        return node
+    end
+    if P.Str(P.Get(node, "Type")) == "ls.LSWorldMap" then
+        return nil
+    end
+    for _, c in ipairs(children(node)) do
+        local found = findLegend(c, depth + 1)
+        if found then
+            return found
+        end
+    end
+    return nil
+end
+
+local function updateLegend(entry, model, pid)
+    if not Layer.LegendWidgets[entry.widget] then
+        return
+    end
+    local hide = Settings.HideLegend(pid)
+    if not hide and not model.legendHidden then
+        return
+    end
+    local legend = findLegend(entry.node, 0)
+    if not legend then
+        logOnce("nolegend" .. entry.widget, "legend not found in " .. entry.widget)
+        return
+    end
+    local alpha = hide and 0.0 or 1.0
+    if P.Get(legend, "Opacity") ~= alpha then
+        P.Set(legend, "Opacity", alpha)
+    end
+    model.legendHidden = hide
+end
+
 local function updateFilters(entry)
     for _, c in ipairs(children(entry.layer)) do
         local name = P.Get(c, "Name")
@@ -727,6 +772,7 @@ local function update()
 end
 
 function updatePlayer(found)
+    labelPid = (found[1] and found[1].player) or 1
     updateView(found)
     updateSubregion(found)
     updateRegions(found)
@@ -769,6 +815,7 @@ function updatePlayer(found)
             P.Set(shared, "ShroudOpacity", tonumber(fog))
             updateScale(entry, model)
             updateFilters(entry)
+            updateLegend(entry, model, pid)
             updateCursor(entry)
         else
             logOnce("nolayer", "LSWorldMap found without BG3A_Layer: theme override not applied")

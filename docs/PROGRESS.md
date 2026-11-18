@@ -237,8 +237,8 @@ Done on main, needs in-game check:
 
 To build:
 - Bigger icon labels: tooltip text from 15 to the panel row size (Nexus report: unreadable with a bigger font mod).
-- Text size option (normal, large, larger) for the panel and the labels, panel button and settings.json.
-- Option to hide the vanilla map legend and put the Atlas panel in its place. Many players remove the legend with other mods.
+- Panel size (normal, large x1.3, larger x1.6), per player: the panel is wrapped in a `Viewbox` named `BG3A_Panel` whose width binds `PanelWidth`; icon labels bind `LabelSize` (26 x scale, set per point, the layer rebuilds on change). Button under the categories, D-pad reaches it (`Panel.Nav`). Unverified in game, including whether the larger size fits in split screen.
+- Hide the vanilla legend, per player: Lua finds the element named `Legend` in `JournalMap` and `JournalMap_c` and sets its Opacity to 0 (Opacity, not Visibility, so the pad L3 binding keeps working). Button next to the size button. Unverified in game.
 - Notable items category (`notable`, 138 points, unverified in game): pickable items (stats without the `Grounded` flag) whose template starts with `UNI_` or `QUEST_`, or with `StoryItem`, that no other category takes. Skips throwable combat props (`_CMB_`), decor, roasting dwarf parts, puzzle paintings and similar by template name, and containers with loot. Covers Sussur bark and blooms, Noblestalk, Owlbear egg, tadpole jars, Shar trial orbs. Auto found on pickup like other items. pt-BR name "Itens notáveis" is my own, ask ShadowAhjin.
 
 ## Backlog ideas (2026-11-17)

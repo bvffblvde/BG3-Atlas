@@ -49,7 +49,7 @@ describe("layerXaml", () => {
 
   it("makes icons clickable with a tooltip, dims found ones, keeps the empty layer transparent to the mouse", () => {
     expect(xaml).not.toContain("Command=");
-    expect(xaml.split('<TextBlock Text="{Binding Label}" FontSize="26"').length - 1).toBe(ids.length * 2);
+    expect(xaml.split('<TextBlock Text="{Binding Label}" FontSize="{Binding LabelSize}"').length - 1).toBe(ids.length * 2);
     expect(xaml.split("<ToolTip.Template>").length - 1).toBe(ids.length * 2);
     expect(xaml.split('<ToolTip Placement="Right" HorizontalOffset="6">').length - 1).toBe(ids.length * 2);
     expect(xaml).not.toContain("LSTooltip");

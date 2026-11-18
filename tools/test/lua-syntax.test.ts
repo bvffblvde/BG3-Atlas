@@ -47,6 +47,14 @@ describe("mod Lua files", () => {
     expect(written?.[1]).toBeDefined();
     expect(read?.[1]).toBe(written![1]);
     expect(props).toContain(written![1]);
+    expect(props).toContain("LabelSize");
+    expect(src).toMatch(/P\.Set\(p, "LabelSize", /);
+  });
+
+  it("layer hides the vanilla legend only on the journal map pages", () => {
+    const src = readFileSync(path.join(luaRoot, "Client", "Layer.lua"), "utf8");
+    expect(src).toContain('Layer.LegendWidgets = { JournalMap = true, JournalMap_c = true }');
+    expect(src).toMatch(/Settings\.HideLegend\(pid\)/);
   });
 
   it.each(files)("%s has no comments", (file) => {

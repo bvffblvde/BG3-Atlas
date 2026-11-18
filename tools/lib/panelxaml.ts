@@ -54,6 +54,16 @@ function row(id: CategoryId, indent: number, index: number, mode: PanelMode): st
   ], cell);
 }
 
+function optionButton(indent: number, command: string, text: string, sel: string, column: number, mode: PanelMode): string[] {
+  const selection = mode === "pad" ? [`${pad(indent + 8)}<Rectangle Margin="-4,-2,-4,-2" Fill="#40F2DDA0" Opacity="{Binding Sel_${sel}}"/>`] : [];
+  return flatButton(indent, command, null, [
+    `${pad(indent + 4)}<Grid>`,
+    ...selection,
+    `${pad(indent + 8)}<TextBlock Text="{Binding ${text}}" Foreground="${dim}" FontSize="24"/>`,
+    `${pad(indent + 4)}</Grid>`,
+  ], ` Grid.Column="${column}" HorizontalAlignment="Left"`);
+}
+
 function searchBox(i: number): string[] {
   return [
     `${pad(i)}<Grid Grid.Column="1" Margin="18,0,12,0" VerticalAlignment="Center">`,
@@ -84,7 +94,8 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
   const visibility = mode === "pad" ? ' Visibility="{Binding IsChecked, ElementName=BG3A_PadBtn, Converter={StaticResource BoolToVisibleConverter}}"' : "";
   const placement = mode === "pad" ? 'Margin="60,230,0,0"' : 'Margin="60,444,0,0"';
   const lines = [
-    `${pad(i)}<Border x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14"${visibility}>`,
+    `${pad(i)}<Viewbox x:Name="BG3A_Panel" ${placement} HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding PanelWidth}" Stretch="Uniform"${visibility}>`,
+    `${pad(i + 4)}<Border x:Name="BG3A_PanelBox" Width="680" Background="#E61A1208" BorderBrush="#FF8C7346" BorderThickness="2" Padding="18,12,18,14">`,
     `${pad(i + 4)}<StackPanel>`,
     `${pad(i + 8)}<Grid Margin="0,0,0,8">`,
     `${pad(i + 12)}<Grid.ColumnDefinitions>`,
@@ -115,6 +126,15 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
     `${pad(i + 12)}</Grid.RowDefinitions>`,
     ...panelOrder().flatMap((id, n) => row(id, i + 12, n, mode)),
     `${pad(i + 8)}</Grid>`,
+    `${pad(i + 8)}<Rectangle Height="2" Fill="#FF8C7346" Opacity="0.6" Margin="0,8,0,4"/>`,
+    `${pad(i + 8)}<Grid Margin="-6,0,0,0">`,
+    `${pad(i + 12)}<Grid.ColumnDefinitions>`,
+    `${pad(i + 16)}<ColumnDefinition Width="*"/>`,
+    `${pad(i + 16)}<ColumnDefinition Width="*"/>`,
+    `${pad(i + 12)}</Grid.ColumnDefinitions>`,
+    ...optionButton(i + 12, "CycleSize", "SizeText", "size", 0, mode),
+    ...optionButton(i + 12, "ToggleLegend", "LegendText", "legend", 1, mode),
+    `${pad(i + 8)}</Grid>`,
     ...(mode === "pad"
       ? [
           `${pad(i + 8)}<TextBlock x:Name="BG3A_CursorInfo" Text="" Foreground="${ink}" FontSize="26" Margin="0,10,0,0" TextWrapping="Wrap"/>`,
@@ -122,7 +142,8 @@ export function panelXaml(mode: PanelMode = "mouse"): string {
         ]
       : []),
     `${pad(i + 4)}</StackPanel>`,
-    `${pad(i)}</Border>`,
+    `${pad(i + 4)}</Border>`,
+    `${pad(i)}</Viewbox>`,
     "",
   ];
   return lines.join("\n");

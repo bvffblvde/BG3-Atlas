@@ -88,6 +88,64 @@ describe("Settings per player view", () => {
   });
 });
 
+describe("Settings panel size and legend", () => {
+  it("cycles panel size per player and maps it to a scale", () => {
+    const expr = '(function() local out = {} for _ = 1, 4 do S.NextPanelSize(2) out[#out + 1] = S.PanelSize(2) end return table.concat(out, ",") .. " " .. S.PanelSize(1) .. " " .. S.PanelScale(0) .. "/" .. S.PanelScale(1) .. "/" .. S.PanelScale(2) .. "/" .. S.PanelScale(9) end)()';
+    expect(run(["Settings.lua"], expr)).toBe("1,2,0,1 0 1/1.3/1.6/1");
+  });
+
+  it("hides the legend per player", () => {
+    const expr = '(function() S.SetHideLegend(true, 2) return tostring(S.HideLegend(1)) .. tostring(S.HideLegend(2)) end)()';
+    expect(run(["Settings.lua"], expr)).toBe("falsetrue");
+  });
+
+  it("reads panel size and legend for player 1 from the top level and others from view", () => {
+    const parse = 'Ext.Json.Parse = function() return { panelSize = 2, hideLegend = true, view = { ["2"] = { panelSize = 1, hideLegend = false }, ["3"] = { panelSize = 8 } } } end\n';
+    const expr = `(function() ${parse} local st = S.Parse("x") return st.view["1"].panelSize .. tostring(st.view["1"].hideLegend) .. st.view["2"].panelSize .. tostring(st.view["2"].hideLegend) .. st.view["3"].panelSize .. tostring(st.view["3"].hideLegend) end)()`;
+    expect(run(["Settings.lua"], expr)).toBe("2true1false0false");
+  });
+
+  it("saves panel size and legend at the top level and per player", () => {
+    const save = 'local written = nil Ext.IO.SaveFile = function(_, t) written = t end\n';
+    const expr = `(function() ${save} S.NextPanelSize(1) S.SetHideLegend(true, 1) S.NextPanelSize(2) S.NextPanelSize(2) S.Save() return written end)()`;
+    const out = run(["Settings.lua"], expr);
+    expect(out).toContain('"panelSize":1');
+    expect(out).toContain('"hideLegend":true');
+    expect(out).toContain('"2":{"fogOnly":true,"mapStyle":0,"panelSize":2,"hideLegend":false}');
+  });
+});
+
+describe("Panel.Nav", () => {
+  const nav = (cur: number, dir: string, n = 21) => run(["Panel.lua"], `tostring(BG3Atlas.Panel.Nav(${cur}, "${dir}", ${n}))`);
+
+  it("moves left and right through categories and the option row, wrapping", () => {
+    expect(nav(1, "next")).toBe("2");
+    expect(nav(23, "next")).toBe("1");
+    expect(nav(1, "prev")).toBe("23");
+  });
+
+  it("moves down a column into the option row and back to the top", () => {
+    expect(nav(1, "down")).toBe("3");
+    expect(nav(21, "down")).toBe("22");
+    expect(nav(20, "down")).toBe("21");
+    expect(nav(23, "down")).toBe("2");
+    expect(nav(22, "down")).toBe("1");
+  });
+
+  it("moves up from the option row into the last category row", () => {
+    expect(nav(22, "up")).toBe("21");
+    expect(nav(23, "up")).toBe("21");
+    expect(nav(1, "up")).toBe("22");
+    expect(nav(2, "up")).toBe("23");
+  });
+
+  it("works with an even number of categories", () => {
+    expect(nav(19, "down", 20)).toBe("21");
+    expect(nav(20, "down", 20)).toBe("22");
+    expect(nav(22, "up", 20)).toBe("20");
+  });
+});
+
 describe("Settings map style", () => {
   it("cycles normal, no grid, clear and back", () => {
     expect(run(["Settings.lua"], '(function() local out = {} for _ = 1, 4 do S.NextMapStyle() out[#out + 1] = S.MapStyle() end return table.concat(out, ",") end)()')).toBe("1,2,0,1");
