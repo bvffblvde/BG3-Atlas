@@ -228,9 +228,19 @@ Remaining:
 - Per player view (requested): map style, "Explored only" and the panel selection are stored per player in `settings.json` under `view` (player 1 also mirrors to the top level for older versions). Categories, "Hide found" and found marks stay shared.
 - Panel commands are accepted only from the player whose gamepad pressed last (`Hotkey.NotePress` / `AllowFor`, 300 ms window). Gamepad owner comes from `InputManager.PerDeviceData` (`DeviceId` 3 and 4 are controllers, `InputPlayerIndex` is 0 based; `DeviceLists` only lists player 1). Verified in game: SDL controller 0 -> device 3 -> player 2, controller 1 -> device 4 -> player 1, so the `3 + index` mapping holds. When the owner cannot be read, every panel accepts the press as before.
 
-## Backlog ideas (2026-11-17)
+## Next release 1.2.0 (planned, skipping 1.1.3)
 
+Done on main, needs in-game check:
+- Found points dim right away (view model property `Id` renamed to `PointId`). Clicks checked by the maintainer, look still to confirm.
+- pt-BR language detection: real probe text "Pontos de rota", matched ignoring case (confirmed by ShadowAhjin with a forced language).
+
+To build:
+- Bigger icon labels: tooltip text from 15 to the panel row size (Nexus report: unreadable with a bigger font mod).
+- Text size option (normal, large, larger) for the panel and the labels, panel button and settings.json.
 - Option to hide the vanilla map legend and put the Atlas panel in its place. Many players remove the legend with other mods.
+- Catch-all category for notable items that fit no other category. Known misses: Sussur bark, several Underdark plants (Noblestalk and others), story and quest items. Start from the 427 uncategorized interesting objects in `data/report.json` and from items the extractor drops as not interesting.
+
+## Backlog ideas (2026-11-17)
 - Unique items: show rarity tiers, and items inside containers, on bosses and at traders (today only rare gear lying in the world is shown, about 300 points).
 - Camps, fights and important story places on the map (source in game files not found yet).
 - Icon layer that survives map template replacement (Better Maps All-In-One look variants, Clear Map).
