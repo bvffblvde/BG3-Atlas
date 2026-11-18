@@ -165,7 +165,7 @@ export function coverHtml(): string {
 }
 
 const groups: { title: string; ids: CategoryId[] }[] = [
-  { title: "Loot", ids: ["chest", "container", "remains", "weapon_unique", "armor_unique", "accessory", "scroll", "book", "key", "ingredient", "valuable"] },
+  { title: "Loot", ids: ["chest", "container", "remains", "weapon_unique", "armor_unique", "accessory", "scroll", "book", "key", "ingredient", "valuable", "notable"] },
   { title: "World", ids: ["trap", "hidden_stash", "lever", "locked_door", "waypoint"] },
   { title: "Characters", ids: ["trader", "quest_npc", "boss", "animal"] },
 ];
@@ -182,6 +182,7 @@ export const names: Record<CategoryId, { en: string; ru: string }> = {
   key: { en: "Keys", ru: "Ключи" },
   ingredient: { en: "Ingredients", ru: "Ингредиенты" },
   valuable: { en: "Valuables", ru: "Ценности" },
+  notable: { en: "Notable items", ru: "Особые предметы" },
   trap: { en: "Traps", ru: "Ловушки" },
   hidden_stash: { en: "Hidden stashes", ru: "Тайники" },
   lever: { en: "Levers and buttons", ru: "Рычаги и кнопки" },

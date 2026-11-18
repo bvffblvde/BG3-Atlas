@@ -159,3 +159,39 @@ describe("isInteresting", () => {
     expect(isInteresting(i)).toBe(expected);
   });
 });
+
+describe("notable items", () => {
+  const obj = (names: string[], flags = "", extra: Partial<CategoryInput> = {}) =>
+    input({ templateNames: names, stat: stat("Object", flags ? { Flags: flags } : {}), ...extra });
+
+  it("shows pickable unique and quest items that fit no other category", () => {
+    expect(categorize(obj(["Quest_FOR_SussurBark"]))).toBe("notable");
+    expect(categorize(obj(["UNI_UND_SussurTreeFlower"]))).toBe("notable");
+    expect(categorize(obj(["QUEST_SHA_TrialOrb"]))).toBe("notable");
+    expect(categorize(obj(["LOOT_Something"], "", { attrs: { StoryItem: "True" } }))).toBe("notable");
+  });
+
+  it("skips items that cannot be picked up", () => {
+    expect(categorize(obj(["UNI_UND_SussurTreeFlower"], "Grounded"))).toBeNull();
+    expect(categorize(obj(["QUEST_Lever_Thing"], "Torch;Grounded"))).toBeNull();
+  });
+
+  it("skips throwable combat props, decor and puzzle pieces", () => {
+    for (const n of ["Quest_CMB_Crystal_Shard_Wall", "Quest_CMB_ThrowingRock", "UNI_DEC_GEN_Crate_Stack_B", "QUEST_GOB_RoastingDwarf_B", "QUEST_GOB_SuspiciousMeat", "UNI_TWN_Hospital_Bloodbank_Transfusion_Bottle_A", "UNI_LOW_NightsongPamphlet", "QUEST_Chains", "UNI_WYR_PaintingPuzzle_SolutionPainting3", "UNI_LOW_HOH_RestorationPondDevice", "QUEST_GoblinPriestess_Statue"]) {
+      expect(categorize(obj([n]))).toBeNull();
+    }
+  });
+
+  it("leaves items with their own category alone and ignores characters", () => {
+    expect(categorize(obj(["UNI_Key_Thing"], "", { attrs: { IsKey: "True" } }))).toBe("key");
+    expect(categorize(input({ kind: "character", templateNames: ["UNI_Someone"] }))).toBeNull();
+  });
+
+  it("keeps unique containers with loot in the container categories", () => {
+    expect(categorize(obj(["UNI_Bag_Of_Moulding"], "", { attrs: { InventoryType: "2" }, inventory: ["X"] }))).toBe("container");
+  });
+
+  it("counts notable items as interesting", () => {
+    expect(isInteresting(obj(["Quest_FOR_SussurBark"]))).toBe(true);
+  });
+});

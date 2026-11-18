@@ -28,6 +28,7 @@ BG3Atlas.Locale.Add("en", {
     key = "Keys",
     ingredient = "Ingredients",
     valuable = "Valuables",
+    notable = "Notable items",
     trap = "Traps",
     hidden_stash = "Hidden stashes",
     lever = "Levers and buttons",

@@ -12,6 +12,7 @@ export type CategoryId =
   | "key"
   | "ingredient"
   | "valuable"
+  | "notable"
   | "trap"
   | "hidden_stash"
   | "lever"
@@ -120,6 +121,15 @@ function isContainer(i: CategoryInput): boolean {
   return set(i.attrs.InventoryType) || anyName(i, /(^|_)CONT(_|$)/);
 }
 
+const notableRe = /^(UNI|QUEST)_/i;
+const notableSkipRe = /_CMB_|_DEC_|RoastingDwarf|SuspiciousMeat|Bloodbank|NightsongPamphlet|^QUEST_Chains|PaintingPuzzle|RestorationPondDevice|GoblinPriestess_Statue/i;
+
+function isNotable(i: CategoryInput): boolean {
+  if (isCharacter(i) || !i.stat || /(^|;)Grounded(;|$)/.test(i.stat.data.Flags ?? "")) return false;
+  if (i.templateNames.some((n) => notableSkipRe.test(n)) || (isContainer(i) && hasLoot(i))) return false;
+  return isTrue(i.attrs.StoryItem) || i.templateNames.some((n) => notableRe.test(n));
+}
+
 function hasLoot(i: CategoryInput): boolean {
   return i.contents.length > 0 || i.inventory.length > 0;
 }
@@ -142,6 +152,7 @@ export const categoryRules: { id: CategoryId; test: (i: CategoryInput) => boolea
   { id: "armor_unique", test: (i) => isRareGear(i, "Armor") },
   { id: "ingredient", test: (i) => !isCharacter(i) && (objectCategory(i).includes("Ingredient") || anyName(i, /ALCH_Ingredient|CONS_Mushrooms|CONS_Herbs|(^|_)CRA_/)) },
   { id: "valuable", test: (i) => !isCharacter(i) && (/^(Gold|PreciousGem)/.test(objectCategory(i)) || anyName(i, /LOOT_Gold|Gold_Stash|LOOT_GEN_Gem|(^|_)GEM_/)) },
+  { id: "notable", test: (i) => isNotable(i) },
   { id: "chest", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) && (templateName(i, chestRe) || isLocked(i)) },
   { id: "remains", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) && templateName(i, remainsRe) },
   { id: "container", test: (i) => !isCharacter(i) && isContainer(i) && hasLoot(i) },
@@ -171,6 +182,7 @@ export function isInteresting(i: CategoryInput): boolean {
     set(i.attrs.BookId) ||
     isTrue(i.attrs.IsKey) ||
     isTrue(i.attrs.IsTrap) ||
+    isNotable(i) ||
     i.waypoint === true ||
     (anyName(i, /(^|_)PUZ_/) && !anyName(i, propRe)) ||
     (anyName(i, /(^|_)DOOR_/) && isLocked(i)) ||

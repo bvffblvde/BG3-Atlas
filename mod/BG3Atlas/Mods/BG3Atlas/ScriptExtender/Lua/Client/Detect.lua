@@ -19,6 +19,7 @@ local itemCategories = {
     key = true,
     ingredient = true,
     valuable = true,
+    notable = true,
 }
 
 local containerCategories = {

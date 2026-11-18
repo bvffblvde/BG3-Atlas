@@ -152,6 +152,25 @@
     "flags": []
   },
   {
+    "id": "baf1a4c5-b6f9-48c2-908d-164b967655d5",
+    "category": "notable",
+    "map": "WLD_Main_A",
+    "level": "WLD_Main_A",
+    "submap": "Gate",
+    "floor": 0,
+    "pos": {
+      "x": 201.84,
+      "y": 37.42,
+      "z": 441.82
+    },
+    "template": "e89505df-2be5-4b3c-b1bc-c49e77c4b866",
+    "name": "War Horn",
+    "nameRu": "Боевой рог",
+    "description": "Blowing this horn produces a reverberating, threatening wail.",
+    "descriptionRu": "Если подуть в этот рог, раздается раскатистый, грозный рев.",
+    "flags": []
+  },
+  {
     "id": "df400bfd-7dbb-4c40-a63f-15ed4bbe894b",
     "category": "container",
     "map": "WLD_Main_A",
@@ -162,25 +181,6 @@
       "x": 220.54,
       "y": 34.56,
       "z": 440.01
-    },
-    "template": "72e3f454-5a68-4bb2-acef-7b8d595b5015",
-    "name": "Oil Barrel",
-    "nameRu": "Бочка с маслом",
-    "description": "Shiny black oil slowly seeps down the cracks in the wood.",
-    "descriptionRu": "Сквозь трещины медленно вытекают черные смолистые капли.",
-    "flags": []
-  },
-  {
-    "id": "51fd6be1-a7f8-43be-b6eb-5e2e735c520e",
-    "category": "container",
-    "map": "WLD_Main_A",
-    "level": "WLD_Main_A",
-    "submap": null,
-    "floor": null,
-    "pos": {
-      "x": 198.75,
-      "y": 35.05,
-      "z": 441.65
     },
     "template": "72e3f454-5a68-4bb2-acef-7b8d595b5015",
     "name": "Oil Barrel",

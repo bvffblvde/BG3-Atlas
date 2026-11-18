@@ -239,7 +239,7 @@ To build:
 - Bigger icon labels: tooltip text from 15 to the panel row size (Nexus report: unreadable with a bigger font mod).
 - Text size option (normal, large, larger) for the panel and the labels, panel button and settings.json.
 - Option to hide the vanilla map legend and put the Atlas panel in its place. Many players remove the legend with other mods.
-- Catch-all category for notable items that fit no other category. Known misses: Sussur bark, several Underdark plants (Noblestalk and others), story and quest items. Start from the 427 uncategorized interesting objects in `data/report.json` and from items the extractor drops as not interesting.
+- Notable items category (`notable`, 138 points, unverified in game): pickable items (stats without the `Grounded` flag) whose template starts with `UNI_` or `QUEST_`, or with `StoryItem`, that no other category takes. Skips throwable combat props (`_CMB_`), decor, roasting dwarf parts, puzzle paintings and similar by template name, and containers with loot. Covers Sussur bark and blooms, Noblestalk, Owlbear egg, tadpole jars, Shar trial orbs. Auto found on pickup like other items. pt-BR name "Itens notáveis" is my own, ask ShadowAhjin.
 
 ## Backlog ideas (2026-11-17)
 - Unique items: show rarity tiers, and items inside containers, on bosses and at traders (today only rare gear lying in the world is shown, about 300 points).

@@ -28,6 +28,7 @@ BG3Atlas.Locale.Add("ru", {
     key = "Ключи",
     ingredient = "Ингредиенты",
     valuable = "Ценности",
+    notable = "Особые предметы",
     trap = "Ловушки",
     hidden_stash = "Тайники",
     lever = "Рычаги и кнопки",

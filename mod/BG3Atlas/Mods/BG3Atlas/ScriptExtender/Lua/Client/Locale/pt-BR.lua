@@ -28,6 +28,7 @@ BG3Atlas.Locale.Add("pt-BR", {
     key = "Chaves",
     ingredient = "Ingredientes",
     valuable = "Objetos valiosos",
+    notable = "Itens notáveis",
     trap = "Armadilhas",
     hidden_stash = "Esconderijos ocultos",
     lever = "Alavancas e botões",

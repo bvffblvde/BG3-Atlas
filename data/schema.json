@@ -38,6 +38,7 @@
           "key",
           "ingredient",
           "valuable",
+          "notable",
           "trap",
           "hidden_stash",
           "lever",
