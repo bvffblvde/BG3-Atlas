@@ -252,3 +252,9 @@ To build:
   - Evil playthrough items (12119): adds items to Roah Moonglow, Quartermaster Talli and the Devil's Fee trader.
   - Bags Bags Bags: containers sold by vendors in all three acts.
   - Many gear mods only add stock to vanilla traders or the tutorial chest, so a "this trader sells modded items" mark may be more useful than new points.
+
+## Crash when switching from pad to mouse (2026-11-18, unverified fix)
+
+- One crash in play at 18:13 local, about a second after a pad screenshot with the map open (large panel, legend shown again after three size changes). No Lua error in the log, the game itself crashed (access violation, Script Extender on the stack). MCM and Heartbook were also loaded.
+- The other three dumps of 2026-11-17 and 2026-11-18 are exit crashes: their logs end with `ScriptExtender::Shutdown: Exiting`. Dump times in `%LOCALAPPDATA%\CrashDumps` are UTC, two hours behind local time.
+- Hypothesis (unverified): switching input destroys `JournalMap_c` and the pad panel while the layer loop still touches them. Defence: `Client/Guard.lua`. When any map or panel widget disappears, the layer skips all UI work for 500 ms (`Layer.SettleMs`) and logs "ui widget closed, waiting". Widgets that only appear (opening the map) do not wait.

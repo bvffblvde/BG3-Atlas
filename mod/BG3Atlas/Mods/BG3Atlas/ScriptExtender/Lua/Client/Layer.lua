@@ -12,6 +12,9 @@ Layer.Widgets = { JournalMap = true, JournalMap_c = true, Minimap = true }
 Layer.PanelWidgets = { BG3A_PanelWidget = true, BG3A_PanelWidget_c = true }
 Layer.LegendWidgets = { JournalMap = true, JournalMap_c = true }
 Layer.LabelSize = 26
+Layer.SettleMs = 500
+
+local settle = {}
 
 local labelPid = 1
 
@@ -346,7 +349,7 @@ local function findMaps()
             local isWidget = P.Str(P.Get(child, "Type")) == "ls.UIWidget"
             if isWidget and wname and Layer.PanelWidgets[wname] then
                 local pid = tonumber(P.Get(child, "PlayerId")) or 1
-                panels[#panels + 1] = { node = child, player = pid }
+                panels[#panels + 1] = { node = child, player = pid, name = wname }
                 logOnce("panelpid" .. wname .. pid, "panel widget " .. wname .. " player " .. pid)
             elseif isWidget and wname and Layer.Widgets[wname] then
                 local entry = { widget = wname, node = child, player = tonumber(P.Get(child, "PlayerId")) or 1 }
@@ -733,6 +736,20 @@ local function update()
     local groups = {}
     local order = {}
     local maps, panels = findMaps()
+    local names = {}
+    for _, m in ipairs(maps) do
+        names[#names + 1] = m.widget .. "@" .. tostring(m.player)
+    end
+    for _, p in ipairs(panels) do
+        names[#names + 1] = p.name .. "@" .. tostring(p.player)
+    end
+    if not BG3Atlas.Guard.Settled(settle, names, Ext.Timer.MonotonicTime(), Layer.SettleMs) then
+        if settle.logged ~= settle.since then
+            settle.logged = settle.since
+            P.Log("ui widget closed, waiting: " .. table.concat(names, ","))
+        end
+        return
+    end
     if #panels > 1 then
         logOnce("panels" .. #panels, "panel widgets found: " .. #panels)
     end

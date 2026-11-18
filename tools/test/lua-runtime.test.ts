@@ -360,3 +360,19 @@ describe("Detect", () => {
     expect(run(["Detect.lua"], expr, detectStubs)).toBe("c1,s1");
   });
 });
+
+describe("Guard.Settled", () => {
+  const g = (body: string) => run(["Guard.lua"], `(function() local G = BG3Atlas.Guard local st = {} ${body} end)()`);
+
+  it("does not wait when widgets only appear, like opening the map", () => {
+    expect(g('local a = G.Settled(st, {}, 0, 500) local b = G.Settled(st, { "JournalMap@1", "BG3A_PanelWidget@1" }, 100, 500) return tostring(a) .. tostring(b)')).toBe("truetrue");
+  });
+
+  it("waits after a widget disappears, like switching from pad to mouse", () => {
+    expect(g('G.Settled(st, { "JournalMap_c@1", "Minimap@1" }, 0, 500) local a = G.Settled(st, { "JournalMap@1", "Minimap@1" }, 100, 500) local b = G.Settled(st, { "JournalMap@1", "Minimap@1" }, 500, 500) local c = G.Settled(st, { "JournalMap@1", "Minimap@1" }, 600, 500) return tostring(a) .. tostring(b) .. tostring(c)')).toBe("falsefalsetrue");
+  });
+
+  it("restarts the wait when another widget disappears during it", () => {
+    expect(g('G.Settled(st, { "A", "B", "C" }, 0, 500) G.Settled(st, { "A", "B" }, 100, 500) local a = G.Settled(st, { "A" }, 400, 500) local b = G.Settled(st, { "A" }, 800, 500) local c = G.Settled(st, { "A" }, 900, 500) return tostring(a) .. tostring(b) .. tostring(c)')).toBe("falsefalsetrue");
+  });
+});

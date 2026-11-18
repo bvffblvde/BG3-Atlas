@@ -51,6 +51,14 @@ describe("mod Lua files", () => {
     expect(src).toMatch(/P\.Set\(p, "LabelSize", /);
   });
 
+  it("layer leaves the UI alone while the set of widgets changes", () => {
+    const src = readFileSync(path.join(luaRoot, "Client", "Layer.lua"), "utf8");
+    const boot = readFileSync(path.join(luaRoot, "BootstrapClient.lua"), "utf8");
+    expect(src).toMatch(/if not BG3Atlas\.Guard\.Settled\(settle, names, .*\) then[\s\S]*?return\r?\n    end/);
+    expect(src.indexOf("Guard.Settled")).toBeLessThan(src.indexOf("BG3Atlas.Panel.Reset()"));
+    expect(boot.indexOf("Client/Guard.lua")).toBeLessThan(boot.indexOf("Client/Layer.lua"));
+  });
+
   it("layer hides the vanilla legend only on the journal map pages", () => {
     const src = readFileSync(path.join(luaRoot, "Client", "Layer.lua"), "utf8");
     expect(src).toContain('Layer.LegendWidgets = { JournalMap = true, JournalMap_c = true }');
