@@ -232,6 +232,7 @@ Remaining:
 
 Done on main, needs in-game check:
 - Found points dim right away (view model property `Id` renamed to `PointId`). Clicks checked by the maintainer, look still to confirm.
+- Bug (maintainer, 2026-11-18): found marks made with RB are partly lost after leaving the Underdark and coming back, or after some time. Hypothesis (unverified): the level change fires SessionLoaded, `Found.Reset` drops the client cache and reloads the mod variable, which does not yet hold the marks written on the client (client writes to a server synced mod variable may not reach the server or the save). Check with log lines on write and on reload.
 - pt-BR language detection: real probe text "Pontos de rota", matched ignoring case (confirmed by ShadowAhjin with a forced language).
 
 To build:
