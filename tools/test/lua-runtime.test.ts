@@ -94,6 +94,21 @@ describe("Settings panel size and legend", () => {
     expect(run(["Settings.lua"], expr)).toBe("1,2,0,1 0 1/1.3/1.6/1");
   });
 
+  it("hides the legend when the panel grows and brings it back at normal size", () => {
+    const expr = '(function() local out = {} for _ = 1, 3 do S.NextPanelSize(1) out[#out + 1] = S.PanelSize(1) .. tostring(S.HideLegend(1)) end return table.concat(out, ",") end)()';
+    expect(run(["Settings.lua"], expr)).toBe("1true,2true,0false");
+  });
+
+  it("keeps a legend the player hid by hand hidden at normal size", () => {
+    const expr = '(function() S.SetHideLegend(true, 1) S.NextPanelSize(1) S.NextPanelSize(1) S.NextPanelSize(1) return tostring(S.HideLegend(1)) end)()';
+    expect(run(["Settings.lua"], expr)).toBe("true");
+  });
+
+  it("lets the player show the legend at a large size and then leaves it alone", () => {
+    const expr = '(function() S.NextPanelSize(1) S.SetHideLegend(false, 1) local a = tostring(S.HideLegend(1)) S.NextPanelSize(1) S.NextPanelSize(1) return a .. tostring(S.HideLegend(1)) end)()';
+    expect(run(["Settings.lua"], expr)).toBe("falsefalse");
+  });
+
   it("hides the legend per player", () => {
     const expr = '(function() S.SetHideLegend(true, 2) return tostring(S.HideLegend(1)) .. tostring(S.HideLegend(2)) end)()';
     expect(run(["Settings.lua"], expr)).toBe("falsetrue");
@@ -111,7 +126,7 @@ describe("Settings panel size and legend", () => {
     const out = run(["Settings.lua"], expr);
     expect(out).toContain('"panelSize":1');
     expect(out).toContain('"hideLegend":true');
-    expect(out).toContain('"2":{"fogOnly":true,"mapStyle":0,"panelSize":2,"hideLegend":false}');
+    expect(out).toContain('"2":{"fogOnly":true,"mapStyle":0,"panelSize":2,"hideLegend":true}');
   });
 });
 

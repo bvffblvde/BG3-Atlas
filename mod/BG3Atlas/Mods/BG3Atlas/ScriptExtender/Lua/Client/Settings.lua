@@ -154,7 +154,15 @@ end
 
 function S.NextPanelSize(player)
     local v = S.View(player)
-    v.panelSize = (validSize(v.panelSize) + 1) % 3
+    local before = validSize(v.panelSize)
+    v.panelSize = (before + 1) % 3
+    if before == 0 and v.panelSize > 0 and not v.hideLegend then
+        v.hideLegend = true
+        v.legendAuto = true
+    elseif v.panelSize == 0 and v.legendAuto then
+        v.hideLegend = false
+        v.legendAuto = nil
+    end
 end
 
 function S.PanelScale(size)
@@ -166,7 +174,9 @@ function S.HideLegend(player)
 end
 
 function S.SetHideLegend(on, player)
-    S.View(player).hideLegend = on == true
+    local v = S.View(player)
+    v.hideLegend = on == true
+    v.legendAuto = nil
 end
 
 function S.StyleOpacity(style, grid)
