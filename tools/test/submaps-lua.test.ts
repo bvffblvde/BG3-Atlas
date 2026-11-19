@@ -48,3 +48,22 @@ describe("Submaps.lua", () => {
     expect(new Set(expected).size).toBeGreaterThan(3);
   });
 });
+
+function luaEval(expr: string): string {
+  const L = lauxlib.luaL_newstate();
+  lualib.luaL_openlibs(L);
+  const stub = `BG3Atlas = { Points = { Maps = {} } }\nExt = { Require = function() return {} end }\n`;
+  const src = `${stub}${readFileSync(luaFile, "utf8")}\nlocal Submaps = BG3Atlas.Submaps\nreturn ${expr}`;
+  if (lauxlib.luaL_loadstring(L, to_luastring(src)) !== lua.LUA_OK || lua.lua_pcall(L, 0, 1, 0) !== lua.LUA_OK) {
+    throw new Error(to_jsstring(lua.lua_tostring(L, -1)));
+  }
+  return to_jsstring(lua.lua_tostring(L, -1));
+}
+
+describe("Submaps.Keys", () => {
+  it("gives one key for a single floor and one per floor for a floor list", () => {
+    expect(luaEval('table.concat(Submaps.Keys("M", nil, nil), " ")')).toBe("M|surface");
+    expect(luaEval('table.concat(Submaps.Keys("M", "Keep", 2), " ")')).toBe("M|Keep#2");
+    expect(luaEval('table.concat(Submaps.Keys("M", "Keep", { 1, 2 }), " ")')).toBe("M|Keep#1 M|Keep#2");
+  });
+});

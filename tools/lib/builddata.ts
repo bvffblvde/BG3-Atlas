@@ -41,7 +41,7 @@ export function buildData(opts: BuildDataOptions): string[] {
       warnings.push(`skip ${map}: ${(e as Error).message}`);
       continue;
     }
-    writeFileSync(path.join(dir, `Points_${map}.lua`), pointsLua(list, origin));
+    writeFileSync(path.join(dir, `Points_${map}.lua`), pointsLua(list, origin, opts.submaps?.[map] ?? []));
     writeFileSync(path.join(dir, `Submaps_${map}.lua`), submapsLua(opts.submaps?.[map] ?? []));
     maps.push(`{${luaString(map)},${origin.x},${origin.z}}`);
   }

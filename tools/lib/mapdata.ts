@@ -1,9 +1,9 @@
+import { floorsAt, type Submap } from "./submaps.ts";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { levelModules } from "./level.ts";
 import { attr, findAll, readLsxFile } from "./lsx.ts";
 import type { Point } from "./points.ts";
-import type { Submap } from "./submaps.ts";
 
 export interface MapOrigin {
   x: number;
@@ -36,13 +36,14 @@ function num(v: number): string {
   return String(Math.round(v * 100) / 100);
 }
 
-export function pointsLua(points: Point[], origin: MapOrigin): string {
+export function pointsLua(points: Point[], origin: MapOrigin, submaps: Submap[] = []): string {
   const rows: string[] = [];
   for (const p of points) {
     const [x, y] = toMapLocal(origin, p.pos.x, p.pos.z);
     const mask = p.flags.reduce((m, f) => m | (flagBits[f] ?? 0), 0);
     const submap = p.submap === null ? "nil" : luaString(p.submap);
-    const floor = p.floor === null ? "nil" : String(p.floor);
+    const floors = p.submap === null ? [] : floorsAt([p.pos.x, p.pos.y, p.pos.z], submaps, p.submap);
+    const floor = p.floor === null ? "nil" : floors.length > 1 ? `{${floors.join(",")}}` : String(p.floor);
     rows.push(`{${luaString(p.id)},${luaString(p.category)},${num(x)},${num(y)},${luaString(p.name)},${luaString(p.nameRu)},${mask},${submap},${floor}}`);
   }
   return `return {\n${rows.join(",\n")}\n}\n`;

@@ -95,3 +95,10 @@ export function assignSubmap(pos: Vec3, submaps: Submap[]): SubmapAssignment {
   if (!hit) return { submap: null, floor: null, trigger: null };
   return { submap: hit.building, floor: hit.building ? hit.floor : null, trigger: hit.trigger };
 }
+
+export function floorsAt(pos: Vec3, submaps: Submap[], building: string): number[] {
+  const hits = submaps.filter((s) => s.building === building && contains(s, pos)).sort((a, b) => a.area - b.area);
+  if (hits.length === 0) return [];
+  if (Number.isFinite(hits[0].half[1])) return [hits[0].floor];
+  return [...new Set(hits.filter((s) => !Number.isFinite(s.half[1])).map((s) => s.floor))].sort((a, b) => a - b);
+}

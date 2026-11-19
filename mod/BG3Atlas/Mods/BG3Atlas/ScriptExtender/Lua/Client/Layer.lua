@@ -101,8 +101,9 @@ local function countForKey(key)
         viewCounts = {}
         for _, list in pairs(Points.ByCategory()) do
             for _, pt in ipairs(list) do
-                local k = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
-                viewCounts[k] = (viewCounts[k] or 0) + 1
+                for _, k in ipairs(BG3Atlas.Submaps.Keys(pt.map, pt.submap, pt.floor)) do
+                    viewCounts[k] = (viewCounts[k] or 0) + 1
+                end
             end
         end
     end
@@ -124,12 +125,15 @@ local function insideSubregion(pt)
 end
 
 local function inView(pt)
-    local key = pt._key
-    if not key then
-        key = BG3Atlas.Submaps.Key(pt.map, pt.submap, pt.floor)
-        pt._key = key
+    local keys = pt._keys
+    if not keys then
+        keys = {}
+        for _, k in ipairs(BG3Atlas.Submaps.Keys(pt.map, pt.submap, pt.floor)) do
+            keys[k] = true
+        end
+        pt._keys = keys
     end
-    return key == viewKey and insideSubregion(pt)
+    return keys[viewKey] == true and insideSubregion(pt)
 end
 
 function Layer.ForceRebuild()

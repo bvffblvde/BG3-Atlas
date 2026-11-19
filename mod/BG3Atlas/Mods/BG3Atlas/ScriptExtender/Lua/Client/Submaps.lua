@@ -55,3 +55,14 @@ function Submaps.Key(map, submap, floor)
     end
     return tostring(map) .. "|" .. submap .. "#" .. tostring(floor or 0)
 end
+
+function Submaps.Keys(map, submap, floor)
+    if type(floor) ~= "table" then
+        return { Submaps.Key(map, submap, floor) }
+    end
+    local out = {}
+    for _, f in ipairs(floor) do
+        out[#out + 1] = Submaps.Key(map, submap, f)
+    end
+    return out
+end

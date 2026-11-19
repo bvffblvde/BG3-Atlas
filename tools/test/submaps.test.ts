@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { assignSubmap, loadSubmaps, type Submap } from "../lib/submaps.ts";
+import { assignSubmap, floorsAt, loadSubmaps, type Submap } from "../lib/submaps.ts";
 import { identity } from "../lib/transform.ts";
 
 function box(trigger: string, building: string | null, floor: number, center: [number, number, number], half: [number, number, number], rot: [number, number, number, number] = [0, 0, 0, 1]): Submap {
@@ -91,5 +91,28 @@ describe("loadSubmaps", () => {
 
   it("skips the whole-level minimap entry", () => {
     expect(subs.some((s) => s.trigger === "00000000-0000-0000-0000-000000000000")).toBe(false);
+  });
+});
+
+describe("floorsAt", () => {
+  const flat1 = box("k1", "Keep", 1, [0, 0, 0], [50, Infinity, 50]);
+  const flat2 = box("k2", "Keep", 2, [10, 0, 10], [30, Infinity, 30]);
+  const solid1 = box("s1", "Tower", 1, [0, 0, 0], [50, 5, 50]);
+  const solid2 = box("s2", "Tower", 2, [0, 10, 0], [50, 5, 50]);
+
+  it("lists every floor of the building when floors have no height and overlap", () => {
+    expect(floorsAt([12, 20, 12], [flat1, flat2], "Keep")).toEqual([1, 2]);
+  });
+
+  it("keeps one floor where only one flat floor covers the point", () => {
+    expect(floorsAt([-40, 0, -40], [flat1, flat2], "Keep")).toEqual([1]);
+  });
+
+  it("keeps one floor when floors have real heights", () => {
+    expect(floorsAt([0, 9, 0], [solid1, solid2], "Tower")).toEqual([2]);
+  });
+
+  it("returns nothing for another building", () => {
+    expect(floorsAt([12, 20, 12], [flat1, flat2], "Other")).toEqual([]);
   });
 });

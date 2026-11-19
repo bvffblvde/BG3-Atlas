@@ -80,6 +80,19 @@ describe("pointsLua", () => {
   });
 });
 
+describe("pointsLua with overlapping flat floors", () => {
+  const subs = [
+    { trigger: "k1", building: "Keep", floor: 1, center: [0, 0, 0] as [number, number, number], half: [5000, Infinity, 5000] as [number, number, number], rot: [0, 0, 0, 1] as [number, number, number, number], area: 1e8 },
+    { trigger: "k2", building: "Keep", floor: 2, center: [0, 0, 0] as [number, number, number], half: [4000, Infinity, 4000] as [number, number, number], rot: [0, 0, 0, 1] as [number, number, number, number], area: 6.4e7 },
+  ];
+  const lua = pointsLua([point({ id: "both", submap: "Keep", floor: 2 })], origin, subs);
+
+  it("writes every floor as a list", () => {
+    expect(() => luaparse.parse(lua, { luaVersion: "5.3" })).not.toThrow();
+    expect(lua).toContain(',"Keep",{1,2}}');
+  });
+});
+
 describe("submapsLua", () => {
   const lua = submapsLua([
     { trigger: "u", building: "Underdark", floor: 3, center: [1, 2, 3], half: [4, 5, 6], rot: [0, 0, 0, 1], area: 96 },
