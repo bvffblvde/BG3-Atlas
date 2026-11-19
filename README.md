@@ -44,7 +44,7 @@ Map sites are great until you alt-tab for the hundredth time. BG3 Atlas puts the
 
 - 🗺️ **On the real map.** Icons on the journal map and the minimap, sized like the game's markers and pinned while you zoom and pan.
 - 🌫️ **Respects the fog of war.** Icons stay hidden until you explore the area, one click or `LB` shows everything.
-- 🧭 **20 categories.** Turn each on or off, or show and hide all at once. Found / total counter per category.
+- 🧭 **21 categories.** Turn each on or off, or show and hide all at once. Found / total counter per category.
 - ✅ **Found tracking.** Looted containers, picked up items and defeated bosses are marked automatically. Mark or unmark any point yourself.
 - 🔎 **Search.** Find a point by name in English or Russian.
 - 🏰 **Sub maps.** Inside buildings, caves, the Underdark, Grymforge and the crypt you see only that place and floor.
@@ -53,23 +53,25 @@ Map sites are great until you alt-tab for the hundredth time. BG3 Atlas puts the
 
 ## 🎬 See it in action
 
-<img src="./.github/assets/legend.png" alt="All twenty categories with their icons" width="900" />
+<img src="./.github/assets/legend.png" alt="Atlas categories with their icons" width="900" />
 
 In-game screenshots are coming with the first release.
 
 ## 🧩 Features
 
 **Categories**
-- Loot: `Chests` `Barrels and crates` `Remains` `Unique weapons` `Unique armour` `Accessories` `Scrolls` `Books and notes` `Keys` `Ingredients` `Valuables`
+- Loot: `Chests` `Barrels and crates` `Remains` `Unique weapons` `Unique armour` `Accessories` `Scrolls` `Books and notes` `Keys` `Ingredients` `Valuables` `Notable items`
 - World: `Traps` `Hidden stashes` `Levers and buttons` `Locked doors` `Waypoints`
 - Characters: `Traders` `Quest characters` `Bosses` `Talking animals`
 
-Barrels, crates and remains are off by default: there are thousands of them.
+Barrels, crates and remains are off by default: there are thousands of them. Notable items are pickable story and unique objects that fit no other category, like Sussur bark, Noblestalk or the Grymforge moulds.
 
 **Map**
 - Icons on the journal map (mouse and gamepad pages) and the minimap
 - Hover tooltip with the point's name, on a gamepad the name shows in the panel
 - Found points are dimmed, or hidden with "Hide found"
+- Panel size: normal, large or larger, icon labels grow with it
+- Hide the game's map legend; the larger panel sizes hide it by themselves
 - Waypoints use their real names ("Roadside Cliffs", "Last Light Inn", "Grey Harbour Docks")
 
 **Coverage**
@@ -97,6 +99,7 @@ Enable or disable the mod from the main menu, not while a save is loaded.
 | Mark or unmark as found | Hover the icon and press `F` | Move the map cursor onto it and press `RB` |
 | Explored only or everywhere | The button in the panel | `LB` |
 | Map style: default, no grid, clear | The button in the panel | `LT` |
+| Panel size, legend | The buttons under the categories | D-pad down past the categories, then the "On/off" button |
 | Search | Type in the search box | Not available |
 
 `F` does nothing while you type in the search box.
