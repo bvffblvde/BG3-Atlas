@@ -220,7 +220,7 @@ export function legendHtml(): string {
   <div class="ground"></div>
   <svg class="topo" width="1920" height="1080"><path d="${topo}" fill="none" stroke="#8a6a40" stroke-opacity="0.16" stroke-width="1.3"/></svg>
   <div class="vignette"></div>
-  <div class="wrap"><h1>Twenty categories<em>turn each on or off on the map</em></h1><div class="cols">${cols}</div></div>
+  <div class="wrap"><h1>Twenty-one categories<em>turn each on or off on the map</em></h1><div class="cols">${cols}</div></div>
   </body></html>`;
 }
 
@@ -269,16 +269,16 @@ export function headerHtml(background: string, focusY: number, side: "left" | "r
   html, body { margin: 0; padding: 0; }
   body { width: 1300px; height: 372px; overflow: hidden; background: #1b130b; ${fonts} }
   .shot { position: absolute; inset: 0; background: url("${background}") center ${focusY}% / cover no-repeat; }
-  .fade { position: absolute; inset: 0; background: linear-gradient(${left ? 90 : 270}deg, rgba(14,9,4,0.95) 0%, rgba(14,9,4,0.82) 28%, rgba(14,9,4,0.2) 55%, rgba(14,9,4,0) 70%); }
+  .fade { position: absolute; inset: 0; background: linear-gradient(${left ? 90 : 270}deg, rgba(14,9,4,0.96) 0%, rgba(14,9,4,0.9) 42%, rgba(14,9,4,0.45) 62%, rgba(14,9,4,0) 78%); }
   .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 90px 20px rgba(0,0,0,0.7); }
   .title { position: absolute; ${left ? "left" : "right"}: 70px; top: 50%; transform: translateY(-50%); text-align: ${left ? "left" : "right"}; }
   .title h1 { margin: 0; font-weight: normal; font-size: 92px; line-height: 1; color: #f4e2ac; letter-spacing: -1px; text-shadow: 0 3px 20px rgba(0,0,0,0.8); }
   .title h1 span { color: #c9a45c; font-size: 52px; letter-spacing: 1px; margin-right: 14px; }
   .rule { width: 90px; height: 2px; background: #c9a45c; margin: 20px ${left ? "auto 18px 0" : "0 18px auto"}; }
-  .title p { margin: 0; font-size: 24px; color: #dcc896; font-style: italic; }
+  .title p { margin: 0; font-size: 26px; line-height: 1.35; color: #dcc896; font-style: italic; }
   </style></head><body>
   <div class="shot"></div><div class="fade"></div><div class="vignette"></div>
-  <div class="title"><h1><span>BG3</span>Atlas</h1><div class="rule"></div><p>Every chest, stash, trap and trader, on your in-game map.</p></div>
+  <div class="title"><h1><span>BG3</span>Atlas</h1><div class="rule"></div><p>Every chest, stash, trap and trader,<br>on your in-game map.</p></div>
   </body></html>`;
 }
 
